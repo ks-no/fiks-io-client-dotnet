@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvarinnClient", "SvarinnClient\SvarinnClient.csproj", "{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvarinnClient.Tests", "SvarinnClient.Tests\SvarinnClient.Tests.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
