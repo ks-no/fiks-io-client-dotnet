@@ -1,3 +1,3 @@
 dotnetLibPipeline(
-    projectName: "fiks-svarinn2-klient-dotnet"
+    componentTestProject = "fiks-svarinn2-dotnet-java-komponent-test"
 )
