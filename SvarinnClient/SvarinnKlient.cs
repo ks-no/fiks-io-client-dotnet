@@ -4,7 +4,7 @@ namespace SvarinnClient
     {
         public string GetKontoId()
         {
-            return "001";
+            return "ID001";
         }
     }
 }
