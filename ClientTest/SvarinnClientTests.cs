@@ -1,16 +1,16 @@
 using NFluent;
 using NUnit.Framework;
 
-namespace SvarinnClient.Tests
+namespace Ks.Fiks.Svarinn.ClientTest
 {
     public class TestBase
     {
-        protected SvarinnKlientFixture Fixture;
+        protected SvarinnClientFixture Fixture;
         
         [SetUp]
         public void Setup()
         {
-            Fixture = new SvarinnKlientFixture();
+            Fixture = new SvarinnClientFixture();
         }
 
     }

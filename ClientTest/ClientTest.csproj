@@ -4,9 +4,12 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
 
         <IsPackable>false</IsPackable>
+
+        <RootNamespace>KS.Fiks.Svarinn.ClientTest</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Moq" Version="4.10.1" />
         <PackageReference Include="NFluent" Version="2.4.0" />
         <PackageReference Include="nunit" Version="3.11.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
@@ -14,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SvarinnClient\SvarinnClient.csproj" />
+      <ProjectReference Include="..\Client\Client.csproj" />
     </ItemGroup>
 
 </Project>

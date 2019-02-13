@@ -1,6 +1,6 @@
-namespace SvarinnClient
+namespace Ks.Fiks.Svarinn.Client
 {
-    public class SvarinnKlient : ISvarinnKlient 
+    public class SvarinnClient : ISvarinnClient 
     {
         public string GetKontoId()
         {
