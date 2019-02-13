@@ -5,7 +5,8 @@
         <RootNamespace>KS.Fiks.Svarinn.Client</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
-        <VersionPrefix>0.0.3</VersionPrefix>
+        <PackageId>SvarinnClient</PackageId>
+        <Version>0.0.3</Version>
     </PropertyGroup>
 
 </Project>
