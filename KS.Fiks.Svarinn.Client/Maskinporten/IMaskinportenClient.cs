@@ -5,6 +5,6 @@ namespace Ks.Fiks.Svarinn.Client.Maskinporten
 {
     public interface IMaskinportenClient
     {
-        Task<string> GetAccessToken(ICollection<string> scopes);
+        Task<string> GetAccessToken(IEnumerable<string> scopes);
     }
 }

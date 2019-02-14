@@ -8,5 +8,10 @@
         <PackageId>SvarinnClient</PackageId>
         <Version>0.0.3</Version>
     </PropertyGroup>
+    <ItemGroup>
+      <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+        <HintPath>..\..\..\..\..\usr\share\dotnet\sdk\NuGetFallbackFolder\newtonsoft.json\9.0.1\lib\netstandard1.0\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+    </ItemGroup>
 
 </Project>

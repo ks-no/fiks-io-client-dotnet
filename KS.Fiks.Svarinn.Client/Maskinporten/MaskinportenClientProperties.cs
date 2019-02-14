@@ -1,11 +1,11 @@
 namespace Ks.Fiks.Svarinn.Client.Maskinporten
 {
-    public struct MaskinportenClientProperties
+    public class MaskinportenClientProperties
     {
-        public string Audience { get; private set; }
-        public string TokenEndpoint{ get; private set; }
-        public string Issuer{ get; private set; }
-        public int NumberOfSecondsLeftBeforeExpire{ get; private set; }
+        public string Audience { get; set; }
+        public string TokenEndpoint{ get; set; }
+        public string Issuer{ get; set; }
+        public int NumberOfSecondsLeftBeforeExpire{ get; set; }
 
         public MaskinportenClientProperties(string audience, string tokenEndpoint, string issuer,
             int numberOfSecondsLeftBeforeExpire)

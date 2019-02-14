@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -5,44 +6,55 @@ using System.Threading.Tasks;
 using Ks.Fiks.Svarinn.Client.Maskinporten;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json.Linq;
 
 namespace Ks.Fiks.Svarinn.ClientTest.Maskinporten
 {
     public class MaskinportenClientFixture
     {
-        private MaskinportenClientProperties _properties;
-        private HttpResponseMessage _responseMessage;
+        private string _accessToken;
 
         public MaskinportenClientFixture()
         {
             SetDefaultValues();
-            SetupMocks();
         }
+        
+        public Mock<HttpMessageHandler> HttpMessageHandleMock { get; private set; }
+        
+        public MaskinportenClientProperties Properties { get; private set; }
+
+        public List<string> DefaultScopes => new List<string>();
 
         public MaskinportenClient CreateSut()
         {
-            return new MaskinportenClient(_properties, new HttpClient(HttpMessageHandleMock.Object));
+            SetResponse();
+            return new MaskinportenClient(Properties, new HttpClient(HttpMessageHandleMock.Object));
         }
 
-        public Mock<HttpMessageHandler> HttpMessageHandleMock { get; private set; }
+        public void SetAccessToken(string accessToken)
+        {
+            _accessToken = accessToken;
+        }
 
         private void SetDefaultProperties()
         {
-            _properties = new MaskinportenClientProperties("testAudience", "testEndpoint", "testIssuer", 1);
+            Properties = new MaskinportenClientProperties("testAudience", "http://test.no", "testIssuer", 1);
         }
 
         private void SetDefaultValues()
         {
             SetDefaultProperties();
-            _responseMessage = new HttpResponseMessage()
+            _accessToken = "token";
+        }
+
+        private void SetResponse()
+        {
+            var responseMessage = new HttpResponseMessage()
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("test content"),
+                Content = new StringContent(GenerateJsonResponse()),
             };
-        }
-        
-        private void SetupMocks()
-        {
+            
             HttpMessageHandleMock = new Mock<HttpMessageHandler>();
             HttpMessageHandleMock
                 .Protected()
@@ -51,8 +63,17 @@ namespace Ks.Fiks.Svarinn.ClientTest.Maskinporten
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(_responseMessage)
+                .ReturnsAsync(responseMessage)
                 .Verifiable();
+        }
+
+
+        private string GenerateJsonResponse()
+        {
+            dynamic response = new JObject();
+            response.expires_in = 1;
+            response.access_token = _accessToken;
+            return response.ToString();
         }
     }
 }
