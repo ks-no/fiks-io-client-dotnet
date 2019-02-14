@@ -1,14 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.Svarinn.Client", "KS.Fiks.Svarinn.Client\KS.Fiks.Svarinn.Client.csproj", "{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientTest", "ClientTest\ClientTest.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "KS", "KS", "{F4988212-263E-4121-824A-CAE2817FD6CB}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Fiks", "Fiks", "{CFCF7861-701E-4055-83EF-52FDC6363977}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Svarinn", "Svarinn", "{0C9FEE8D-61C8-4A03-B7E1-3A89DEE66C93}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.Svarinn.Client.Tests", "KS.Fiks.Svarinn.Client.Tests\KS.Fiks.Svarinn.Client.Tests.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,19 +10,7 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{CFCF7861-701E-4055-83EF-52FDC6363977} = {F4988212-263E-4121-824A-CAE2817FD6CB}
-		{0C9FEE8D-61C8-4A03-B7E1-3A89DEE66C93} = {CFCF7861-701E-4055-83EF-52FDC6363977}
-		{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1} = {0C9FEE8D-61C8-4A03-B7E1-3A89DEE66C93}
-		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A} = {0C9FEE8D-61C8-4A03-B7E1-3A89DEE66C93}
 	EndGlobalSection
 EndGlobal

@@ -2,48 +2,42 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
-using NFluent;
-using NUnit.Framework;
 using Moq.Protected;
+using Xunit;
 
 
 namespace Ks.Fiks.Svarinn.ClientTest.Maskinporten
 {
-    public class TestBase
+    public class GetAccessToken
     {
-        protected MaskinportenClientFixture Fixture;
-        
-        [SetUp]
-        public void Setup()
-        {
-            Fixture = new MaskinportenClientFixture();
-        }
-    }
+        private MaskinportenClientFixture _fixture;
 
-    [TestFixture]
-    public class GetAccessToken : TestBase
-    {
-        [Test]
+        public GetAccessToken()
+        {
+            _fixture = new MaskinportenClientFixture();
+        }
+        
+        [Fact]
         public async Task ReturnsAString()
         {
-            var sut = Fixture.CreateSut();
+            var sut = _fixture.CreateSut();
             var scopes = new List<string>();
             
             var accessToken = await sut.GetAccessToken(scopes);
-            
-            Check.That(accessToken).IsInstanceOf<string>();
+            accessToken.Should().BeOfType<string>();
         }
 
-        [Test]
+        [Fact]
         public async Task CallsSendAsyncExactlyOnce()
         {
-            var sut = Fixture.CreateSut();
+            var sut = _fixture.CreateSut();
             var scopes = new List<string>();
             
             await sut.GetAccessToken(scopes);
 
-            Fixture.HttpMessageHandleMock.Protected().Verify(
+            _fixture.HttpMessageHandleMock.Protected().Verify(
                 "SendAsync",
                 Times.Once(),
                 ItExpr.Is<HttpRequestMessage>(req =>
