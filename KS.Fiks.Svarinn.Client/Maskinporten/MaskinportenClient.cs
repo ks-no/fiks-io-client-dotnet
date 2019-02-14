@@ -67,7 +67,7 @@ namespace Ks.Fiks.Svarinn.Client.Maskinporten
             _httpClient.DefaultRequestHeaders.Add("Charset", "utf-8");
         }
 
-        private StringContent CreateRequestContent()
+        private ByteArrayContent CreateRequestContent()
         {
             var request = new MaskinportenRequest()
             {
@@ -75,7 +75,11 @@ namespace Ks.Fiks.Svarinn.Client.Maskinporten
                 Assertion = "something"
             };
             var requestAsJson = JsonConvert.SerializeObject(request);
-            return new StringContent(requestAsJson, Encoding.UTF8, "application/x-www-form-urlencoded");
+            var requestAsByteArray = Encoding.UTF8.GetBytes(requestAsJson);
+            var content = new ByteArrayContent(requestAsByteArray);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            content.Headers.ContentLength = requestAsByteArray.Length;
+            return content;
         }
 
 

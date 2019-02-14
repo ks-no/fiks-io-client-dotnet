@@ -136,6 +136,24 @@ namespace Ks.Fiks.Svarinn.ClientTest.Maskinporten
                 Times.Exactly(1),
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.Content.Headers.ContentType.MediaType =="application/x-www-form-urlencoded"
+                    
+                ),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        }
+
+        [Fact]
+        public async Task SendsHeaderContentLength()
+        {
+            var sut = _fixture.CreateSut();
+
+            await sut.GetAccessToken(_fixture.DefaultScopes);
+
+            _fixture.HttpMessageHandleMock.Protected().Verify(
+                "SendAsync",
+                Times.Exactly(1),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Content.Headers.ContentLength > 0
                 ),
                 ItExpr.IsAny<CancellationToken>()
             );
