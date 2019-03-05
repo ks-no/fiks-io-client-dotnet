@@ -1,6 +1,6 @@
-namespace Ks.Fiks.Svarinn.Client
+namespace KS.Fiks.IO.Client
 {
-    public class SvarinnClient : ISvarinnClient 
+    public class FiksIOClient : IFiksIOClient
     {
         public string GetKontoId()
         {

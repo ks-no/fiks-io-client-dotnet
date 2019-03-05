@@ -1,17 +1,17 @@
-using Xunit;
 using FluentAssertions;
-    
-namespace Ks.Fiks.Svarinn.ClientTest
-{
-    public class KontoId
-    {
-        private SvarinnClientFixture _fixture;
+using Xunit;
 
-        public KontoId()
+namespace KS.Fiks.IO.Client.Tests
+{
+    public class FiksIOClientTests
+    {
+        private FiksIOClientFixture _fixture;
+
+        public FiksIOClientTests()
         {
-            _fixture = new SvarinnClientFixture();
+            _fixture = new FiksIOClientFixture();
         }
-        
+
         [Fact]
         public void ReturnsAString()
         {

@@ -3,20 +3,22 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>false</IsPackable>
-        <RootNamespace>KS.Fiks.Svarinn.ClientTest</RootNamespace>
+        <IsTestProject>true</IsTestProject>
+        <RootNamespace>KS.Fiks.IO.Client.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.6.0" />
+        <PackageReference Include="JWT" Version="4.0.0" />
+        <PackageReference Include="KS.Fiks.QA" Version="0.9.9-dev-50" PrivateAssets="All" />
         <PackageReference Include="Moq" Version="4.10.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit" Version="2.4.1-pre.build.4071" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\KS.Fiks.Svarinn.Client\KS.Fiks.Svarinn.Client.csproj" />
+        <ProjectReference Include="..\KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj" />
     </ItemGroup>
 
 </Project>

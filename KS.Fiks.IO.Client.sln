@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.Svarinn.Client", "KS.Fiks.Svarinn.Client\KS.Fiks.Svarinn.Client.csproj", "{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.IO.Client", "KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj", "{F90F2276-7AF9-4AAB-8114-EEEBF05BF8D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.Svarinn.Client.Tests", "KS.Fiks.Svarinn.Client.Tests\KS.Fiks.Svarinn.Client.Tests.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.IO.Client.Tests", "KS.Fiks.IO.Client.Tests\KS.Fiks.IO.Client.Tests.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
