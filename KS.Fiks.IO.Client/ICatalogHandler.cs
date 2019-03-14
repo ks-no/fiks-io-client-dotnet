@@ -3,10 +3,8 @@ using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client
 {
-    public interface IFiksIOClient
+    public interface ICatalogHandler
     {
-        string AccountId { get; }
-
         Task<Account> Lookup(LookupRequest request);
     }
 }

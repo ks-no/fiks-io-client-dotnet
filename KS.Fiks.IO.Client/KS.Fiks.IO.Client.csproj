@@ -11,6 +11,7 @@
         <Title>Client for Fiks IO</Title>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-84" />
         <PackageReference Include="KS.Fiks.QA" Version="0.9.9-dev-50" PrivateAssets="All" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     </ItemGroup>
