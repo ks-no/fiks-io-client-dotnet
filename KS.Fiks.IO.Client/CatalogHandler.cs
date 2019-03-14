@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
+using UnexpectedResponseException = KS.Fiks.IO.Client.Exceptions.UnexpectedResponseException;
 
 namespace KS.Fiks.IO.Client
 {
@@ -38,7 +40,9 @@ namespace KS.Fiks.IO.Client
         public async Task<Account> Lookup(LookupRequest request)
         {
             await SetAuthorizationHeader().ConfigureAwait(false);
-            var response = await _httpClient.GetAsync(CreateLookupUri(request)).ConfigureAwait(false);
+            var requestUri = CreateLookupUri(request);
+            var response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
+            await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
             var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var responseAsAccount = JsonConvert.DeserializeObject<AccountResponse>(responseAsJsonString);
             return Account.FromAccountResponse(responseAsAccount);
@@ -67,6 +71,16 @@ namespace KS.Fiks.IO.Client
                 new AuthenticationHeaderValue("Bearer", accessToken.Token);
             _httpClient.DefaultRequestHeaders.Add("integrasjonId", _configuration.IntegrasjonId.ToString());
             _httpClient.DefaultRequestHeaders.Add("integrasjonPassord", _configuration.IntegrasjonPassword);
+        }
+
+        private async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
+        {
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new UnexpectedResponseException(
+                    $"Got unexpected HTTP Status code {response.StatusCode} from {requestUri}. Content: {content}.");
+            }
         }
     }
 }

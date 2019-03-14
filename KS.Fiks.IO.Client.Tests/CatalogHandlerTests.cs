@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using FluentAssertions;
+using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using Moq.Protected;
@@ -110,7 +112,7 @@ namespace KS.Fiks.IO.Client.Tests
                         expectedPassword &&
                         req.Headers.GetValues("integrasjonId").FirstOrDefault() ==
                         expectedId.ToString()),
-                    ItExpr.IsAny<CancellationToken>());
+                ItExpr.IsAny<CancellationToken>());
         }
 
         [Fact]
@@ -127,7 +129,8 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Lookup(request).ConfigureAwait(false);
 
-            Func<HttpRequestMessage, string, string> queryFromReq = (req, field) => HttpUtility.ParseQueryString(req.RequestUri.Query)[field];
+            Func<HttpRequestMessage, string, string> queryFromReq = (req, field) =>
+                HttpUtility.ParseQueryString(req.RequestUri.Query)[field];
             _fixture.HttpMessageHandleMock.Protected().Verify(
                 "SendAsync",
                 Times.Exactly(1),
@@ -137,6 +140,22 @@ namespace KS.Fiks.IO.Client.Tests
                         queryFromReq(req, "meldingType") == request.MessageType &&
                         int.Parse(queryFromReq(req, "sikkerhetsniva")) == request.AccessLevel),
                 ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.NotFound)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.NoContent)]
+        [InlineData(HttpStatusCode.Redirect)]
+        [InlineData(HttpStatusCode.Forbidden)]
+        public async Task ThrowsUnexpectedResponseExceptionWhenResponseIsNot200(HttpStatusCode statusCode)
+        {
+            var sut = _fixture.WithStatusCode(statusCode).CreateSut();
+
+            await Assert.ThrowsAsync<UnexpectedResponseException>(
+                            async () => await sut.Lookup(_fixture.DefaultLookupRequest).ConfigureAwait(false))
+                        .ConfigureAwait(false);
         }
     }
 }
