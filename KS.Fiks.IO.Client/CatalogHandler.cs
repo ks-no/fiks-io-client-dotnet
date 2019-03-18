@@ -48,6 +48,11 @@ namespace KS.Fiks.IO.Client
             return Account.FromAccountResponse(responseAsAccount);
         }
 
+        public Task<string> GetPublicKey(Guid receiverAccountId)
+        {
+            throw new NotImplementedException();
+        }
+
         private Uri CreateLookupUri(LookupRequest request)
         {
             var servicePath = $"{_configuration.CatalogConfiguration.Path}/{LookupEndpoint}";

@@ -10,6 +10,8 @@
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.6.0" />
         <PackageReference Include="JWT" Version="5.0.1" />
+        <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.0-dev0046" />
+        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-89" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-84" />
         <PackageReference Include="KS.Fiks.QA" Version="0.9.9-dev-58" PrivateAssets="All" />
         <PackageReference Include="Moq" Version="4.10.1" />
@@ -21,5 +23,9 @@
     <ItemGroup>
         <ProjectReference Include="..\KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <Content Include="testfile.txt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>

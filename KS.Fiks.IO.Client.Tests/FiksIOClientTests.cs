@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
+using Moq;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests
@@ -55,6 +59,103 @@ namespace KS.Fiks.IO.Client.Tests
             var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
 
             _fixture.CatalogHandlerMock.Verify(_ => _.Lookup(lookup));
+        }
+
+        [Fact]
+        public async Task SendCallsSendHandlerWithList()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = new MessageRequest();
+
+            var payload = new List<IPayload>();
+            payload.Add(Mock.Of<IPayload>());
+
+            var result = await sut.Send(request, payload).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(request, payload));
+        }
+
+        [Fact]
+        public async Task SendCallsSendHandlerAsPayloadList()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = new MessageRequest();
+
+            var stream = Mock.Of<Stream>();
+            var filename = "filename.file";
+
+            var result = await sut.Send(request, stream, filename).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(
+                request,
+                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                    actualPayload.Count() == 1 &&
+                    actualPayload.FirstOrDefault().Payload == stream &&
+                    actualPayload.FirstOrDefault().Filename == filename)));
+        }
+
+        [Fact]
+        public async Task SendCallsSendHandlerWithString()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = new MessageRequest();
+
+            var payload = "string payload";
+            var filename = "filename.txt";
+
+            var result = await sut.Send(request, payload, filename).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(
+                request,
+                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                    actualPayload.Count() == 1 &&
+                    actualPayload.FirstOrDefault().Payload.Length == payload.Length &&
+                    actualPayload.FirstOrDefault().Filename == filename)));
+        }
+
+        [Fact]
+        public async Task SendCallsSendHandlerWithFile()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = new MessageRequest();
+
+            var filename = "testfile.txt";
+            var path = $"{filename}";
+
+            var result = await sut.Send(request, path).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(
+                request,
+                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                    actualPayload.Count() == 1 &&
+                    actualPayload.FirstOrDefault().Filename == filename)));
+        }
+
+        [Fact]
+        public async Task SendReturnsExpectedSentMessage()
+        {
+            var expectedMessage = new SentMessage
+            {
+                MessageId = Guid.NewGuid(),
+                MessageType = "msgType",
+                ReceiverAccountId = Guid.NewGuid(),
+                SenderAccountId = Guid.NewGuid(),
+                Ttl = TimeSpan.FromDays(1)
+            };
+            var sut = _fixture.WithSentMessageReturned(expectedMessage).CreateSut();
+
+            var payload = new List<IPayload>();
+            payload.Add(Mock.Of<IPayload>());
+
+            var request = new MessageRequest();
+
+            var result = await sut.Send(request, payload).ConfigureAwait(false);
+
+            result.Should().Be(expectedMessage);
         }
     }
 }

@@ -34,7 +34,9 @@ namespace KS.Fiks.IO.Client.Tests
         public CatalogHandler CreateSut()
         {
             SetupMocks();
-            return new CatalogHandler(CreateConfiguration(), MaskinportenClientMock.Object,
+            return new CatalogHandler(
+                CreateConfiguration(),
+                MaskinportenClientMock.Object,
                 new HttpClient(HttpMessageHandleMock.Object));
         }
 

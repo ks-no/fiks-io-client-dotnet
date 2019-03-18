@@ -1,6 +1,8 @@
-using Ks.Fiks.Maskinporten.Client;
+using System.Collections.Generic;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.Io.Send.Client;
+using Ks.Fiks.Maskinporten.Client;
 using Moq;
 
 namespace KS.Fiks.IO.Client.Tests
@@ -10,6 +12,7 @@ namespace KS.Fiks.IO.Client.Tests
         private FiksIOConfiguration _configuration;
 
         private Account _lookupReturn = null;
+        private SentMessage _sentMessageReturn = null;
 
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
@@ -24,17 +27,27 @@ namespace KS.Fiks.IO.Client.Tests
         {
             CatalogHandlerMock = new Mock<ICatalogHandler>();
             MaskinportenClientMock = new Mock<IMaskinportenClient>();
+            FiksIOSenderMock = new Mock<IFiksIOSender>();
+            SendHandlerMock = new Mock<ISendHandler>();
         }
 
         public Mock<ICatalogHandler> CatalogHandlerMock { get; }
 
         public Mock<IMaskinportenClient> MaskinportenClientMock { get; }
 
+        public Mock<IFiksIOSender> FiksIOSenderMock { get; }
+
+        public Mock<ISendHandler> SendHandlerMock { get; }
+
         public FiksIOClient CreateSut()
         {
             SetupConfiguration();
             SetupMocks();
-            return new FiksIOClient(_configuration, CatalogHandlerMock.Object, MaskinportenClientMock.Object);
+            return new FiksIOClient(
+                _configuration,
+                CatalogHandlerMock.Object,
+                MaskinportenClientMock.Object,
+                SendHandlerMock.Object);
         }
 
         public FiksIOClientFixture WithAccountId(string id)
@@ -73,6 +86,12 @@ namespace KS.Fiks.IO.Client.Tests
             return this;
         }
 
+        public FiksIOClientFixture WithSentMessageReturned(SentMessage message)
+        {
+            _sentMessageReturn = message;
+            return this;
+        }
+
         public FiksIOClientFixture WithCatalogConfiguration(CatalogConfiguration configuration)
         {
             _catalogConfiguration = configuration;
@@ -82,6 +101,8 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupMocks()
         {
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MessageRequest>(), It.IsAny<IEnumerable<IPayload>>()))
+                           .ReturnsAsync(_sentMessageReturn);
         }
 
         private void SetupConfiguration()
