@@ -7,7 +7,7 @@ namespace KS.Fiks.IO.Client.Utility
         public static FiksIOConfiguration SetDefaultValues(FiksIOConfiguration configuration)
         {
             configuration.CatalogConfiguration =
-                configuration.CatalogConfiguration ?? GetDefaultCatalogConfiguration(configuration); 
+                configuration.CatalogConfiguration ?? GetDefaultCatalogConfiguration(configuration);
             return configuration;
         }
 

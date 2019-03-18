@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using KS.Fiks.ASiC_E;
-using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.Io.Send.Client;
-
 
 namespace KS.Fiks.IO.Client
 {

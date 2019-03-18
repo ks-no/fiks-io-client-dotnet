@@ -29,7 +29,9 @@ namespace KS.Fiks.IO.Client
 
         private readonly IMaskinportenClient _maskinportenClient;
 
-        public CatalogHandler(FiksIOConfiguration configuration, IMaskinportenClient maskinportenClient,
+        public CatalogHandler(
+            FiksIOConfiguration configuration,
+            IMaskinportenClient maskinportenClient,
             HttpClient httpClient = null)
         {
             _httpClient = httpClient ?? new HttpClient();

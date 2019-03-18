@@ -30,7 +30,7 @@ namespace KS.Fiks.IO.Client.Models
                 MeldingType = MessageType,
                 MottakerKontoId = ReceiverAccountId,
                 SvarPaMelding = SvarPaMelding,
-                Ttl = (long) Ttl.TotalMilliseconds
+                Ttl = (long)Ttl.TotalMilliseconds
             };
         }
     }

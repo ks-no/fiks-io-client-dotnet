@@ -1,13 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Utility;
-using KS.Fiks.Io.Send.Client;
 using Ks.Fiks.Maskinporten.Client;
-
 
 namespace KS.Fiks.IO.Client
 {
@@ -16,8 +13,6 @@ namespace KS.Fiks.IO.Client
         private readonly ICatalogHandler _catalogHandler;
 
         private readonly IMaskinportenClient _maskinportenClient;
-
-        private readonly IFiksIOSender _fiksIOSender;
 
         private readonly ISendHandler _sendHandler;
 
