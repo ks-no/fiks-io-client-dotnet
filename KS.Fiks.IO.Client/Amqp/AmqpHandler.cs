@@ -21,12 +21,9 @@ namespace KS.Fiks.IO.Client.Amqp
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
         }
 
-        public void AddReceivedListener(EventHandler<MessageReceivedArgs> receivedEvent)
-        {
-            AddReceivedListener(receivedEvent, null);
-        }
-
-        public void AddReceivedListener(EventHandler<MessageReceivedArgs> receivedEvent, EventHandler<ConsumerEventArgs> cancelledEvent)
+        public void AddMessageReceivedHandler(
+            EventHandler<MessageReceivedArgs> receivedEvent,
+            EventHandler<ConsumerEventArgs> cancelledEvent)
         {
             if (_receiveConsumer == null)
             {
@@ -37,7 +34,21 @@ namespace KS.Fiks.IO.Client.Amqp
 
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
-             _channel.BasicConsume(_receiveConsumer, "queue");
+            _channel.BasicConsume(_receiveConsumer, "queue");
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _channel?.Dispose();
+            }
         }
 
         private static IModel ConnectToChannel(IConnectionFactory connectionFactory)

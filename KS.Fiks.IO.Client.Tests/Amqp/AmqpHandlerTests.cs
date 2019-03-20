@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var handler = new EventHandler<MessageReceivedArgs>((a, _) => { });
 
-            sut.AddReceivedListener(handler);
+            sut.AddMessageReceivedHandler(handler, null);
 
             _fixture.AmqpConsumerFactoryMock.Verify(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()));
         }
@@ -62,7 +62,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var counter = 0;
             var handler = new EventHandler<MessageReceivedArgs>((a, _) => { counter++; });
 
-            sut.AddReceivedListener(handler);
+            sut.AddMessageReceivedHandler(handler, null);
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.Received += null, this, null);
             counter.Should().Be(1);
@@ -76,7 +76,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var counter = 0;
             var handler = new EventHandler<ConsumerEventArgs>((a, _) => { counter++; });
 
-            sut.AddReceivedListener(null, handler);
+            sut.AddMessageReceivedHandler(null, handler);
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
             counter.Should().Be(1);

@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Client.Utility;
 using Ks.Fiks.Maskinporten.Client;
+using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client
 {
@@ -18,11 +21,14 @@ namespace KS.Fiks.IO.Client
 
         private readonly ISendHandler _sendHandler;
 
+        private readonly IAmqpHandler _amqpHandler;
+
         public FiksIOClient(
             FiksIOConfiguration configuration,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
-            ISendHandler sendHandler = null)
+            ISendHandler sendHandler = null,
+            IAmqpHandler amqpHandler = null)
         {
             configuration = ConfigurationNormalizer.SetDefaultValues(configuration);
 
@@ -30,6 +36,7 @@ namespace KS.Fiks.IO.Client
             _maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration);
             _catalogHandler = catalogHandler ?? new CatalogHandler(configuration, _maskinportenClient);
             _sendHandler = sendHandler;
+            _amqpHandler = amqpHandler;
         }
 
         public string AccountId { get; }
@@ -80,6 +87,18 @@ namespace KS.Fiks.IO.Client
             };
 
             return await Send(request, payloadList).ConfigureAwait(false);
+        }
+
+        public void NewSubscription(EventHandler<MessageReceivedArgs> onReceived)
+        {
+            NewSubscription(onReceived, null);
+        }
+
+        public void NewSubscription(
+            EventHandler<MessageReceivedArgs> onReceived,
+            EventHandler<ConsumerEventArgs> onCanceled)
+        {
+            _amqpHandler.AddMessageReceivedHandler(onReceived, onCanceled);
         }
     }
 }

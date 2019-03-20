@@ -4,11 +4,9 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public interface IAmqpHandler
+    public interface IAmqpHandler : IDisposable
     {
-        void AddReceivedListener(EventHandler<MessageReceivedArgs> receivedEvent);
-
-        void AddReceivedListener(
+        void AddMessageReceivedHandler(
             EventHandler<MessageReceivedArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent);
     }

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
@@ -6,6 +8,7 @@ using KS.Fiks.IO.Client.Send;
 using KS.Fiks.Io.Send.Client;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
+using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Tests
 {
@@ -31,6 +34,7 @@ namespace KS.Fiks.IO.Client.Tests
             MaskinportenClientMock = new Mock<IMaskinportenClient>();
             FiksIOSenderMock = new Mock<IFiksIOSender>();
             SendHandlerMock = new Mock<ISendHandler>();
+            AmqpHandlerMock = new Mock<IAmqpHandler>();
         }
 
         public Mock<ICatalogHandler> CatalogHandlerMock { get; }
@@ -41,6 +45,8 @@ namespace KS.Fiks.IO.Client.Tests
 
         public Mock<ISendHandler> SendHandlerMock { get; }
 
+        public Mock<IAmqpHandler> AmqpHandlerMock { get; }
+
         public FiksIOClient CreateSut()
         {
             SetupConfiguration();
@@ -49,7 +55,8 @@ namespace KS.Fiks.IO.Client.Tests
                 _configuration,
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
-                SendHandlerMock.Object);
+                SendHandlerMock.Object,
+                AmqpHandlerMock.Object);
         }
 
         public FiksIOClientFixture WithAccountId(string id)
@@ -105,6 +112,9 @@ namespace KS.Fiks.IO.Client.Tests
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MessageRequest>(), It.IsAny<IEnumerable<IPayload>>()))
                            .ReturnsAsync(_sentMessageReturn);
+            AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandler(
+                It.IsAny<EventHandler<MessageReceivedArgs>>(),
+                It.IsAny<EventHandler<ConsumerEventArgs>>()));
         }
 
         private void SetupConfiguration()

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
+using RabbitMQ.Client.Events;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests
@@ -156,6 +157,32 @@ namespace KS.Fiks.IO.Client.Tests
             var result = await sut.Send(request, payload).ConfigureAwait(false);
 
             result.Should().Be(expectedMessage);
+        }
+
+        [Fact]
+        public void NewSubscriptionCallsAmqpHandlerWithOnReceived()
+        {
+            var sut = _fixture.CreateSut();
+
+            var onReceived = new EventHandler<MessageReceivedArgs>((a, b) => { });
+
+            sut.NewSubscription(onReceived);
+
+            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandler(onReceived, null));
+        }
+
+        [Fact]
+        public void NewSubscriptionCallsAmqpHandlerWithOnReceivedAndOnCanceled()
+        {
+            var sut = _fixture.CreateSut();
+
+            var onReceived = new EventHandler<MessageReceivedArgs>((a, b) => { });
+
+            var onCanceled = new EventHandler<ConsumerEventArgs>((a, b) => { });
+
+            sut.NewSubscription(onReceived, onCanceled);
+
+            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandler(onReceived, onCanceled));
         }
     }
 }
