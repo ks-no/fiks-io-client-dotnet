@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 
 namespace KS.Fiks.IO.Client.Models

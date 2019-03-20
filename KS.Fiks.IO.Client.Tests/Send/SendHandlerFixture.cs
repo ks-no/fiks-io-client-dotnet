@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using KS.Fiks.IO.Client.Catalog;
+using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using KS.Fiks.Io.Send.Client;
 using Moq;
 
-namespace KS.Fiks.IO.Client.Tests
+namespace KS.Fiks.IO.Client.Tests.Send
 {
     public class SendHandlerFixture
     {

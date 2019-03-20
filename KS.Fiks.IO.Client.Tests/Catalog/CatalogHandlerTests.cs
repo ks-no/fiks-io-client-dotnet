@@ -12,7 +12,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace KS.Fiks.IO.Client.Tests
+namespace KS.Fiks.IO.Client.Tests.Catalog
 {
     public class CatalogHandlerTests
     {

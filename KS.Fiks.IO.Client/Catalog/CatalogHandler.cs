@@ -9,7 +9,7 @@ using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
 using UnexpectedResponseException = KS.Fiks.IO.Client.Exceptions.UnexpectedResponseException;
 
-namespace KS.Fiks.IO.Client
+namespace KS.Fiks.IO.Client.Catalog
 {
     public class CatalogHandler : ICatalogHandler
     {

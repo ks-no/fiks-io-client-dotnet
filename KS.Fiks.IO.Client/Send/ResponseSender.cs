@@ -1,4 +1,4 @@
-namespace KS.Fiks.IO.Client
+namespace KS.Fiks.IO.Client.Send
 {
     public class ResponseSender : IResponseSender
     {

@@ -1,3 +1,5 @@
+using KS.Fiks.IO.Client.Send;
+
 namespace KS.Fiks.IO.Client.Models
 {
     public class MessageReceivedArgs

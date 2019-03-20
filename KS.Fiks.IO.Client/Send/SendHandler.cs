@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Catalog;
+using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.Io.Send.Client;
 
-namespace KS.Fiks.IO.Client
+namespace KS.Fiks.IO.Client.Send
 {
     public class SendHandler : ISendHandler
     {

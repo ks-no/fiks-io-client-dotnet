@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace KS.Fiks.IO.Client
+namespace KS.Fiks.IO.Client.Encryption
 {
     public interface IPayloadDecrypter
     {

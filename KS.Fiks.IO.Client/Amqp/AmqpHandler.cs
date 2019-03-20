@@ -2,6 +2,7 @@ using System;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
@@ -22,6 +23,11 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public void AddReceivedListener(EventHandler<MessageReceivedArgs> receivedEvent)
         {
+            AddReceivedListener(receivedEvent, null);
+        }
+
+        public void AddReceivedListener(EventHandler<MessageReceivedArgs> receivedEvent, EventHandler<ConsumerEventArgs> cancelledEvent)
+        {
             if (_receiveConsumer == null)
             {
                 _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
@@ -29,7 +35,9 @@ namespace KS.Fiks.IO.Client.Amqp
 
             _receiveConsumer.Received += receivedEvent;
 
-            // _channel.BasicConsume(_receiveConsumer, "queue");
+            _receiveConsumer.ConsumerCancelled += cancelledEvent;
+
+             _channel.BasicConsume(_receiveConsumer, "queue");
         }
 
         private static IModel ConnectToChannel(IConnectionFactory connectionFactory)

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
@@ -10,7 +11,7 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 
-namespace KS.Fiks.IO.Client.Tests
+namespace KS.Fiks.IO.Client.Tests.Catalog
 {
     public class CatalogHandlerFixture
     {

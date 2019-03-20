@@ -5,6 +5,7 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
@@ -64,6 +65,20 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             sut.AddReceivedListener(handler);
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.Received += null, this, null);
+            counter.Should().Be(1);
+        }
+        
+        [Fact]
+        public void AddReceivedListenerAddsHandlerToListenOnCanceledEvent()
+        {
+            var sut = _fixture.CreateSut();
+
+            var counter = 0;
+            var handler = new EventHandler<ConsumerEventArgs>((a, _) => { counter++; });
+
+            sut.AddReceivedListener(null, handler);
+
+            _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
             counter.Should().Be(1);
         }
     }

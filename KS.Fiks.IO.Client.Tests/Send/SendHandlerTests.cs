@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.Io.Send.Client;
 using Moq;
 using Xunit;
 
-namespace KS.Fiks.IO.Client.Tests
+namespace KS.Fiks.IO.Client.Tests.Send
 {
     public class SendHandlerTests
     {

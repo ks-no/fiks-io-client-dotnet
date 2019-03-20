@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using KS.Fiks.Io.Send.Client;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;

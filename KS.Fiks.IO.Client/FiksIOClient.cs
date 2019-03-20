@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Client.Utility;
 using Ks.Fiks.Maskinporten.Client;
 
