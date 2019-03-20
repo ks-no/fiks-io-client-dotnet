@@ -1,6 +1,5 @@
 using System;
 using FluentAssertions;
-using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;

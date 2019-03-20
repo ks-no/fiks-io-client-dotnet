@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -9,10 +8,7 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 using Xunit;
-using IBasicConsumer = RabbitMQ.Client.IBasicConsumer;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
 {

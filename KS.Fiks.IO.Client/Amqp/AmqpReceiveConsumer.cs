@@ -5,7 +5,6 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Client.Utility;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
