@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
-using KS.Fiks.Io.Send.Client;
+using KS.Fiks.IO.Send.Client;
 using Moq;
 using Xunit;
 

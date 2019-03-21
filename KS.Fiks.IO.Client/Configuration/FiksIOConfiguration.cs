@@ -1,26 +1,41 @@
-using System;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 
 namespace KS.Fiks.IO.Client.Configuration
 {
     public class FiksIOConfiguration
     {
-        public AccountConfiguration AccountConfiguration { get; set; }
+        public FiksIOConfiguration(
+            AccountConfiguration accountConfiguration,
+            FiksIntegrationConfiguration fiksIntegrationConfiguration,
+            MaskinportenClientConfiguration maskinportenConfiguration,
+            CatalogConfiguration catalogConfiguration = null,
+            FiksApiConfiguration fiksApiConfiguration = null,
+            FiksIOSenderConfiguration fiksIOSenderConfiguration = null
+        )
+        {
+            AccountConfiguration = accountConfiguration;
+            FiksIntegrationConfiguration = fiksIntegrationConfiguration;
+            MaskinportenConfiguration = maskinportenConfiguration;
+            FiksApiConfiguration = fiksApiConfiguration ?? new FiksApiConfiguration();
+            CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(FiksApiConfiguration);
+            FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
+                                            null,
+                                            FiksApiConfiguration.Scheme,
+                                            FiksApiConfiguration.Host,
+                                            FiksApiConfiguration.Port);
+        }
 
-        public CatalogConfiguration CatalogConfiguration { get; set; }
+        public AccountConfiguration AccountConfiguration { get; }
 
-        public MaskinportenClientConfiguration MaskinportenConfiguration { get; set; }
+        public CatalogConfiguration CatalogConfiguration { get; }
 
-        public string IntegrasjonPassword { get; set; }
+        public FiksApiConfiguration FiksApiConfiguration { get; }
 
-        public Guid IntegrasjonId { get; set; }
+        public FiksIntegrationConfiguration FiksIntegrationConfiguration { get; }
 
-        public string Host { get; set; }
+        public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 
-        public int Port { get; set; }
-
-        public string Scheme { get; set; }
-
-        public string Path { get; set; }
+        public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
     }
 }

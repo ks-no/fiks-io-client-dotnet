@@ -2,6 +2,11 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class AccountConfiguration
     {
-        public string AccountId { get; set; }
+        public AccountConfiguration(string accountId)
+        {
+            AccountId = accountId;
+        }
+
+        public string AccountId { get; }
     }
 }

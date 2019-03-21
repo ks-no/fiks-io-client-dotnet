@@ -1,5 +1,5 @@
 using System;
-using KS.Fiks.Io.Send.Client;
+using KS.Fiks.IO.Send.Client;
 
 namespace KS.Fiks.IO.Client.Models
 {

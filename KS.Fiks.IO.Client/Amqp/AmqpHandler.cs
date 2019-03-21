@@ -14,7 +14,6 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
-
         public AmqpHandler(IConnectionFactory connectionFactory, IAmqpConsumerFactory consumerFactory = null)
         {
             _channel = ConnectToChannel(connectionFactory);

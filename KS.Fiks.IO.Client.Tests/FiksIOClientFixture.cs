@@ -5,7 +5,7 @@ using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
-using KS.Fiks.Io.Send.Client;
+using KS.Fiks.IO.Send.Client;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client.Events;
@@ -25,6 +25,7 @@ namespace KS.Fiks.IO.Client.Tests
         private string _path = "/svarinn2/katalog/api/v1";
         private string _accessToken = "token";
         private string _integrasjonPassword = "default";
+        private Guid _integrasjonId = Guid.NewGuid();
         private string _accountId = "defaultId";
         private CatalogConfiguration _catalogConfiguration;
 
@@ -119,18 +120,15 @@ namespace KS.Fiks.IO.Client.Tests
 
         private void SetupConfiguration()
         {
-            _configuration = new FiksIOConfiguration
-            {
-                Host = _host,
-                Port = _port,
-                Scheme = _scheme,
-                Path = _path,
-                AccountConfiguration = new AccountConfiguration
-                {
-                    AccountId = _accountId
-                },
-                CatalogConfiguration = _catalogConfiguration
-            };
+            var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
+            var accountConfiguration = new AccountConfiguration(_accountId);
+
+            _configuration = new FiksIOConfiguration(
+                accountConfiguration,
+                new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new MaskinportenClientConfiguration(),
+                fiksApiConfiguration: apiConfiguration,
+                catalogConfiguration: _catalogConfiguration);
         }
     }
 }

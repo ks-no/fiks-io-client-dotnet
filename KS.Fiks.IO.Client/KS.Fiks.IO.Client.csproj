@@ -12,9 +12,9 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.0-dev0046" />
-        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-89" />
-        <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-84" />
-        <PackageReference Include="KS.Fiks.QA" Version="0.9.9-dev-62" PrivateAssets="All" />
+        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-90" />
+        <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-85" />
+        <PackageReference Include="KS.Fiks.QA" Version="0.9.9-dev-63" PrivateAssets="All" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
         <PackageReference Include="RabbitMQ.Client" Version="5.1.0" />
     </ItemGroup>

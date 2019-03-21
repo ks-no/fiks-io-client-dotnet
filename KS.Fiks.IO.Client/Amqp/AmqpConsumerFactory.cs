@@ -6,7 +6,7 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     public class AmqpConsumerFactory : IAmqpConsumerFactory
     {
-        private IFileWriter _fileWriter;
+        private readonly IFileWriter _fileWriter;
 
         private IPayloadDecrypter _decrypter;
 

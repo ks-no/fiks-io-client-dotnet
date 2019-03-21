@@ -36,7 +36,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             SetupMocks();
             return new CatalogHandler(
-                CreateConfiguration(),
+                CreateConfiguration().CatalogConfiguration,
+                CreateConfiguration().FiksIntegrationConfiguration,
                 MaskinportenClientMock.Object,
                 new HttpClient(HttpMessageHandleMock.Object));
         }
@@ -159,20 +160,17 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
         private FiksIOConfiguration CreateConfiguration()
         {
-            var catalogConfiguration = new CatalogConfiguration
-            {
-                Host = _host,
-                Port = _port,
-                Scheme = _scheme,
-                Path = _path
-            };
+            var catalogConfiguration = new CatalogConfiguration(_path, _scheme, _host, _port);
 
-            return new FiksIOConfiguration
-            {
-                IntegrasjonId = _integrasjonId,
-                IntegrasjonPassword = _integrasjonPassword,
-                CatalogConfiguration = catalogConfiguration
-            };
+            var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
+            var accountConfiguration = new AccountConfiguration("notUsedId");
+
+            return new FiksIOConfiguration(
+                accountConfiguration,
+                new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new MaskinportenClientConfiguration(),
+                fiksApiConfiguration: apiConfiguration,
+                catalogConfiguration: catalogConfiguration);
         }
     }
 }

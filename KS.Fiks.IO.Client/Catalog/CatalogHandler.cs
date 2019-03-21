@@ -25,17 +25,19 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private readonly HttpClient _httpClient;
 
-        private readonly FiksIOConfiguration _configuration;
-
+        private readonly CatalogConfiguration _catalogConfiguration;
+        private readonly FiksIntegrationConfiguration _integrationConfiguration;
         private readonly IMaskinportenClient _maskinportenClient;
 
         public CatalogHandler(
-            FiksIOConfiguration configuration,
+            CatalogConfiguration catalogConfiguration,
+            FiksIntegrationConfiguration integrationConfiguration,
             IMaskinportenClient maskinportenClient,
             HttpClient httpClient = null)
         {
             _httpClient = httpClient ?? new HttpClient();
-            _configuration = configuration;
+            _catalogConfiguration = catalogConfiguration;
+            _integrationConfiguration = integrationConfiguration;
             _maskinportenClient = maskinportenClient;
         }
 
@@ -57,15 +59,15 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private Uri CreateLookupUri(LookupRequest request)
         {
-            var servicePath = $"{_configuration.CatalogConfiguration.Path}/{LookupEndpoint}";
+            var servicePath = $"{_catalogConfiguration.Path}/{LookupEndpoint}";
             var query = $"?{IdentifyerQueryName}={request.Identifier}&" +
                         $"{MessageTypeQueryName}={request.MessageType}&" +
                         $"{AccessLevelQueryName}={request.AccessLevel}";
 
             return new UriBuilder(
-                    _configuration.CatalogConfiguration.Scheme,
-                    _configuration.CatalogConfiguration.Host,
-                    _configuration.CatalogConfiguration.Port,
+                    _catalogConfiguration.Scheme,
+                    _catalogConfiguration.Host,
+                    _catalogConfiguration.Port,
                     servicePath,
                     query)
                 .Uri;
@@ -76,8 +78,8 @@ namespace KS.Fiks.IO.Client.Catalog
             var accessToken = await _maskinportenClient.GetAccessToken(AuthenticationScope).ConfigureAwait(false);
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", accessToken.Token);
-            _httpClient.DefaultRequestHeaders.Add("integrasjonId", _configuration.IntegrasjonId.ToString());
-            _httpClient.DefaultRequestHeaders.Add("integrasjonPassord", _configuration.IntegrasjonPassword);
+            _httpClient.DefaultRequestHeaders.Add("integrasjonId", _integrationConfiguration.IntegrastionId.ToString());
+            _httpClient.DefaultRequestHeaders.Add("integrasjonPassord", _integrationConfiguration.IntegrationPassword);
         }
 
         private async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)

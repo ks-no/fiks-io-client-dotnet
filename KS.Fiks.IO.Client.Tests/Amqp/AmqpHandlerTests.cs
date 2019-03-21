@@ -11,7 +11,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 {
     public class AmqpHandlerTests
     {
-        private AmqpHandlerFixture _fixture;
+        private readonly AmqpHandlerFixture _fixture;
 
         public AmqpHandlerTests()
         {
@@ -66,7 +66,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.Received += null, this, null);
             counter.Should().Be(1);
         }
-        
+
         [Fact]
         public void AddReceivedListenerAddsHandlerToListenOnCanceledEvent()
         {

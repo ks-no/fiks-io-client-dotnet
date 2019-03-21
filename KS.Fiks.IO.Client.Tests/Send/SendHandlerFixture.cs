@@ -5,15 +5,13 @@ using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
-using KS.Fiks.Io.Send.Client;
+using KS.Fiks.IO.Send.Client;
 using Moq;
 
 namespace KS.Fiks.IO.Client.Tests.Send
 {
     public class SendHandlerFixture
     {
-        private Stream _encryptedStream;
-
         private string _publicKey = "defaultKey";
 
         public SendHandlerFixture()
@@ -32,7 +30,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         public SendHandler CreateSut()
         {
             SetupMocks();
-            return new SendHandler(FiksIOSenderMock.Object, PayloadEncrypterMock.Object, CatalogHandlerMock.Object);
+            return new SendHandler(CatalogHandlerMock.Object, FiksIOSenderMock.Object, PayloadEncrypterMock.Object);
         }
 
         public SendHandlerFixture WithPublicKey(string publicKey)
@@ -49,7 +47,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                             .ReturnsAsync(new SentMessageApiModel());
 
             PayloadEncrypterMock.Setup(_ => _.Encrypt(It.IsAny<string>(), It.IsAny<IEnumerable<IPayload>>()))
-                                .Returns(_encryptedStream);
+                                .Returns(Mock.Of<Stream>());
 
             CatalogHandlerMock.Setup(_ => _.GetPublicKey(It.IsAny<Guid>())).ReturnsAsync(_publicKey);
         }
