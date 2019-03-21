@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using RabbitMQ.Client;
@@ -6,17 +8,26 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public class AmqpHandler : IAmqpHandler
+    internal class AmqpHandler : IAmqpHandler
     {
         private readonly IModel _channel;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
+        private readonly string _accountId;
+
         private IAmqpReceiveConsumer _receiveConsumer;
 
-        public AmqpHandler(IConnectionFactory connectionFactory, IAmqpConsumerFactory consumerFactory = null)
+        internal AmqpHandler(
+            AmqpConfiguration configuration,
+            string accountId,
+            IConnectionFactory connectionFactory = null,
+            IAmqpConsumerFactory consumerFactory = null)
         {
-            _channel = ConnectToChannel(connectionFactory);
+            _accountId = accountId;
+            _channel = ConnectToChannel(
+                connectionFactory ?? new ConnectionFactory(),
+                configuration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
         }
 
@@ -33,7 +44,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
-            _channel.BasicConsume(_receiveConsumer, "queue");
+            _channel.BasicConsume(_receiveConsumer, _accountId);
         }
 
         public void Dispose()
@@ -50,28 +61,29 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private static IModel ConnectToChannel(IConnectionFactory connectionFactory)
+        private IModel ConnectToChannel(IConnectionFactory connectionFactory, AmqpConfiguration configuration)
         {
-            var connection = CreateConnection(connectionFactory);
+            var connection = CreateConnection(connectionFactory, configuration);
             try
             {
                 return connection.CreateModel();
             }
             catch (Exception ex)
             {
-                throw new AmqpConnectionFailedException("Unable to connect to channel", ex);
+                throw new FiksIOAmqpConnectionFailedException("Unable to connect to channel", ex);
             }
         }
 
-        private static IConnection CreateConnection(IConnectionFactory connectionFactory)
+        private IConnection CreateConnection(IConnectionFactory connectionFactory, AmqpConfiguration configuration)
         {
             try
             {
-                return connectionFactory.CreateConnection();
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port);
+                return connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
-                throw new AmqpConnectionFailedException("Unable to create connection", ex);
+                throw new FiksIOAmqpConnectionFailedException("Unable to create connection", ex);
             }
         }
     }

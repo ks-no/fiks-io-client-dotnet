@@ -9,15 +9,16 @@ namespace KS.Fiks.IO.Client.Configuration
             AccountConfiguration accountConfiguration,
             FiksIntegrationConfiguration fiksIntegrationConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
+            AmqpConfiguration amqpConfiguration = null,
             CatalogConfiguration catalogConfiguration = null,
             FiksApiConfiguration fiksApiConfiguration = null,
-            FiksIOSenderConfiguration fiksIOSenderConfiguration = null
-        )
+            FiksIOSenderConfiguration fiksIOSenderConfiguration = null)
         {
             AccountConfiguration = accountConfiguration;
             FiksIntegrationConfiguration = fiksIntegrationConfiguration;
             MaskinportenConfiguration = maskinportenConfiguration;
             FiksApiConfiguration = fiksApiConfiguration ?? new FiksApiConfiguration();
+            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(FiksApiConfiguration.Host);
             CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(FiksApiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
                                             null,
@@ -27,6 +28,8 @@ namespace KS.Fiks.IO.Client.Configuration
         }
 
         public AccountConfiguration AccountConfiguration { get; }
+
+        public AmqpConfiguration AmqpConfiguration { get; }
 
         public CatalogConfiguration CatalogConfiguration { get; }
 

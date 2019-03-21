@@ -153,7 +153,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var sut = _fixture.WithStatusCode(statusCode).CreateSut();
 
-            await Assert.ThrowsAsync<UnexpectedResponseException>(
+            await Assert.ThrowsAsync<FiksIOUnexpectedResponseException>(
                             async () => await sut.Lookup(_fixture.DefaultLookupRequest).ConfigureAwait(false))
                         .ConfigureAwait(false);
         }

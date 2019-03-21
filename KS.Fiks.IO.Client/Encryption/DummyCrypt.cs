@@ -4,7 +4,7 @@ using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client.Encryption
 {
-    public class DummyCrypt : IPayloadDecrypter, IPayloadEncrypter
+    internal class DummyCrypt : IPayloadDecrypter, IPayloadEncrypter
     {
         public Stream Decrypt(Stream data)
         {

@@ -2,7 +2,7 @@ using System.IO;
 
 namespace KS.Fiks.IO.Client.Encryption
 {
-    public interface IPayloadDecrypter
+    internal interface IPayloadDecrypter
     {
         Stream Decrypt(Stream data);
 

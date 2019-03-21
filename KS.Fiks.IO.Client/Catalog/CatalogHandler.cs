@@ -4,14 +4,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
-using UnexpectedResponseException = KS.Fiks.IO.Client.Exceptions.UnexpectedResponseException;
 
 namespace KS.Fiks.IO.Client.Catalog
 {
-    public class CatalogHandler : ICatalogHandler
+    internal class CatalogHandler : ICatalogHandler
     {
         private const string LookupEndpoint = "lookup";
 
@@ -87,7 +87,7 @@ namespace KS.Fiks.IO.Client.Catalog
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new UnexpectedResponseException(
+                throw new FiksIOUnexpectedResponseException(
                     $"Got unexpected HTTP Status code {response.StatusCode} from {requestUri}. Content: {content}.");
             }
         }

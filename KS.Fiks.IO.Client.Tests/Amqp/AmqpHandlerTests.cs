@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
@@ -23,21 +24,21 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var sut = _fixture.CreateSut();
 
-            _fixture.ConnectionFactoryMock.Verify(_ => _.CreateConnection(), Times.Once);
+            _fixture.ConnectionFactoryMock.Verify(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()), Times.Once);
             _fixture.ConnectionMock.Verify(_ => _.CreateModel(), Times.Once);
         }
 
         [Fact]
         public void ThrowsExceptionWhenConnectionFactoryThrows()
         {
-            Assert.Throws<AmqpConnectionFailedException>(() =>
+            Assert.Throws<FiksIOAmqpConnectionFailedException>(() =>
                 _fixture.WhereConnectionfactoryThrowsException().CreateSut());
         }
 
         [Fact]
         public void ThrowsExceptionWhenConnectionThrows()
         {
-            Assert.Throws<AmqpConnectionFailedException>(() =>
+            Assert.Throws<FiksIOAmqpConnectionFailedException>(() =>
                 _fixture.WhereConnectionThrowsException().CreateSut());
         }
 

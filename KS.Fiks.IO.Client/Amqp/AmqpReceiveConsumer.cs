@@ -8,7 +8,7 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public class AmqpReceiveConsumer : DefaultBasicConsumer, IAmqpReceiveConsumer
+    internal class AmqpReceiveConsumer : DefaultBasicConsumer, IAmqpReceiveConsumer
     {
         private readonly IPayloadDecrypter _decrypter;
 

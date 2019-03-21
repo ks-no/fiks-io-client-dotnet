@@ -4,7 +4,7 @@ using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client.Catalog
 {
-    public interface ICatalogHandler
+    internal interface ICatalogHandler
     {
         Task<Account> Lookup(LookupRequest request);
 

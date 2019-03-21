@@ -10,11 +10,11 @@ namespace KS.Fiks.IO.Client.Models
         private readonly IPayloadDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
-        public ReceivedMessage()
+        internal ReceivedMessage()
         {
         }
 
-        public ReceivedMessage(
+        internal ReceivedMessage(
             ReceivedMessageMetadata metadata,
             byte[] data,
             IPayloadDecrypter decrypter,

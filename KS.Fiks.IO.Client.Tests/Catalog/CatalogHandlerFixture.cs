@@ -32,7 +32,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             SetDefaultValues();
         }
 
-        public CatalogHandler CreateSut()
+        internal CatalogHandler CreateSut()
         {
             SetupMocks();
             return new CatalogHandler(

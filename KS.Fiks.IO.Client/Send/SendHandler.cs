@@ -11,7 +11,7 @@ using Ks.Fiks.Maskinporten.Client;
 
 namespace KS.Fiks.IO.Client.Send
 {
-    public class SendHandler : ISendHandler
+    internal class SendHandler : ISendHandler
     {
         private readonly IFiksIOSender _sender;
 

@@ -4,7 +4,7 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public interface IAmqpReceiveConsumer : IBasicConsumer
+    internal interface IAmqpReceiveConsumer : IBasicConsumer
     {
         event EventHandler<MessageReceivedArgs> Received;
     }

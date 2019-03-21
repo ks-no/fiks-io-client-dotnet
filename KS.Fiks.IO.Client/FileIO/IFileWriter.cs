@@ -2,7 +2,7 @@ using System.IO;
 
 namespace KS.Fiks.IO.Client.FileIO
 {
-    public interface IFileWriter
+    internal interface IFileWriter
     {
         void Write(string path, Stream data);
 

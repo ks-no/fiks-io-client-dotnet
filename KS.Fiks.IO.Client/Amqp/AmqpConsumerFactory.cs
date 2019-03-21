@@ -4,15 +4,16 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public class AmqpConsumerFactory : IAmqpConsumerFactory
+    internal class AmqpConsumerFactory : IAmqpConsumerFactory
     {
         private readonly IFileWriter _fileWriter;
 
-        private IPayloadDecrypter _decrypter;
+        private readonly IPayloadDecrypter _decrypter;
 
         public AmqpConsumerFactory()
         {
             _fileWriter = new FileWriter();
+            _decrypter = new DummyCrypt();
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)

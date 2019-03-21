@@ -111,7 +111,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
-            Assert.Throws<ParseException>(() =>
+            Assert.Throws<FiksIOParseException>(() =>
             {
                 sut.HandleBasicDeliver(
                     "tag",
@@ -147,7 +147,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
-            Assert.Throws<MissingHeaderException>(() =>
+            Assert.Throws<FiksIOMissingHeaderException>(() =>
             {
                 sut.HandleBasicDeliver(
                     "tag",
@@ -182,7 +182,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
-            Assert.Throws<MissingHeaderException>(() =>
+            Assert.Throws<FiksIOMissingHeaderException>(() =>
             {
                 sut.HandleBasicDeliver(
                     "tag",

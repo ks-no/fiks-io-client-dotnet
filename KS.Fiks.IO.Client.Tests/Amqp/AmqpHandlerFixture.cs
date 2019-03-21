@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Configuration;
 using Moq;
 using RabbitMQ.Client;
 
@@ -8,6 +10,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
     {
         private bool _connectionFactoryShouldThrow = false;
         private bool _connectionShouldThrow = false;
+        private string _accountId = "testId";
 
         public AmqpHandlerFixture()
         {
@@ -16,22 +19,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             ModelMock = new Mock<IModel>();
             AmqpReceiveConsumerMock = new Mock<IAmqpReceiveConsumer>();
             AmqpConsumerFactoryMock = new Mock<IAmqpConsumerFactory>();
-        }
-
-        public Mock<IConnectionFactory> ConnectionFactoryMock { get; }
-
-        public Mock<IConnection> ConnectionMock { get; }
-
-        public Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; }
-
-        public Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; }
-
-        public Mock<IModel> ModelMock { get; }
-
-        public AmqpHandler CreateSut()
-        {
-            SetupMocks();
-            return new AmqpHandler(ConnectionFactoryMock.Object, AmqpConsumerFactoryMock.Object);
         }
 
         public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
@@ -46,15 +33,37 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
+        public Mock<IModel> ModelMock { get; }
+
+        public Mock<IConnectionFactory> ConnectionFactoryMock { get; }
+
+        public Mock<IConnection> ConnectionMock { get; }
+
+        internal Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; }
+
+        internal Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; }
+
+        internal AmqpHandler CreateSut()
+        {
+            SetupMocks();
+            return new AmqpHandler(
+                CreateConfiguration(),
+                _accountId,
+                ConnectionFactoryMock.Object,
+                AmqpConsumerFactoryMock.Object);
+        }
+
         private void SetupMocks()
         {
             if (_connectionFactoryShouldThrow)
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection()).Throws<ProtocolViolationException>();
+                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()))
+                                     .Throws<ProtocolViolationException>();
             }
             else
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection()).Returns(ConnectionMock.Object);
+                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()))
+                                     .Returns(ConnectionMock.Object);
             }
 
             if (_connectionShouldThrow)
@@ -68,6 +77,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             AmqpConsumerFactoryMock.Setup(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()))
                                    .Returns(AmqpReceiveConsumerMock.Object);
+        }
+
+        private AmqpConfiguration CreateConfiguration()
+        {
+            return new AmqpConfiguration("api.fiks.test.ks.no");
         }
     }
 }

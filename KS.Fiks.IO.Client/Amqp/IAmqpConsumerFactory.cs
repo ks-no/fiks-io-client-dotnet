@@ -2,7 +2,7 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public interface IAmqpConsumerFactory
+    internal interface IAmqpConsumerFactory
     {
         IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel);
     }

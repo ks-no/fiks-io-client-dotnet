@@ -24,10 +24,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Mock<IModel> ModelMock { get; }
 
-        public Mock<IFileWriter> FileWriterMock { get; }
-
-        public Mock<IPayloadDecrypter> PayloadDecrypterMock { get; }
-
         public ReceivedMessageMetadata DefaultMetadata => new ReceivedMessageMetadata
         {
             MessageId = Guid.NewGuid(),
@@ -40,7 +36,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public IBasicProperties DefaultProperties => _defaultProperties.Object;
 
-        public AmqpReceiveConsumer CreateSut()
+        internal Mock<IFileWriter> FileWriterMock { get; }
+
+        internal Mock<IPayloadDecrypter> PayloadDecrypterMock { get; }
+
+        internal AmqpReceiveConsumer CreateSut()
         {
             SetupMocks();
             return new AmqpReceiveConsumer(ModelMock.Object, FileWriterMock.Object, PayloadDecrypterMock.Object);

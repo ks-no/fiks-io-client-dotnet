@@ -21,22 +21,22 @@ namespace KS.Fiks.IO.Client.Tests.Send
             CatalogHandlerMock = new Mock<ICatalogHandler>();
         }
 
-        public Mock<IFiksIOSender> FiksIOSenderMock { get; }
-
-        public Mock<IPayloadEncrypter> PayloadEncrypterMock { get; }
-
-        public Mock<ICatalogHandler> CatalogHandlerMock { get; }
-
-        public SendHandler CreateSut()
-        {
-            SetupMocks();
-            return new SendHandler(CatalogHandlerMock.Object, FiksIOSenderMock.Object, PayloadEncrypterMock.Object);
-        }
-
         public SendHandlerFixture WithPublicKey(string publicKey)
         {
             _publicKey = publicKey;
             return this;
+        }
+
+        public Mock<IFiksIOSender> FiksIOSenderMock { get; }
+
+        internal Mock<IPayloadEncrypter> PayloadEncrypterMock { get; }
+
+        internal Mock<ICatalogHandler> CatalogHandlerMock { get; }
+
+        internal SendHandler CreateSut()
+        {
+            SetupMocks();
+            return new SendHandler(CatalogHandlerMock.Object, FiksIOSenderMock.Object, PayloadEncrypterMock.Object);
         }
 
         private void SetupMocks()

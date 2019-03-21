@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Catalog;
@@ -9,8 +10,10 @@ using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly: InternalsVisibleTo("KS.Fiks.IO.Client.Tests")]
 
 namespace KS.Fiks.IO.Client
 {
@@ -24,12 +27,17 @@ namespace KS.Fiks.IO.Client
 
         private readonly IAmqpHandler _amqpHandler;
 
-        public FiksIOClient(
+        public FiksIOClient(FiksIOConfiguration configuration)
+            : this(configuration, null, null, null, null)
+        {
+        }
+
+        internal FiksIOClient(
             FiksIOConfiguration configuration,
-            ICatalogHandler catalogHandler = null,
-            IMaskinportenClient maskinportenClient = null,
-            ISendHandler sendHandler = null,
-            IAmqpHandler amqpHandler = null)
+            ICatalogHandler catalogHandler,
+            IMaskinportenClient maskinportenClient,
+            ISendHandler sendHandler,
+            IAmqpHandler amqpHandler)
         {
             AccountId = configuration.AccountConfiguration.AccountId;
 
@@ -48,7 +56,7 @@ namespace KS.Fiks.IO.Client
                                configuration.FiksIntegrationConfiguration,
                                new DummyCrypt());
 
-            _amqpHandler = amqpHandler ?? new AmqpHandler(new ConnectionFactory());
+            _amqpHandler = amqpHandler ?? new AmqpHandler(configuration.AmqpConfiguration, AccountId);
         }
 
         public string AccountId { get; }

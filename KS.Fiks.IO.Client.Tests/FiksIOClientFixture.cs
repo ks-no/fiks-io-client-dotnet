@@ -38,15 +38,11 @@ namespace KS.Fiks.IO.Client.Tests
             AmqpHandlerMock = new Mock<IAmqpHandler>();
         }
 
-        public Mock<ICatalogHandler> CatalogHandlerMock { get; }
-
         public Mock<IMaskinportenClient> MaskinportenClientMock { get; }
 
         public Mock<IFiksIOSender> FiksIOSenderMock { get; }
 
         public Mock<ISendHandler> SendHandlerMock { get; }
-
-        public Mock<IAmqpHandler> AmqpHandlerMock { get; }
 
         public FiksIOClient CreateSut()
         {
@@ -107,6 +103,10 @@ namespace KS.Fiks.IO.Client.Tests
             _catalogConfiguration = configuration;
             return this;
         }
+
+        internal Mock<ICatalogHandler> CatalogHandlerMock { get; }
+
+        internal Mock<IAmqpHandler> AmqpHandlerMock { get; }
 
         private void SetupMocks()
         {

@@ -6,7 +6,7 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Utility
 {
-    public static class ReceivedMessageParser
+    internal static class ReceivedMessageParser
     {
         private const string SenderAccountIdHeaderName = "avsender-id";
 
@@ -27,7 +27,7 @@ namespace KS.Fiks.IO.Client.Utility
             var headers = properties?.Headers;
             if (headers == null)
             {
-                throw new MissingHeaderException($"Header is null. Cannot parse header.");
+                throw new FiksIOMissingHeaderException($"Header is null. Cannot parse header.");
             }
 
             return new ReceivedMessageMetadata
@@ -47,7 +47,7 @@ namespace KS.Fiks.IO.Client.Utility
             {
                 return RequireGuidFromHeader(header, headerName);
             }
-            catch (Exception ex) when (ex is ParseException || ex is MissingHeaderException)
+            catch (Exception ex) when (ex is FiksIOParseException || ex is FiksIOMissingHeaderException)
             {
                 return null;
             }
@@ -63,7 +63,7 @@ namespace KS.Fiks.IO.Client.Utility
         {
             if (!header.ContainsKey(headerName))
             {
-                throw new MissingHeaderException($"Could not find required header: {headerName}.");
+                throw new FiksIOMissingHeaderException($"Could not find required header: {headerName}.");
             }
 
             return header[headerName].ToString();
@@ -77,7 +77,7 @@ namespace KS.Fiks.IO.Client.Utility
             }
             else
             {
-                throw new ParseException(
+                throw new FiksIOParseException(
                     $"Unable to convert header ({headerName}) from string ({guidAsString}) to Guid");
             }
         }
@@ -90,7 +90,7 @@ namespace KS.Fiks.IO.Client.Utility
             }
             else
             {
-                throw new ParseException(
+                throw new FiksIOParseException(
                     $"Unable to convert header ({headerName}) from string ({longAsString}) to long/TimeSpan");
             }
         }
