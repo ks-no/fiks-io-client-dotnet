@@ -21,8 +21,6 @@ namespace KS.Fiks.IO.Client
     {
         private readonly ICatalogHandler _catalogHandler;
 
-        private readonly IMaskinportenClient _maskinportenClient;
-
         private readonly ISendHandler _sendHandler;
 
         private readonly IAmqpHandler _amqpHandler;
@@ -41,17 +39,17 @@ namespace KS.Fiks.IO.Client
         {
             AccountId = configuration.AccountConfiguration.AccountId;
 
-            _maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration);
+            maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration);
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
                                   configuration.CatalogConfiguration,
                                   configuration.FiksIntegrationConfiguration,
-                                  _maskinportenClient);
+                                  maskinportenClient);
 
             _sendHandler = sendHandler ??
                            new SendHandler(
                                _catalogHandler,
-                               _maskinportenClient,
+                               maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
                                configuration.FiksIntegrationConfiguration,
                                new DummyCrypt());
