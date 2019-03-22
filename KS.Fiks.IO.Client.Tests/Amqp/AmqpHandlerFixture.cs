@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
@@ -48,6 +49,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             SetupMocks();
             return new AmqpHandler(
                 CreateConfiguration(),
+                CreateIntegrationConfiguration(),
                 _accountId,
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
@@ -82,6 +84,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private AmqpConfiguration CreateConfiguration()
         {
             return new AmqpConfiguration("api.fiks.test.ks.no");
+        }
+
+        private FiksIntegrationConfiguration CreateIntegrationConfiguration()
+        {
+            return new FiksIntegrationConfiguration(Guid.NewGuid(), "password");
         }
     }
 }

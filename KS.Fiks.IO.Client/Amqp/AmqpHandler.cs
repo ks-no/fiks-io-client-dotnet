@@ -19,15 +19,17 @@ namespace KS.Fiks.IO.Client.Amqp
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
-            AmqpConfiguration configuration,
+            AmqpConfiguration amqpConfiguration,
+            FiksIntegrationConfiguration integrationConfiguration,
             string accountId,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             _accountId = accountId;
-            _channel = ConnectToChannel(
-                connectionFactory ?? new ConnectionFactory(),
-                configuration);
+            connectionFactory = connectionFactory ?? new ConnectionFactory();
+            connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
+            connectionFactory.Password = integrationConfiguration.IntegrationPassword;
+            _channel = ConnectToChannel(connectionFactory, amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
         }
 
