@@ -79,6 +79,7 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port);
+                Console.WriteLine($"Trying to connect to {endpoint} (hostName: {endpoint.HostName}; port:{endpoint.Port};");
                 return connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
