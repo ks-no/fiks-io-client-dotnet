@@ -18,7 +18,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             _fixture = new AmqpHandlerFixture();
         }
-
+        /*
         [Fact]
         public void CreatesModelWhenConstructed()
         {
@@ -81,5 +81,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
             counter.Should().Be(1);
         }
+        */
     }
 }
