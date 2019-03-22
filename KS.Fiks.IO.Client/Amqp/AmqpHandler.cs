@@ -26,9 +26,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null)
         {
             _accountId = accountId;
-            connectionFactory = connectionFactory ?? new ConnectionFactory();
-            connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
-            connectionFactory.Password = integrationConfiguration.IntegrationPassword;
+            connectionFactory = connectionFactory ?? CreateConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(connectionFactory, amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
         }
@@ -87,6 +85,18 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 throw new FiksIOAmqpConnectionFailedException("Unable to create connection", ex);
             }
+        }
+
+        private IConnectionFactory CreateConnectionFactory(FiksIntegrationConfiguration integrationConfiguration)
+        {
+            var connectionFactory = new ConnectionFactory();
+            connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
+            connectionFactory.Password = integrationConfiguration.IntegrationPassword;
+            connectionFactory.Ssl.ServerName = System.Net.Dns.GetHostName();
+            connectionFactory.Ssl.Enabled = true;
+
+
+            return connectionFactory;
         }
     }
 }
