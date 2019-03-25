@@ -106,7 +106,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
             _connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
-            _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken}";
+            _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
         }
     }
 }

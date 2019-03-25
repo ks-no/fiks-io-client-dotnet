@@ -14,7 +14,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private bool _connectionShouldThrow = false;
         private string _accountId = "testId";
         private string _token = "testtoken";
-        private bool _realConnection = false;
+        private Guid _integrationId = Guid.NewGuid();
+        private string _integrationPassword = "defaultPassword";
 
         public AmqpHandlerFixture()
         {
@@ -44,9 +45,15 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
-        public AmqpHandlerFixture WithRealConnection()
+        public AmqpHandlerFixture WithIntegrationPassword(string password)
         {
-            _realConnection = true;
+            _integrationPassword = password;
+            return this;
+        }
+
+        public AmqpHandlerFixture WithIntegrationId(Guid id)
+        {
+            _integrationId = id;
             return this;
         }
 
@@ -70,7 +77,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
                 _accountId,
-                _realConnection ? null : ConnectionFactoryMock.Object,
+                ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
         }
 
@@ -86,6 +93,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()))
                                      .Returns(ConnectionMock.Object);
             }
+
+            ConnectionFactoryMock.SetupSet(_ => _.Password = It.IsAny<string>());
+            ConnectionFactoryMock.SetupSet(_ => _.UserName = It.IsAny<string>());
 
             if (_connectionShouldThrow)
             {
@@ -109,7 +119,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private FiksIntegrationConfiguration CreateIntegrationConfiguration()
         {
-            return new FiksIntegrationConfiguration(Guid.NewGuid(), "password");
+            return new FiksIntegrationConfiguration(_integrationId, _integrationPassword);
         }
     }
 }
