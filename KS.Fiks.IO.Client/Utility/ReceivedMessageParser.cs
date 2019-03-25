@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Utility
 
             foreach (var key in headers.Keys)
             {
-                Console.WriteLine($"Headers[{key}]: {headers[key]}");
+                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString(headers[key])}");
             }
 
             return new ReceivedMessageMetadata
@@ -72,7 +72,7 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Could not find required header: {headerName}.");
             }
 
-            return header[headerName].ToString();
+            return System.Text.Encoding.UTF8.GetString((byte[]) header[headerName]);
         }
 
         private static Guid ParseGuid(string guidAsString, string headerName)
