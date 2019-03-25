@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
@@ -51,10 +52,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _defaultProperties = new Mock<IBasicProperties>();
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Guid.NewGuid().ToString() },
-                {"melding-id", Guid.NewGuid().ToString() },
-                {"type", "messageType"},
-                {"svar-til", Guid.NewGuid().ToString() }
+                {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
+                {"type", Encoding.UTF8.GetBytes("messageType")},
+                {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) }
             };
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);

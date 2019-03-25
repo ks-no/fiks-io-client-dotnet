@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Utility
 
             foreach (var key in headers.Keys)
             {
-                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString(headers[key])}");
+                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString((byte[])headers[key])}");
             }
 
             return new ReceivedMessageMetadata

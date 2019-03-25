@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
@@ -50,10 +51,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", expectedMessageMetadata.SenderAccountId},
-                {"melding-id", expectedMessageMetadata.MessageId},
-                {"type", expectedMessageMetadata.MessageType},
-                {"svar-til", expectedMessageMetadata.SvarPaMelding}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
+                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageId.ToString())},
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -95,10 +96,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", expectedMessageMetadata.SenderAccountId},
-                {"melding-id", "NotAGuid"},
-                {"type", expectedMessageMetadata.MessageType},
-                {"svar-til", expectedMessageMetadata.SvarPaMelding}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
+                {"melding-id", Encoding.UTF8.GetBytes("NoTGuid")},
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -129,16 +130,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
-            var headers = new Dictionary<string, object>
-            {
-                {"avsender-id", expectedMessageMetadata.SenderAccountId},
-                {"melding-id", "NotAGuid"},
-                {"type", expectedMessageMetadata.MessageType},
-                {"svar-til", expectedMessageMetadata.SvarPaMelding}
-            };
-
             var propertiesMock = new Mock<IBasicProperties>();
-            propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>)null);
+            propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>) null);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
@@ -167,13 +160,14 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", expectedMessageMetadata.SenderAccountId},
-                {"type", expectedMessageMetadata.MessageType},
-                {"svar-til", expectedMessageMetadata.SvarPaMelding}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
             };
 
+
             var propertiesMock = new Mock<IBasicProperties>();
-            propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>)null);
+            propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
@@ -201,7 +195,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
 
             var filePath = "/my/path/something.zip";
-            var data = new[] {default(byte) };
+            var data = new[] {default(byte)};
 
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
             {
