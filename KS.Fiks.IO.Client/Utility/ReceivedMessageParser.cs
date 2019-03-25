@@ -25,9 +25,15 @@ namespace KS.Fiks.IO.Client.Utility
             IBasicProperties properties)
         {
             var headers = properties?.Headers;
+
             if (headers == null)
             {
                 throw new FiksIOMissingHeaderException($"Header is null. Cannot parse header.");
+            }
+
+            foreach (var key in headers.Keys)
+            {
+                Console.WriteLine($"Headers[{key}]: {headers[key]}");
             }
 
             return new ReceivedMessageMetadata
