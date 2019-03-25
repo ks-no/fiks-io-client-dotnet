@@ -84,7 +84,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public async Task GetsTokenFromMaskinportenWhenCreated()
+        public void GetsTokenFromMaskinportenWhenCreated()
         {
             var sut = _fixture.CreateSut();
             _fixture.MaskinportenClientMock.Verify(_ => _.GetAccessToken(It.IsAny<string>()));
