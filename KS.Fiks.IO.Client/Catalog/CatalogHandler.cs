@@ -27,8 +27,6 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private readonly HttpClient _httpClient;
 
-        private bool _authorizationHeaderIsSet = false;
-
         private readonly CatalogConfiguration _catalogConfiguration;
         private readonly FiksIntegrationConfiguration _integrationConfiguration;
         private readonly IMaskinportenClient _maskinportenClient;
@@ -89,31 +87,31 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private async Task<T> GetAsModel<T>(Uri requestUri)
         {
-            await SetAuthorizationHeader().ConfigureAwait(false);
-            var response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
-            await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
-            var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return JsonConvert.DeserializeObject<T>(responseAsJsonString);
-        }
+            var accessToken = await _maskinportenClient
+                                    .GetAccessToken(_integrationConfiguration.Scope).ConfigureAwait(false);
 
-        private async Task SetAuthorizationHeader()
-        {
-            if (!_authorizationHeaderIsSet)
+
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                _authorizationHeaderIsSet = true;
-                _httpClient.DefaultRequestHeaders.Add(
+                requestMessage.Headers.Add(
                     "integrasjonId",
                     _integrationConfiguration.IntegrastionId.ToString());
 
-                _httpClient.DefaultRequestHeaders.Add(
+                requestMessage.Headers.Add(
                     "integrasjonPassord",
                     _integrationConfiguration.IntegrationPassword);
-            }
+                requestMessage.Headers.Authorization =
+                    new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
-            var accessToken = await _maskinportenClient.GetAccessToken(_integrationConfiguration.Scope).ConfigureAwait(false);
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+                var response = await _httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+
+                await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
+                var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return JsonConvert.DeserializeObject<T>(responseAsJsonString);
+            }
         }
+
 
         private async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
         {
