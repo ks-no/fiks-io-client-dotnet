@@ -61,7 +61,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                              expectedMessageMetadata.Ttl?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
             var actualMessage = new ReceivedMessage();
@@ -106,7 +106,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                              expectedMessageMetadata.Ttl?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
@@ -134,7 +134,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>) null);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                              expectedMessageMetadata.Ttl?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
@@ -170,7 +170,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                              expectedMessageMetadata.Ttl?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });

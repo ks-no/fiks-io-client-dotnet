@@ -25,6 +25,6 @@ namespace KS.Fiks.IO.Client.Models
 
         public Guid? ReceiverAccountId { get; set; }
 
-        public TimeSpan Ttl { get; set; }
+        public TimeSpan? Ttl { get; set; }
     }
 }

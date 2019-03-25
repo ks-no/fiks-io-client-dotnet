@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Utility
 
             foreach (var key in headers.Keys)
             {
-                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString((byte[])headers[key])}");
+                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString((byte[]) headers[key])}");
             }
 
             return new ReceivedMessageMetadata
@@ -88,7 +88,7 @@ namespace KS.Fiks.IO.Client.Utility
             }
         }
 
-        private static TimeSpan ParseTimeSpan(string longAsString, string headerName)
+        private static TimeSpan? ParseTimeSpan(string longAsString, string headerName)
         {
             if (long.TryParse(longAsString, out var longValue))
             {
@@ -96,8 +96,7 @@ namespace KS.Fiks.IO.Client.Utility
             }
             else
             {
-                throw new FiksIOParseException(
-                    $"Unable to convert header ({headerName}) from string ({longAsString}) to long/TimeSpan");
+                return null;
             }
         }
     }
