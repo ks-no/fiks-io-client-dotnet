@@ -34,16 +34,20 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             Console.WriteLine("--- Received message!");
-            var receivedMessage = ParseMessage(routingKey, properties, body);
-            if (Received != null)
+            ReceivedMessage receivedMessage;
+            try
             {
-                Console.WriteLine("--- Received message parsed, and listener exists");
+                receivedMessage = ParseMessage(routingKey, properties, body);
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("--- Received message parsed, but no listeners");
+                Console.WriteLine($"Parse caused exception: {ex.GetType()}; {ex.Message}; {ex.StackTrace}");
+                throw;
+            }
 
-            }
+            Console.WriteLine(Received != null
+                ? "--- Received message parsed, and listener exists"
+                : "--- Received message parsed, but no listeners");
 
             Received?.Invoke(
                 this,
