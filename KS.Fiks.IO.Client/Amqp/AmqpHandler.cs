@@ -85,20 +85,14 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IConnection CreateConnection(AmqpConfiguration configuration)
         {
-            var sslOptions = new SslOption();
-            sslOptions.Enabled = true;
-            sslOptions.ServerName = "ubergenkom.no";
-            sslOptions.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable;
-            sslOptions.CertificateValidationCallback = (sender, certificate, chain, errors) => true;
-
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, sslOptions);
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, GetSslOptions());
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; Password:{_connectionFactory.Password}", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName};", ex);
             }
         }
 
@@ -107,6 +101,17 @@ namespace KS.Fiks.IO.Client.Amqp
             var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
             _connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
             _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
+        }
+
+        private SslOption GetSslOptions()
+        {
+            return new SslOption
+            {
+                Enabled = true,
+                ServerName = "ubergenkom.no",
+                AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable,
+                CertificateValidationCallback = (sender, certificate, chain, errors) => true
+            };
         }
     }
 }
