@@ -19,8 +19,6 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private const string AccountsEndpoint = "kontoer";
 
-        private const string AuthenticationScope = "ks";
-
         private const string IdentifyerQueryName = "identifikator";
 
         private const string MessageTypeQueryName = "meldingType";
@@ -28,6 +26,8 @@ namespace KS.Fiks.IO.Client.Catalog
         private const string AccessLevelQueryName = "sikkerhetsniva";
 
         private readonly HttpClient _httpClient;
+
+        private bool _authorizationHeaderIsSet = false;
 
         private readonly CatalogConfiguration _catalogConfiguration;
         private readonly FiksIntegrationConfiguration _integrationConfiguration;
@@ -77,7 +77,8 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private Uri CreatePublicKeyUri(Guid receiverAccountId)
         {
-            var servicePath = $"{_catalogConfiguration.Path}/{AccountsEndpoint}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
+            var servicePath =
+                $"{_catalogConfiguration.Path}/{AccountsEndpoint}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
             return new UriBuilder(
                     _catalogConfiguration.Scheme,
                     _catalogConfiguration.Host,
@@ -97,11 +98,21 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private async Task SetAuthorizationHeader()
         {
-            var accessToken = await _maskinportenClient.GetAccessToken(AuthenticationScope).ConfigureAwait(false);
+            if (!_authorizationHeaderIsSet)
+            {
+                _authorizationHeaderIsSet = true;
+                _httpClient.DefaultRequestHeaders.Add(
+                    "integrasjonId",
+                    _integrationConfiguration.IntegrastionId.ToString());
+
+                _httpClient.DefaultRequestHeaders.Add(
+                    "integrasjonPassord",
+                    _integrationConfiguration.IntegrationPassword);
+            }
+
+            var accessToken = await _maskinportenClient.GetAccessToken(_integrationConfiguration.Scope).ConfigureAwait(false);
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", accessToken.Token);
-            _httpClient.DefaultRequestHeaders.Add("integrasjonId", _integrationConfiguration.IntegrastionId.ToString());
-            _httpClient.DefaultRequestHeaders.Add("integrasjonPassord", _integrationConfiguration.IntegrationPassword);
         }
 
         private async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
