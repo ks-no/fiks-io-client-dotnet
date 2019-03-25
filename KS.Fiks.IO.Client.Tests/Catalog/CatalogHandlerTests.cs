@@ -179,7 +179,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                     req.RequestUri.Port == port &&
                     req.RequestUri.Host == host &&
                     req.RequestUri.Scheme == scheme &&
-                    req.RequestUri.AbsolutePath == path +"/" + account.ToString() +"/offentligNokkel"),
+                    req.RequestUri.AbsolutePath == path +"/kontoer/" + account.ToString() +"/offentligNokkel"),
                 ItExpr.IsAny<CancellationToken>());
         }
     }

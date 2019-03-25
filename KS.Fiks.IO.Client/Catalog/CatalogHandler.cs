@@ -17,6 +17,8 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private const string PublicKeyEndpoint = "offentligNokkel";
 
+        private const string AccountsEndpoint = "kontoer";
+
         private const string AuthenticationScope = "ks";
 
         private const string IdentifyerQueryName = "identifikator";
@@ -75,7 +77,7 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private Uri CreatePublicKeyUri(Guid receiverAccountId)
         {
-            var servicePath = $"{_catalogConfiguration.Path}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
+            var servicePath = $"{_catalogConfiguration.Path}/{AccountsEndpoint}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
             return new UriBuilder(
                     _catalogConfiguration.Scheme,
                     _catalogConfiguration.Host,
