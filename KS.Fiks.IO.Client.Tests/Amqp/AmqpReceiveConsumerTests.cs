@@ -307,5 +307,45 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             _fixture.FileWriterMock.Verify(_ => _.Write(filePath, It.IsAny<Stream>()));
         }
+
+        [Fact]
+        public void BasicAckIsCalledWithDeliveryTagIfReceiverIsSet()
+        {
+            var sut = _fixture.CreateSut();
+            var data = new[] {default(byte), byte.MaxValue};
+
+            var handler = new EventHandler<MessageReceivedArgs>((a, b) => { });
+            var deliveryTag = (ulong) 3423423;
+
+            sut.Received += handler;
+            sut.HandleBasicDeliver(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ModelMock.Verify(_ => _.BasicAck(deliveryTag, false));
+        }
+
+        [Fact]
+        public void BasicAckIsNotCalledWithDeliveryTagIfReceiverIsNotSet()
+        {
+            var sut = _fixture.CreateSut();
+            var data = new[] {default(byte), byte.MaxValue};
+
+            sut.HandleBasicDeliver(
+                "tag",
+                34,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ModelMock.Verify(_ => _.BasicAck(It.IsAny<ulong>(), false), Times.Never);
+        }
     }
 }

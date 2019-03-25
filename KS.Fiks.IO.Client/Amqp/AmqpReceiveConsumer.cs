@@ -45,13 +45,13 @@ namespace KS.Fiks.IO.Client.Amqp
                 throw;
             }
 
-            Console.WriteLine(Received != null
-                ? "--- Received message parsed, and listener exists"
-                : "--- Received message parsed, but no listeners");
-
-            Received?.Invoke(
-                this,
-                new MessageReceivedArgs(receivedMessage, new ResponseSender()));
+            if (Received != null)
+            {
+                Received?.Invoke(
+                    this,
+                    new MessageReceivedArgs(receivedMessage, new ResponseSender()));
+                Model.BasicAck(deliveryTag, false);
+            }
         }
 
         private ReceivedMessage ParseMessage(string routingKey, IBasicProperties properties, byte[] body)

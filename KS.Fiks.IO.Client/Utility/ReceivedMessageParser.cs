@@ -31,11 +31,6 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Header is null. Cannot parse header.");
             }
 
-            foreach (var key in headers.Keys)
-            {
-                Console.WriteLine($"Headers[{key}]: {System.Text.Encoding.UTF8.GetString((byte[]) headers[key])}");
-            }
-
             return new ReceivedMessageMetadata
             {
                 MessageId = RequireGuidFromHeader(headers, MessageIdHeaderName),
@@ -101,24 +96,3 @@ namespace KS.Fiks.IO.Client.Utility
         }
     }
 }
-
-/*
-  public static MottattMeldingMetadata parse(@NonNull Envelope envelope, @NonNull AMQP.BasicProperties properties) {
-        return MottattMeldingMetadata.builder()
-                .meldingId(requireUUIDFromHeader(properties.getHeaders(), SvarInn2Headers.MELDING_ID))
-                .meldingType(requireStringFromHeader(properties.getHeaders(), SvarInn2Headers.MELDING_TYPE))
-                .avsenderKontoId(requireUUIDFromHeader(properties.getHeaders(), SvarInn2Headers.AVSENDER_ID))
-                .mottakerKontoId(UUID.fromString(envelope.getRoutingKey()))
-                .svarPaMelding(getUUIDFromHeader(properties.getHeaders(), SvarInn2Headers.SVAR_PA_MELDING_ID).getOrElse(() -> null))
-                .deliveryTag(envelope.getDeliveryTag())
-                .ttl(Long.valueOf(properties.getExpiration()))
-                .build();
-    }
-    
-    public static final String AVSENDER_ID = "avsender-id";
-    public static final String MELDING_ID = "melding-id";
-    public static final String AVSENDER_NAVN = "avsender-navn";
-    public static final String MELDING_TYPE = "type";
-    public static final String DOKUMENTLAGER_ID = "dokumentlager-id";
-    public static final String SVAR_PA_MELDING_ID = "svar-til";
-    */
