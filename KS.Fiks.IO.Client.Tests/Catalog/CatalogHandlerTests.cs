@@ -157,5 +157,30 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                             async () => await sut.Lookup(_fixture.DefaultLookupRequest).ConfigureAwait(false))
                         .ConfigureAwait(false);
         }
+
+        [Fact]
+        public async Task GetPublicKeyUsesGetCallWithExpectedAccount()
+        {
+            
+            var host = "api.fiks.dev.ks.no";
+            var port = 443;
+            var scheme = "https";
+            var path = "/svarinn2/katalog/api/v1";
+
+            var sut = _fixture.WithHost(host).WithPort(port).WithScheme(scheme).WithPath(path).CreateSut();
+            var account = Guid.NewGuid();
+            var result = await sut.GetPublicKey(account).ConfigureAwait(false);
+            
+            
+            _fixture.HttpMessageHandleMock.Protected().Verify(
+                "SendAsync",
+                Times.Exactly(1),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri.Port == port &&
+                    req.RequestUri.Host == host &&
+                    req.RequestUri.Scheme == scheme &&
+                    req.RequestUri.AbsolutePath == path +"/" + account.ToString() +"/offentligNokkel"),
+                ItExpr.IsAny<CancellationToken>());
+        }
     }
 }

@@ -15,6 +15,8 @@ namespace KS.Fiks.IO.Client.Catalog
     {
         private const string LookupEndpoint = "lookup";
 
+        private const string PublicKeyEndpoint = "offentligNokkel";
+
         private const string AuthenticationScope = "ks";
 
         private const string IdentifyerQueryName = "identifikator";
@@ -35,26 +37,24 @@ namespace KS.Fiks.IO.Client.Catalog
             IMaskinportenClient maskinportenClient,
             HttpClient httpClient = null)
         {
-            _httpClient = httpClient ?? new HttpClient();
             _catalogConfiguration = catalogConfiguration;
             _integrationConfiguration = integrationConfiguration;
             _maskinportenClient = maskinportenClient;
+            _httpClient = httpClient ?? new HttpClient();
         }
 
         public async Task<Account> Lookup(LookupRequest request)
         {
-            await SetAuthorizationHeader().ConfigureAwait(false);
             var requestUri = CreateLookupUri(request);
-            var response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
-            await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
-            var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var responseAsAccount = JsonConvert.DeserializeObject<AccountResponse>(responseAsJsonString);
+            var responseAsAccount = await GetAsModel<AccountResponse>(requestUri).ConfigureAwait(false);
             return Account.FromAccountResponse(responseAsAccount);
         }
 
-        public Task<string> GetPublicKey(Guid receiverAccountId)
+        public async Task<string> GetPublicKey(Guid receiverAccountId)
         {
-            throw new NotImplementedException();
+            var requestUri = CreatePublicKeyUri(receiverAccountId);
+            var responseAsPublicKeyModel = await GetAsModel<AccountPublicKey>(requestUri).ConfigureAwait(false);
+            return responseAsPublicKeyModel.Key;
         }
 
         private Uri CreateLookupUri(LookupRequest request)
@@ -71,6 +71,26 @@ namespace KS.Fiks.IO.Client.Catalog
                     servicePath,
                     query)
                 .Uri;
+        }
+
+        private Uri CreatePublicKeyUri(Guid receiverAccountId)
+        {
+            var servicePath = $"{_catalogConfiguration.Path}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
+            return new UriBuilder(
+                    _catalogConfiguration.Scheme,
+                    _catalogConfiguration.Host,
+                    _catalogConfiguration.Port,
+                    servicePath)
+                .Uri;
+        }
+
+        private async Task<T> GetAsModel<T>(Uri requestUri)
+        {
+            await SetAuthorizationHeader().ConfigureAwait(false);
+            var response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
+            await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
+            var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonConvert.DeserializeObject<T>(responseAsJsonString);
         }
 
         private async Task SetAuthorizationHeader()
