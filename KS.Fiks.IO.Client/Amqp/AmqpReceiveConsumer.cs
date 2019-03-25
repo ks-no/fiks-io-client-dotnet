@@ -35,6 +35,11 @@ namespace KS.Fiks.IO.Client.Amqp
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             Console.WriteLine("--- Received message!");
             var receivedMessage = ParseMessage(routingKey, properties, body);
+            if (Received != null)
+            {
+                Console.WriteLine("--- Received message parsed, and listener exists");
+            }
+
             Received?.Invoke(
                 this,
                 new MessageReceivedArgs(receivedMessage, new ResponseSender()));
