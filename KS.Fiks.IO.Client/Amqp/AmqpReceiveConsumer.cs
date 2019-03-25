@@ -39,6 +39,11 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 Console.WriteLine("--- Received message parsed, and listener exists");
             }
+            else
+            {
+                Console.WriteLine("--- Received message parsed, but no listeners");
+
+            }
 
             Received?.Invoke(
                 this,
