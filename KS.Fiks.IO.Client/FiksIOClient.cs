@@ -54,7 +54,11 @@ namespace KS.Fiks.IO.Client
                                configuration.FiksIntegrationConfiguration,
                                new DummyCrypt());
 
-            _amqpHandler = amqpHandler ?? new AmqpHandler(configuration.AmqpConfiguration, configuration.FiksIntegrationConfiguration, AccountId);
+            _amqpHandler = amqpHandler ?? new AmqpHandler(
+                               maskinportenClient,
+                               configuration.AmqpConfiguration,
+                               configuration.FiksIntegrationConfiguration,
+                               AccountId);
         }
 
         public string AccountId { get; }

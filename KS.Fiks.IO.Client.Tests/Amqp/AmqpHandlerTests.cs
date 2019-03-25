@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
@@ -80,6 +81,13 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
             counter.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GetsTokenFromMaskinportenWhenCreated()
+        {
+            var sut = _fixture.CreateSut();
+            _fixture.MaskinportenClientMock.Verify(_ => _.GetAccessToken(It.IsAny<string>()));
         }
     }
 }

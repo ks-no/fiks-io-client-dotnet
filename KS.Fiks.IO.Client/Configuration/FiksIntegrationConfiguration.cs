@@ -13,5 +13,7 @@ namespace KS.Fiks.IO.Client.Configuration
         public Guid IntegrastionId { get; }
 
         public string IntegrationPassword { get; }
+
+        public string Scope => "ks";
     }
 }

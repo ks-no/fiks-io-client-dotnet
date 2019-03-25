@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
+using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client;
 
@@ -12,6 +13,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private bool _connectionFactoryShouldThrow = false;
         private bool _connectionShouldThrow = false;
         private string _accountId = "testId";
+        private string _token = "testtoken";
+        private bool _realConnection = false;
 
         public AmqpHandlerFixture()
         {
@@ -20,6 +23,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             ModelMock = new Mock<IModel>();
             AmqpReceiveConsumerMock = new Mock<IAmqpReceiveConsumer>();
             AmqpConsumerFactoryMock = new Mock<IAmqpConsumerFactory>();
+            MaskinportenClientMock = new Mock<IMaskinportenClient>();
         }
 
         public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
@@ -34,6 +38,18 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
+        public AmqpHandlerFixture WithMaskinportenToken(string token)
+        {
+            _token = token;
+            return this;
+        }
+
+        public AmqpHandlerFixture WithRealConnection()
+        {
+            _realConnection = true;
+            return this;
+        }
+
         public Mock<IModel> ModelMock { get; }
 
         public Mock<IConnectionFactory> ConnectionFactoryMock { get; }
@@ -44,14 +60,17 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; }
 
+        internal Mock<IMaskinportenClient> MaskinportenClientMock { get; }
+
         internal AmqpHandler CreateSut()
         {
             SetupMocks();
             return new AmqpHandler(
+                MaskinportenClientMock.Object,
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
                 _accountId,
-                ConnectionFactoryMock.Object,
+                _realConnection ? null : ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
         }
 
@@ -79,6 +98,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             AmqpConsumerFactoryMock.Setup(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()))
                                    .Returns(AmqpReceiveConsumerMock.Object);
+
+            MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<string>())).ReturnsAsync(new MaskinportenToken(_token, 100));
         }
 
         private AmqpConfiguration CreateConfiguration()

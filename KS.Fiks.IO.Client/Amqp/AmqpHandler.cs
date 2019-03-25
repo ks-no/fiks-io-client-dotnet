@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
+using Ks.Fiks.Maskinporten.Client;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -14,20 +16,27 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
+        private readonly IConnectionFactory _connectionFactory;
+
         private readonly string _accountId;
+
+        private readonly IMaskinportenClient _maskinportenClient;
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
+            IMaskinportenClient maskinportenClient,
             AmqpConfiguration amqpConfiguration,
             FiksIntegrationConfiguration integrationConfiguration,
             string accountId,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
+            _maskinportenClient = maskinportenClient;
             _accountId = accountId;
-            connectionFactory = connectionFactory ?? CreateConnectionFactory(integrationConfiguration);
-            _channel = ConnectToChannel(connectionFactory, amqpConfiguration);
+            _connectionFactory = connectionFactory ?? new ConnectionFactory();
+            SetupConnectionFactory(integrationConfiguration);
+            _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
         }
 
@@ -61,9 +70,9 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private IModel ConnectToChannel(IConnectionFactory connectionFactory, AmqpConfiguration configuration)
+        private IModel ConnectToChannel(AmqpConfiguration configuration)
         {
-            var connection = CreateConnection(connectionFactory, configuration);
+            var connection = CreateConnection(configuration);
             try
             {
                 return connection.CreateModel();
@@ -74,12 +83,18 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private IConnection CreateConnection(IConnectionFactory connectionFactory, AmqpConfiguration configuration)
+        private IConnection CreateConnection(AmqpConfiguration configuration)
         {
+            var sslOptions = new SslOption();
+            sslOptions.Enabled = true;
+            sslOptions.ServerName = "ubergenkom.no";
+            sslOptions.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable;
+            sslOptions.CertificateValidationCallback = (sender, certificate, chain, errors) => true;
+
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port);
-                return connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, sslOptions);
+                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
@@ -87,16 +102,11 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private IConnectionFactory CreateConnectionFactory(FiksIntegrationConfiguration integrationConfiguration)
+        private void SetupConnectionFactory(FiksIntegrationConfiguration integrationConfiguration)
         {
-            var connectionFactory = new ConnectionFactory();
-            connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
-            connectionFactory.Password = integrationConfiguration.IntegrationPassword;
-            connectionFactory.Ssl.ServerName = System.Net.Dns.GetHostName();
-            connectionFactory.Ssl.Enabled = true;
-
-
-            return connectionFactory;
+            var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
+            _connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
+            _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken}";
         }
     }
 }
