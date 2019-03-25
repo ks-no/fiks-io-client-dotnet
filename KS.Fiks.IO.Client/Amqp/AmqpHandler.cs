@@ -98,7 +98,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException("Unable to create connection", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; Password:{_connectionFactory.Password}", ex);
             }
         }
 
