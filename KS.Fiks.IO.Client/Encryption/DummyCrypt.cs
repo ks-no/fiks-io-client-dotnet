@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client.Encryption
@@ -18,7 +19,7 @@ namespace KS.Fiks.IO.Client.Encryption
 
         public Stream Encrypt(string key, IEnumerable<IPayload> payload)
         {
-            return new MemoryStream();
+            return payload.FirstOrDefault()?.Payload ?? new MemoryStream();
         }
     }
 }
