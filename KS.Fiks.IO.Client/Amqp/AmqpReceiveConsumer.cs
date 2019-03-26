@@ -33,21 +33,10 @@ namespace KS.Fiks.IO.Client.Amqp
             byte[] body)
         {
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            Console.WriteLine("--- Received message!");
-            ReceivedMessage receivedMessage;
-            try
-            {
-                receivedMessage = ParseMessage(routingKey, properties, body);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Parse caused exception: {ex.GetType()}; {ex.Message}; {ex.StackTrace}");
-                throw;
-            }
+            var receivedMessage = ParseMessage(routingKey, properties, body);
 
             if (Received != null)
             {
-                Console.WriteLine("--- Invoking Received");
                 Received.Invoke(
                     this,
                     new MessageReceivedArgs(receivedMessage, new ResponseSender()));
