@@ -48,7 +48,7 @@ namespace KS.Fiks.IO.Client.Amqp
             if (Received != null)
             {
                 Console.WriteLine("--- Invoking Received");
-                Received?.Invoke(
+                Received.Invoke(
                     this,
                     new MessageReceivedArgs(receivedMessage, new ResponseSender()));
                 Model.BasicAck(deliveryTag, false);

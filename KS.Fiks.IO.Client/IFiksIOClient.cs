@@ -7,7 +7,7 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client
 {
-    public interface IFiksIOClient
+    public interface IFiksIOClient : IDisposable
     {
         string AccountId { get; }
 
