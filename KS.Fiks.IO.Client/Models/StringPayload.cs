@@ -5,10 +5,16 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class StringPayload : IPayload
     {
-        public string Filename { get; set; }
+        private readonly string _payload;
 
-        public Stream Payload => new MemoryStream(Encoding.UTF8.GetBytes(PayloadString));
+        public StringPayload(string payload, string filename)
+        {
+            _payload = payload;
+            Filename = filename;
+        }
 
-        public string PayloadString { get; set; }
+        public string Filename { get; }
+
+        public Stream Payload => new MemoryStream(Encoding.UTF8.GetBytes(_payload));
     }
 }

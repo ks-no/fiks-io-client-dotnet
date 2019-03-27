@@ -75,40 +75,17 @@ namespace KS.Fiks.IO.Client
 
         public async Task<SentMessage> Send(MessageRequest request, string pathToPayload)
         {
-            var payloadList = new List<IPayload>
-            {
-                new FilePayload(pathToPayload)
-            };
-
-            return await Send(request, payloadList).ConfigureAwait(false);
+            return await Send(request, new FilePayload(pathToPayload)).ConfigureAwait(false);
         }
 
         public async Task<SentMessage> Send(MessageRequest request, string payload, string filename)
         {
-            var payloadList = new List<IPayload>
-            {
-                new StringPayload
-                {
-                    PayloadString = payload,
-                    Filename = filename
-                }
-            };
-
-            return await Send(request, payloadList).ConfigureAwait(false);
+            return await Send(request, new StringPayload(payload, filename)).ConfigureAwait(false);
         }
 
         public async Task<SentMessage> Send(MessageRequest request, Stream payload, string filename)
         {
-            var payloadList = new List<IPayload>
-            {
-                new StreamPayload
-                {
-                    Payload = payload,
-                    Filename = filename
-                }
-            };
-
-            return await Send(request, payloadList).ConfigureAwait(false);
+            return await Send(request, new StreamPayload(payload, filename)).ConfigureAwait(false);
         }
 
         public void NewSubscription(EventHandler<MessageReceivedArgs> onReceived)
@@ -135,6 +112,11 @@ namespace KS.Fiks.IO.Client
             {
                 _amqpHandler?.Dispose();
             }
+        }
+
+        private async Task<SentMessage> Send(MessageRequest request, IPayload payload)
+        {
+            return await Send(request, new List<IPayload> {payload}).ConfigureAwait(false);
         }
     }
 }
