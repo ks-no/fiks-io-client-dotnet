@@ -86,7 +86,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
             var outStream = sut.Encrypt(null, new List<IPayload> {payload});
 
-            expectedZipStream.Seek(0l, SeekOrigin.Begin);
+            expectedZipStream.Seek(0L, SeekOrigin.Begin);
             _fixture.CryptoServiceMock.Verify(
                 _ => _.Encrypt(
                 It.Is<Stream>((stream) => TestHelper.StreamEquals(expectedZipStream, stream)),
@@ -98,7 +98,6 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             var sut = _fixture.CreateSut();
             Assert.Throws<ArgumentException>(() => { sut.Encrypt(null, new List<IPayload>()); });
-
         }
     }
 }

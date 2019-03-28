@@ -10,6 +10,7 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using Moq.Protected;
+using Org.BouncyCastle.X509;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Catalog
@@ -161,17 +162,16 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         [Fact]
         public async Task GetPublicKeyUsesGetCallWithExpectedAccount()
         {
-            
             var host = "api.fiks.dev.ks.no";
             var port = 443;
             var scheme = "https";
             var path = "/svarinn2/katalog/api/v1";
 
-            var sut = _fixture.WithHost(host).WithPort(port).WithScheme(scheme).WithPath(path).CreateSut();
+            var sut = _fixture.WithHost(host).WithPort(port).WithScheme(scheme).WithPath(path)
+                              .WithPublicKeyResponse(_fixture.CreateDefaultPublicKey()).CreateSut();
             var account = Guid.NewGuid();
             var result = await sut.GetPublicKey(account).ConfigureAwait(false);
-            
-            
+
             _fixture.HttpMessageHandleMock.Protected().Verify(
                 "SendAsync",
                 Times.Exactly(1),
@@ -179,8 +179,17 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                     req.RequestUri.Port == port &&
                     req.RequestUri.Host == host &&
                     req.RequestUri.Scheme == scheme &&
-                    req.RequestUri.AbsolutePath == path +"/kontoer/" + account.ToString() +"/offentligNokkel"),
+                    req.RequestUri.AbsolutePath ==
+                    path + "/kontoer/" + account.ToString() + "/offentligNokkel"),
                 ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GetPublicKeyReturnsX509Object()
+        {
+            var sut = _fixture.WithPublicKeyResponse(_fixture.CreateDefaultPublicKey()).CreateSut();
+            var result = await sut.GetPublicKey(Guid.NewGuid()).ConfigureAwait(false);
+            result.Should().BeOfType<X509Certificate>();
         }
     }
 }

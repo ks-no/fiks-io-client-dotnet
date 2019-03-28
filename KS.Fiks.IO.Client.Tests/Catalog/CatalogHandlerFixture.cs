@@ -17,6 +17,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
     {
         private HttpStatusCode _statusCode = HttpStatusCode.OK;
         private AccountResponse _accountResponse;
+        private AccountPublicKey _accountPublicKey;
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
         private int _port = 80;
@@ -65,6 +66,12 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             return this;
         }
 
+        public CatalogHandlerFixture WithPublicKeyResponse(AccountPublicKey response)
+        {
+            _accountPublicKey = response;
+            return this;
+        }
+
         public CatalogHandlerFixture WithScheme(string scheme)
         {
             _scheme = scheme;
@@ -107,6 +114,32 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             return this;
         }
 
+        public AccountPublicKey CreateDefaultPublicKey()
+        {
+            return new AccountPublicKey
+            {
+                IssuerDN = "C=AU",
+                Certificate = "-----BEGIN CERTIFICATE-----\n"+
+                "MIICLDCCAdKgAwIBAgIBADAKBggqhkjOPQQDAjB9MQswCQYDVQQGEwJCRTEPMA0G\n"+
+                "A1UEChMGR251VExTMSUwIwYDVQQLExxHbnVUTFMgY2VydGlmaWNhdGUgYXV0aG9y\n"+
+                "aXR5MQ8wDQYDVQQIEwZMZXV2ZW4xJTAjBgNVBAMTHEdudVRMUyBjZXJ0aWZpY2F0\n"+
+                "ZSBhdXRob3JpdHkwHhcNMTEwNTIzMjAzODIxWhcNMTIxMjIyMDc0MTUxWjB9MQsw\n"+
+                "CQYDVQQGEwJCRTEPMA0GA1UEChMGR251VExTMSUwIwYDVQQLExxHbnVUTFMgY2Vy\n"+
+                "dGlmaWNhdGUgYXV0aG9yaXR5MQ8wDQYDVQQIEwZMZXV2ZW4xJTAjBgNVBAMTHEdu\n"+
+                "dVRMUyBjZXJ0aWZpY2F0ZSBhdXRob3JpdHkwWTATBgcqhkjOPQIBBggqhkjOPQMB\n"+
+                "BwNCAARS2I0jiuNn14Y2sSALCX3IybqiIJUvxUpj+oNfzngvj/Niyv2394BWnW4X\n"+
+                "uQ4RTEiywK87WRcWMGgJB5kX/t2no0MwQTAPBgNVHRMBAf8EBTADAQH/MA8GA1Ud\n"+
+                "DwEB/wQFAwMHBgAwHQYDVR0OBBYEFPC0gf6YEr+1KLlkQAPLzB9mTigDMAoGCCqG\n"+
+                "SM49BAMCA0gAMEUCIDGuwD1KPyG+hRf88MeyMQcqOFZD0TbVleF+UsAGQ4enAiEA\n"+
+                "l4wOuDwKQa+upc8GftXE2C//4mKANBC6It01gUaTIpo=\n"+
+                "-----END CERTIFICATE-----",
+                Serial = "500",
+                SubjectDN = "C=AU",
+                ValidFrom = DateTime.Now,
+                ValidTo = DateTime.Now.Add(TimeSpan.FromDays(2))
+            };
+        }
+
         private void SetDefaultValues()
         {
             _integrasjonId = Guid.NewGuid();
@@ -142,6 +175,11 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             if (_accountResponse != null)
             {
                 return new StringContent(JsonConvert.SerializeObject(_accountResponse));
+            }
+
+            if (_accountPublicKey != null)
+            {
+                return new StringContent(JsonConvert.SerializeObject(_accountPublicKey));
             }
 
             var responseAsJsonString = @"{" +

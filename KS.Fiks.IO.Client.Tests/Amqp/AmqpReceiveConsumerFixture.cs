@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             {
                 {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
                 {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
-                {"type", Encoding.UTF8.GetBytes("messageType")},
+                {"type", Encoding.UTF8.GetBytes("messageType") },
                 {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) }
             };
 

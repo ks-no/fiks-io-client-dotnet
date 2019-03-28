@@ -67,7 +67,7 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Could not find required header: {headerName}.");
             }
 
-            return System.Text.Encoding.UTF8.GetString((byte[]) header[headerName]);
+            return System.Text.Encoding.UTF8.GetString((byte[])header[headerName]);
         }
 
         private static Guid ParseGuid(string guidAsString, string headerName)

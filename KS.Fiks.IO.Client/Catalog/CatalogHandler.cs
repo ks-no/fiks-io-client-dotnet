@@ -3,11 +3,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Catalog
 {
@@ -50,11 +53,21 @@ namespace KS.Fiks.IO.Client.Catalog
             return Account.FromAccountResponse(responseAsAccount);
         }
 
-        public async Task<string> GetPublicKey(Guid receiverAccountId)
+        public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)
         {
             var requestUri = CreatePublicKeyUri(receiverAccountId);
             var responseAsPublicKeyModel = await GetAsModel<AccountPublicKey>(requestUri).ConfigureAwait(false);
-            return responseAsPublicKeyModel.Key;
+            return X509CertificateReader.ExtractCertificate(responseAsPublicKeyModel.Certificate);
+        }
+
+        private static async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
+        {
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new FiksIOUnexpectedResponseException(
+                    $"Got unexpected HTTP Status code {response.StatusCode} from {requestUri}. Content: {content}.");
+            }
         }
 
         private Uri CreateLookupUri(LookupRequest request)
@@ -90,7 +103,6 @@ namespace KS.Fiks.IO.Client.Catalog
             var accessToken = await _maskinportenClient
                                     .GetAccessToken(_integrationConfiguration.Scope).ConfigureAwait(false);
 
-
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 requestMessage.Headers.Add(
@@ -103,23 +115,11 @@ namespace KS.Fiks.IO.Client.Catalog
                 requestMessage.Headers.Authorization =
                     new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
-
                 var response = await _httpClient.SendAsync(requestMessage).ConfigureAwait(false);
 
                 await ThrowIfResponseIsInvalid(response, requestUri).ConfigureAwait(false);
                 var responseAsJsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<T>(responseAsJsonString);
-            }
-        }
-
-
-        private async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
-        {
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new FiksIOUnexpectedResponseException(
-                    $"Got unexpected HTTP Status code {response.StatusCode} from {requestUri}. Content: {content}.");
             }
         }
     }

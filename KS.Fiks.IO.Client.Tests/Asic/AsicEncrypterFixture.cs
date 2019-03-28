@@ -15,7 +15,6 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         private Stream _outZipStream;
         private Stream _outEncryptedZipStream;
 
-
         public AsicEncrypterFixture()
         {
             _asiceBuilderFactoryMock = new Mock<IAsiceBuilderFactory>();
@@ -80,10 +79,9 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                                     .Callback<Stream, MessageDigestAlgorithm, ICertificateHolder>((outStream, a, b) =>
                                     {
                                         _outZipStream.CopyTo(outStream);
-                                        outStream.Seek(0l, SeekOrigin.Begin);
+                                        outStream.Seek(0L, SeekOrigin.Begin);
                                     })
                                     .Returns(AsiceBuilderMock.Object);
-
 
             AsiceBuilderMock.Setup(_ => _.AddFile(It.IsAny<Stream>(), It.IsAny<string>()))
                             .Returns(AsiceBuilderMock.Object);
@@ -94,7 +92,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                 (inStream, outStream) =>
                 {
                     _outEncryptedZipStream.CopyTo(outStream);
-                    outStream.Seek(0l, SeekOrigin.Begin);
+                    outStream.Seek(0L, SeekOrigin.Begin);
                 });
         }
     }

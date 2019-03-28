@@ -51,10 +51,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
-                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageId.ToString())},
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageId.ToString()) },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -96,10 +96,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
-                {"melding-id", Encoding.UTF8.GetBytes("NoTGuid")},
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes("NoTGuid") },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -131,7 +131,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
             var propertiesMock = new Mock<IBasicProperties>();
-            propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>) null);
+            propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>)null);
             propertiesMock.Setup(_ => _.Expiration)
                           .Returns(
                               expectedMessageMetadata.Ttl?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
@@ -160,11 +160,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString())},
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType)},
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString())}
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
-
 
             var propertiesMock = new Mock<IBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
@@ -195,7 +194,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
 
             var filePath = "/my/path/something.zip";
-            var data = new[] {default(byte)};
+            var data = new[] {default(byte) };
 
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
             {
@@ -315,7 +314,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
 
             var handler = new EventHandler<MessageReceivedArgs>((a, b) => { });
-            var deliveryTag = (ulong) 3423423;
+            var deliveryTag = (ulong)3423423;
 
             sut.Received += handler;
             sut.HandleBasicDeliver(

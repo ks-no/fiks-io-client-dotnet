@@ -97,7 +97,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var token = "maskinportenExpectedToken";
             var sut = _fixture.WithMaskinportenToken(token).WithIntegrationPassword(password).CreateSut();
             _fixture.ConnectionFactoryMock.VerifySet(_ => _.Password = $"{password} {token}");
-
         }
 
         [Fact]

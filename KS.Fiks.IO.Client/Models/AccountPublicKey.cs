@@ -6,7 +6,7 @@ namespace KS.Fiks.IO.Client.Models
     public class AccountPublicKey
     {
         [JsonProperty("nokkel")]
-        public string Key { get; set; }
+        public string Certificate { get; set; }
 
         [JsonProperty("validFrom")]
         public DateTime ValidFrom { get; set; }
@@ -18,9 +18,9 @@ namespace KS.Fiks.IO.Client.Models
         public string Serial { get; set; }
 
         [JsonProperty("subjectDN")]
-        public string SubjectDistinguishedName { get; set; }
+        public string SubjectDN { get; set; }
 
         [JsonProperty("issuerDN")]
-        public string IssuerDistinguishedName { get; set; }
+        public string IssuerDN { get; set; }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
-    public class TestHelper
+    public static class TestHelper
     {
         public static bool StreamEquals(Stream stream1, Stream stream2)
         {
@@ -15,7 +15,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             var outBytes = new byte[stream.Length];
             stream.Read(outBytes);
-            stream.Seek(0l, SeekOrigin.Begin);
+            stream.Seek(0L, SeekOrigin.Begin);
             return outBytes;
         }
     }

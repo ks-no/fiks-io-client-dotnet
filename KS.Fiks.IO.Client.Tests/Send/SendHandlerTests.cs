@@ -63,7 +63,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         [Fact]
         public async Task CallsEncrypterWithExpectedPrivateKey()
         {
-            var expectedPublicKey = "myPublicKey";
+            var expectedPublicKey = _fixture.CreateTestCertificate();
             var sut = _fixture.WithPublicKey(expectedPublicKey).CreateSut();
             var request = new MessageRequest();
             var payload = Mock.Of<IEnumerable<IPayload>>();
