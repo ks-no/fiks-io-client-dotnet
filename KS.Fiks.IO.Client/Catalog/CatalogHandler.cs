@@ -9,7 +9,6 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Catalog

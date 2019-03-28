@@ -1,5 +1,4 @@
 using System.IO;
-using KS.Fiks.IO.Client.Configuration;
 
 namespace KS.Fiks.IO.Client.Models
 {
