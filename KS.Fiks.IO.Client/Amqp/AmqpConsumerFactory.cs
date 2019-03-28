@@ -1,5 +1,6 @@
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
+using KS.Fiks.IO.Client.Send;
 using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
@@ -10,15 +11,18 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IPayloadDecrypter _decrypter;
 
-        public AmqpConsumerFactory()
+        private readonly ISendHandler _sendHandler;
+
+        public AmqpConsumerFactory(ISendHandler sendHandler)
         {
             _fileWriter = new FileWriter();
             _decrypter = new DummyCrypt();
+            _sendHandler = sendHandler;
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)
         {
-            return new AmqpReceiveConsumer(channel, _fileWriter, _decrypter);
+            return new AmqpReceiveConsumer(channel, _fileWriter, _decrypter, _sendHandler);
         }
     }
 }

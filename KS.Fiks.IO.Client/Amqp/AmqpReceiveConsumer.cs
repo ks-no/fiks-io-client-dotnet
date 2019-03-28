@@ -14,11 +14,14 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IFileWriter _fileWriter;
 
-        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IPayloadDecrypter decrypter)
+        private readonly ISendHandler _sendHandler;
+
+        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IPayloadDecrypter decrypter, ISendHandler sendHandler)
             : base(model)
         {
             _fileWriter = fileWriter;
             _decrypter = decrypter;
+            _sendHandler = sendHandler;
         }
 
         public event EventHandler<MessageReceivedArgs> Received;
@@ -39,7 +42,7 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 Received.Invoke(
                     this,
-                    new MessageReceivedArgs(receivedMessage, new ResponseSender()));
+                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
                 Model.BasicAck(deliveryTag, false);
             }
         }

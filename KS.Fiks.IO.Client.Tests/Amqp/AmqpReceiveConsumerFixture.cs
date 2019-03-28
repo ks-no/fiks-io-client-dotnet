@@ -6,6 +6,7 @@ using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using Moq;
 using RabbitMQ.Client;
 
@@ -20,6 +21,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             ModelMock = new Mock<IModel>();
             FileWriterMock = new Mock<IFileWriter>();
             PayloadDecrypterMock = new Mock<IPayloadDecrypter>();
+            SendHandlerMock = new Mock<ISendHandler>();
             SetDefaultProperties();
         }
 
@@ -41,10 +43,16 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IPayloadDecrypter> PayloadDecrypterMock { get; }
 
+        internal Mock<ISendHandler> SendHandlerMock { get; }
+
         internal AmqpReceiveConsumer CreateSut()
         {
             SetupMocks();
-            return new AmqpReceiveConsumer(ModelMock.Object, FileWriterMock.Object, PayloadDecrypterMock.Object);
+            return new AmqpReceiveConsumer(
+                ModelMock.Object,
+                FileWriterMock.Object,
+                PayloadDecrypterMock.Object,
+                SendHandlerMock.Object);
         }
 
         private void SetDefaultProperties()
@@ -52,10 +60,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _defaultProperties = new Mock<IBasicProperties>();
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
-                {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
-                {"type", Encoding.UTF8.GetBytes("messageType") },
-                {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) }
+                {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())},
+                {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())},
+                {"type", Encoding.UTF8.GetBytes("messageType")},
+                {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())}
             };
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);
@@ -68,7 +76,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<byte[]>()));
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
             PayloadDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<byte[]>()))
-                                .Returns((byte[] inStream) => (Stream)new MemoryStream(inStream));
+                                .Returns((byte[] inStream) => (Stream) new MemoryStream(inStream));
             PayloadDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
                                 .Returns((Stream inStream) => inStream);
         }

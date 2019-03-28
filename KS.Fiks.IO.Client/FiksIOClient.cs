@@ -56,6 +56,7 @@ namespace KS.Fiks.IO.Client
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
+                               _sendHandler,
                                configuration.AmqpConfiguration,
                                configuration.FiksIntegrationConfiguration,
                                AccountId);

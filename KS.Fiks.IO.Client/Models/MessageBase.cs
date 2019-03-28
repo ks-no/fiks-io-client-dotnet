@@ -17,14 +17,14 @@ namespace KS.Fiks.IO.Client.Models
             Ttl = message.Ttl;
         }
 
-        public Guid? MessageId { get; set; }
+        public Guid MessageId { get; set; }
 
         public string MessageType { get; set; }
 
-        public Guid? SenderAccountId { get; set; }
+        public Guid SenderAccountId { get; set; }
 
-        public Guid? ReceiverAccountId { get; set; }
+        public Guid ReceiverAccountId { get; set; }
 
-        public TimeSpan? Ttl { get; set; }
+        public TimeSpan Ttl { get; set; }
     }
 }

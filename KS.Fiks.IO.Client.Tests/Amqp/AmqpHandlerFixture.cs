@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client;
@@ -25,6 +26,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             AmqpReceiveConsumerMock = new Mock<IAmqpReceiveConsumer>();
             AmqpConsumerFactoryMock = new Mock<IAmqpConsumerFactory>();
             MaskinportenClientMock = new Mock<IMaskinportenClient>();
+            SendHandlerMock = new Mock<ISendHandler>();
         }
 
         public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
@@ -69,11 +71,14 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IMaskinportenClient> MaskinportenClientMock { get; }
 
+        internal Mock<ISendHandler> SendHandlerMock { get; }
+
         internal AmqpHandler CreateSut()
         {
             SetupMocks();
             return new AmqpHandler(
                 MaskinportenClientMock.Object,
+                SendHandlerMock.Object,
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
                 _accountId,
@@ -109,7 +114,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             AmqpConsumerFactoryMock.Setup(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()))
                                    .Returns(AmqpReceiveConsumerMock.Object);
 
-            MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<string>())).ReturnsAsync(new MaskinportenToken(_token, 100));
+            MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<string>()))
+                                  .ReturnsAsync(new MaskinportenToken(_token, 100));
         }
 
         private AmqpConfiguration CreateConfiguration()

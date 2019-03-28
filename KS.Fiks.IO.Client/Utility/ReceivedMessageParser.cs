@@ -83,16 +83,9 @@ namespace KS.Fiks.IO.Client.Utility
             }
         }
 
-        private static TimeSpan? ParseTimeSpan(string longAsString, string headerName)
+        private static TimeSpan ParseTimeSpan(string longAsString, string headerName)
         {
-            if (long.TryParse(longAsString, out var longValue))
-            {
-                return TimeSpan.FromMilliseconds(longValue);
-            }
-            else
-            {
-                return null;
-            }
+            return TimeSpan.FromMilliseconds(long.Parse(longAsString));
         }
     }
 }

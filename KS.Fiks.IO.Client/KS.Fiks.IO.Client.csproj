@@ -13,7 +13,7 @@
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-dev-26" />
         <PackageReference Include="KS.Fiks.Crypto" Version="1.0.0-dev-47" />
-        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-92" />
+        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-93" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-85" />
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0-dev-69" PrivateAssets="All" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />

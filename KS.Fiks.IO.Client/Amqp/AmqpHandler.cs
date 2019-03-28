@@ -4,6 +4,7 @@ using System.Net.Security;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -26,6 +27,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
+            ISendHandler sendHandler,
             AmqpConfiguration amqpConfiguration,
             FiksIntegrationConfiguration integrationConfiguration,
             string accountId,
@@ -37,7 +39,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory();
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler);
         }
 
         public void AddMessageReceivedHandler(
