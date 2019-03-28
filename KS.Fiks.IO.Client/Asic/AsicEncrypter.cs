@@ -13,12 +13,14 @@ namespace KS.Fiks.IO.Client.Asic
     {
         private readonly IAsiceBuilderFactory _asiceBuilderFactory;
 
-        private readonly ICryptoService _cryptoService;
+        private readonly IEncryptionServiceFactory _encryptionServiceFactory;
 
-        public AsicEncrypter(IAsiceBuilderFactory asiceBuilderFactory, ICryptoService cryptoService)
+        public AsicEncrypter(
+            IAsiceBuilderFactory asiceBuilderFactory,
+            IEncryptionServiceFactory encryptionServiceFactory)
         {
             _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
-            _cryptoService = cryptoService;
+            _encryptionServiceFactory = encryptionServiceFactory;
         }
 
         public Stream Encrypt(X509Certificate receiverCertificate, IEnumerable<IPayload> payloads)
@@ -28,7 +30,7 @@ namespace KS.Fiks.IO.Client.Asic
                 throw new ArgumentException("Payloads cannot be empty");
             }
 
-            Stream zipStream = new MemoryStream();
+            var zipStream = new MemoryStream();
 
             using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256, null))
             {
@@ -38,10 +40,15 @@ namespace KS.Fiks.IO.Client.Asic
                 }
             }
 
-            Stream encryptedStream = new MemoryStream();
-            _cryptoService.Encrypt(zipStream, encryptedStream);
+            var encryptionService = _encryptionServiceFactory.Create(receiverCertificate);
 
-            return encryptedStream;
+            var outStream = new MemoryStream();
+            using (var unencryptedStream = zipStream)
+            {
+                encryptionService.Encrypt(unencryptedStream, outStream);
+            }
+
+            return outStream;
         }
     }
 }

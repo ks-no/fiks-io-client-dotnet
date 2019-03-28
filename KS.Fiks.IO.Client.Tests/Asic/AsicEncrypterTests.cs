@@ -85,10 +85,9 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
             var outStream = sut.Encrypt(null, new List<IPayload> {payload});
 
-            expectedZipStream.Seek(0L, SeekOrigin.Begin);
-            _fixture.CryptoServiceMock.Verify(
+            _fixture.EncryptionServiceMock.Verify(
                 _ => _.Encrypt(
-                It.Is<Stream>((stream) => TestHelper.StreamEquals(expectedZipStream, stream)),
+                It.IsAny<Stream>(),
                 It.IsAny<Stream>()));
         }
 

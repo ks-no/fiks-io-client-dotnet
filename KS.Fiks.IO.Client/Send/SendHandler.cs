@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Encryption;
@@ -15,14 +16,14 @@ namespace KS.Fiks.IO.Client.Send
     {
         private readonly IFiksIOSender _sender;
 
-        private readonly IPayloadEncrypter _payloadEncrypter;
+        private readonly IAsicEncrypter _asicEncrypter;
 
         private readonly ICatalogHandler _catalogHandler;
 
-        public SendHandler(ICatalogHandler catalogHandler, IFiksIOSender sender, IPayloadEncrypter payloadEncrypter)
+        public SendHandler(ICatalogHandler catalogHandler, IFiksIOSender sender, IAsicEncrypter asicEncrypter)
         {
             _sender = sender;
-            _payloadEncrypter = payloadEncrypter;
+            _asicEncrypter = asicEncrypter;
             _catalogHandler = catalogHandler;
         }
 
@@ -31,11 +32,11 @@ namespace KS.Fiks.IO.Client.Send
             IMaskinportenClient maskinportenClient,
             FiksIOSenderConfiguration senderConfiguration,
             FiksIntegrationConfiguration integrationConfiguration,
-            IPayloadEncrypter payloadEncrypter)
+            IAsicEncrypter asicEncrypter)
             : this(
                 catalogHandler,
                 new FiksIOSender(senderConfiguration, maskinportenClient, integrationConfiguration.IntegrastionId, integrationConfiguration.IntegrationPassword),
-                payloadEncrypter)
+                asicEncrypter)
         {
         }
 
@@ -52,7 +53,7 @@ namespace KS.Fiks.IO.Client.Send
         private async Task<Stream> GetEncryptedPayload(MessageRequest request, IEnumerable<IPayload> payload)
         {
             var publicKey = await _catalogHandler.GetPublicKey(request.ReceiverAccountId).ConfigureAwait(false);
-            return _payloadEncrypter.Encrypt(publicKey, payload);
+            return _asicEncrypter.Encrypt(publicKey, payload);
         }
     }
 }

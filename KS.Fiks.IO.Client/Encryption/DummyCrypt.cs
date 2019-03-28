@@ -6,7 +6,7 @@ using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Encryption
 {
-    internal class DummyCrypt : IPayloadDecrypter, IPayloadEncrypter
+    internal class DummyCrypt : IPayloadDecrypter
     {
         public Stream Decrypt(Stream data)
         {
@@ -16,11 +16,6 @@ namespace KS.Fiks.IO.Client.Encryption
         public Stream Decrypt(byte[] data)
         {
             return new MemoryStream(data);
-        }
-
-        public Stream Encrypt(X509Certificate key, IEnumerable<IPayload> payload)
-        {
-            return payload.FirstOrDefault()?.Payload ?? new MemoryStream();
         }
     }
 }

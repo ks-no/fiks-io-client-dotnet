@@ -70,7 +70,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
-            _fixture.PayloadEncrypterMock.Verify(_ => _.Encrypt(expectedPublicKey, payload), Times.Once());
+            _fixture.AsicEncrypterMock.Verify(_ => _.Encrypt(expectedPublicKey, payload), Times.Once());
         }
 
         [Fact]

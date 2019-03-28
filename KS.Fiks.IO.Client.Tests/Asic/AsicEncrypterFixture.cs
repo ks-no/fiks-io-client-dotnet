@@ -6,25 +6,28 @@ using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
 using Moq;
+using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
     public class AsicEncrypterFixture
     {
         private readonly Mock<IAsiceBuilderFactory> _asiceBuilderFactoryMock;
+        private readonly Mock<IEncryptionServiceFactory> _encryptionServiceFactoryMock;
         private Stream _outZipStream;
         private Stream _outEncryptedZipStream;
 
         public AsicEncrypterFixture()
         {
             _asiceBuilderFactoryMock = new Mock<IAsiceBuilderFactory>();
+            _encryptionServiceFactoryMock = new Mock<IEncryptionServiceFactory>();
             AsiceBuilderMock = new Mock<IAsiceBuilder<AsiceArchive>>();
-            CryptoServiceMock = new Mock<ICryptoService>();
+            EncryptionServiceMock = new Mock<IEncryptionService>();
         }
 
         public Mock<IAsiceBuilder<AsiceArchive>> AsiceBuilderMock { get; }
 
-        public Mock<ICryptoService> CryptoServiceMock { get; }
+        public Mock<IEncryptionService> EncryptionServiceMock { get; }
 
         public AsicEncrypterFixture WithContentAsZipStreamed(Stream stream)
         {
@@ -42,7 +45,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             SetDefaults();
             SetupMocks();
-            return new AsicEncrypter(_asiceBuilderFactoryMock.Object, CryptoServiceMock.Object);
+            return new AsicEncrypter(_asiceBuilderFactoryMock.Object, _encryptionServiceFactoryMock.Object);
         }
 
         internal MemoryStream RandomStream
@@ -82,18 +85,21 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                                         outStream.Seek(0L, SeekOrigin.Begin);
                                     })
                                     .Returns(AsiceBuilderMock.Object);
+            _encryptionServiceFactoryMock.Setup(_ => _.Create(It.IsAny<X509Certificate>()))
+                                         .Returns(EncryptionServiceMock.Object);
 
             AsiceBuilderMock.Setup(_ => _.AddFile(It.IsAny<Stream>(), It.IsAny<string>()))
                             .Returns(AsiceBuilderMock.Object);
 
             AsiceBuilderMock.Setup(_ => _.Dispose());
 
-            CryptoServiceMock.Setup(_ => _.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>())).Callback<Stream, Stream>(
-                (inStream, outStream) =>
-                {
-                    _outEncryptedZipStream.CopyTo(outStream);
-                    outStream.Seek(0L, SeekOrigin.Begin);
-                });
+            EncryptionServiceMock.Setup(_ => _.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>()))
+                                 .Callback<Stream, Stream>(
+                                     (inStream, outStream) =>
+                                     {
+                                         _outEncryptedZipStream.CopyTo(outStream);
+                                         outStream.Seek(0L, SeekOrigin.Begin);
+                                     });
         }
     }
 }

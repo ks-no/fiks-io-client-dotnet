@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Encryption;
@@ -46,13 +47,15 @@ namespace KS.Fiks.IO.Client
                                   configuration.FiksIntegrationConfiguration,
                                   maskinportenClient);
 
+            var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
+
             _sendHandler = sendHandler ??
                            new SendHandler(
                                _catalogHandler,
                                maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
                                configuration.FiksIntegrationConfiguration,
-                               new DummyCrypt());
+                               asicEncrypter);
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
