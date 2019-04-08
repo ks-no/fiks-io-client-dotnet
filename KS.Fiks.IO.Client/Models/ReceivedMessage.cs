@@ -1,4 +1,5 @@
 using System.IO;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 
@@ -7,7 +8,7 @@ namespace KS.Fiks.IO.Client.Models
     public class ReceivedMessage : ReceivedMessageMetadata, IReceivedMessage
     {
         private readonly byte[] _data;
-        private readonly IPayloadDecrypter _decrypter;
+        private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
         internal ReceivedMessage()
@@ -17,7 +18,7 @@ namespace KS.Fiks.IO.Client.Models
         internal ReceivedMessage(
             ReceivedMessageMetadata metadata,
             byte[] data,
-            IPayloadDecrypter decrypter,
+            IAsicDecrypter decrypter,
             IFileWriter fileWriter)
             : base(metadata)
         {
@@ -37,7 +38,7 @@ namespace KS.Fiks.IO.Client.Models
 
         public void WriteDecryptedZip(string outPath)
         {
-            _fileWriter.Write(outPath, _decrypter.Decrypt(_data));
+            _decrypter.WriteDecrypted(_data, outPath);
         }
     }
 }

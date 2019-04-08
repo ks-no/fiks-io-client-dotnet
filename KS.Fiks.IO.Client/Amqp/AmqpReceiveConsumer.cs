@@ -1,4 +1,5 @@
 using System;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -10,13 +11,13 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpReceiveConsumer : DefaultBasicConsumer, IAmqpReceiveConsumer
     {
-        private readonly IPayloadDecrypter _decrypter;
+        private readonly IAsicDecrypter _decrypter;
 
         private readonly IFileWriter _fileWriter;
 
         private readonly ISendHandler _sendHandler;
 
-        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IPayloadDecrypter decrypter, ISendHandler sendHandler)
+        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter, ISendHandler sendHandler)
             : base(model)
         {
             _fileWriter = fileWriter;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -20,7 +21,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             ModelMock = new Mock<IModel>();
             FileWriterMock = new Mock<IFileWriter>();
-            PayloadDecrypterMock = new Mock<IPayloadDecrypter>();
+            AsicDecrypterMock = new Mock<IAsicDecrypter>();
             SendHandlerMock = new Mock<ISendHandler>();
             SetDefaultProperties();
         }
@@ -41,7 +42,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IFileWriter> FileWriterMock { get; }
 
-        internal Mock<IPayloadDecrypter> PayloadDecrypterMock { get; }
+        internal Mock<IAsicDecrypter> AsicDecrypterMock { get; }
 
         internal Mock<ISendHandler> SendHandlerMock { get; }
 
@@ -51,7 +52,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return new AmqpReceiveConsumer(
                 ModelMock.Object,
                 FileWriterMock.Object,
-                PayloadDecrypterMock.Object,
+                AsicDecrypterMock.Object,
                 SendHandlerMock.Object);
         }
 
@@ -75,9 +76,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<byte[]>()));
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
-            PayloadDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<byte[]>()))
+            AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<byte[]>()))
                                 .Returns((byte[] inStream) => (Stream) new MemoryStream(inStream));
-            PayloadDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
+            AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
                                 .Returns((Stream inStream) => inStream);
         }
     }

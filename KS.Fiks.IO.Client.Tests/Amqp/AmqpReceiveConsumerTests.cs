@@ -270,7 +270,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.PayloadDecrypterMock.Verify(_ => _.Decrypt(data));
+            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(data));
 
             var actualData = new byte[2];
             await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
@@ -302,9 +302,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.PayloadDecrypterMock.Verify(_ => _.Decrypt(data));
-
-            _fixture.FileWriterMock.Verify(_ => _.Write(filePath, It.IsAny<Stream>()));
+            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(data, filePath));
         }
 
         [Fact]

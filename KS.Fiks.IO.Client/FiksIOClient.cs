@@ -7,7 +7,6 @@ using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
-using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;

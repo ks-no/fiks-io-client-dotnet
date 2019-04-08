@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
-using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client;
