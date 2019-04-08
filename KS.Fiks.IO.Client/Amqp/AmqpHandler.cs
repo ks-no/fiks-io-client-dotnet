@@ -25,6 +25,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
+        private string QueuePrefix = "fiksio.konto.";
+
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
@@ -55,7 +57,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
-            _channel.BasicConsume(_receiveConsumer, _accountId);
+            _channel.BasicConsume(_receiveConsumer, GetQueueName());
         }
 
         public void Dispose()
@@ -114,6 +116,11 @@ namespace KS.Fiks.IO.Client.Amqp
                 AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable,
                 CertificateValidationCallback = (sender, certificate, chain, errors) => true
             };
+        }
+
+        private string GetQueueName()
+        {
+            return $"{QueuePrefix}{_accountId}";
         }
     }
 }
