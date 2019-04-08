@@ -66,10 +66,7 @@ namespace KS.Fiks.IO.Client.Asic
             var encryptionService = _encryptionServiceFactory.Create(certificate);
 
             var outStream = new MemoryStream();
-            using (var unencryptedStream = zipStream)
-            {
-                encryptionService.Encrypt(unencryptedStream, outStream);
-            }
+            encryptionService.Encrypt(zipStream, outStream);
 
             return outStream;
         }
