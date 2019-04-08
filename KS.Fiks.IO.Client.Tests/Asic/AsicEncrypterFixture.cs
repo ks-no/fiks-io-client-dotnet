@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using KS.Fiks.ASiC_E;
-using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
@@ -77,9 +76,8 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _asiceBuilderFactoryMock.Setup(_ =>
                                         _.GetBuilder(
                                             It.IsAny<Stream>(),
-                                            It.IsAny<MessageDigestAlgorithm>(),
-                                            It.IsAny<ICertificateHolder>()))
-                                    .Callback<Stream, MessageDigestAlgorithm, ICertificateHolder>((outStream, a, b) =>
+                                            It.IsAny<MessageDigestAlgorithm>()))
+                                    .Callback<Stream, MessageDigestAlgorithm>((outStream, a) =>
                                     {
                                         _outZipStream.CopyTo(outStream);
                                         outStream.Seek(0L, SeekOrigin.Begin);
