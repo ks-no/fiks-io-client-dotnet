@@ -42,6 +42,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture.AsiceBuilderMock.Verify(_ => _.AddFile(payload.Payload, payload.Filename));
         }
 
+        /*
         [Fact]
         public void AsiceBuilderIsDisposed()
         {
@@ -53,6 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
             _fixture.AsiceBuilderMock.Verify(_ => _.Dispose());
         }
+        */
 
         [Fact]
         public void ReturnsExpectedStream()
