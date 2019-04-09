@@ -38,8 +38,17 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             Console.WriteLine("HandlingBasicDeliver");
             Console.WriteLine($"Received: {Received}");
-            base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            var receivedMessage = ParseMessage(routingKey, properties, body);
+            ReceivedMessage receivedMessage;
+            try
+            {
+                base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                receivedMessage = ParseMessage(routingKey, properties, body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
 
             Console.WriteLine("Pre Invoking");
             if (Received != null)
