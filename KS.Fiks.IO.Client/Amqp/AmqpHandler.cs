@@ -14,7 +14,7 @@ namespace KS.Fiks.IO.Client.Amqp
     internal class AmqpHandler : IAmqpHandler
     {
         private const string QueuePrefix = "fiksio.konto.";
-        
+
         private readonly IModel _channel;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
@@ -120,6 +120,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
+            Console.WriteLine($"Queue name:{QueuePrefix}{_accountId}");
             return $"{QueuePrefix}{_accountId}";
         }
     }
