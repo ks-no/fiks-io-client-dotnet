@@ -49,6 +49,10 @@ namespace KS.Fiks.IO.Client.Amqp
                 Console.WriteLine(ex.Message);
                 throw;
             }
+            finally
+            {
+                Console.WriteLine("Done parsing message.");
+            }
 
             Console.WriteLine("Pre Invoking");
             if (Received != null)
