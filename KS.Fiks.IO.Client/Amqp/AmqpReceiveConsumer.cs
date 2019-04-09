@@ -19,7 +19,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly string _accountId;
 
-        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter, ISendHandler sendHandler, string accountId)
+        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter,
+            ISendHandler sendHandler, string accountId)
             : base(model)
         {
             _fileWriter = fileWriter;
@@ -39,34 +40,28 @@ namespace KS.Fiks.IO.Client.Amqp
             IBasicProperties properties,
             byte[] body)
         {
-            ReceivedMessage receivedMessage;
-            try
-            {
-                base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-                receivedMessage = ParseMessage(properties, body);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-            finally
-            {
-                Console.WriteLine("Done parsing message.");
-            }
+            base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            var receivedMessage = ParseMessage(properties, body);
 
-            Console.WriteLine("Pre Invoking");
             if (Received != null)
             {
-                Console.WriteLine("Invoking");
-                Received.Invoke(
-                    this,
-                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
-                Model.BasicAck(deliveryTag, false);
+                try
+                {
+                    Console.WriteLine("Invoking");
+                    Received.Invoke(
+                        this,
+                        new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
+                    Model.BasicAck(deliveryTag, false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    throw;
+                }
             }
         }
 
-        private ReceivedMessage ParseMessage( IBasicProperties properties, byte[] body)
+        private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
             return new ReceivedMessage(metadata, body, _decrypter, _fileWriter);
