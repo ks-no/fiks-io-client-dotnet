@@ -13,6 +13,8 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpHandler : IAmqpHandler
     {
+        private const string QueuePrefix = "fiksio.konto.";
+        
         private readonly IModel _channel;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
@@ -24,8 +26,6 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IMaskinportenClient _maskinportenClient;
 
         private IAmqpReceiveConsumer _receiveConsumer;
-
-        private string QueuePrefix = "fiksio.konto.";
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
