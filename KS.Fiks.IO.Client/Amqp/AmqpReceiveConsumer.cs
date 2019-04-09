@@ -17,12 +17,15 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly ISendHandler _sendHandler;
 
-        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter, ISendHandler sendHandler)
+        private readonly string _accountId;
+
+        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter, ISendHandler sendHandler, string accountId)
             : base(model)
         {
             _fileWriter = fileWriter;
             _decrypter = decrypter;
             _sendHandler = sendHandler;
+            _accountId = accountId;
         }
 
         public event EventHandler<MessageReceivedArgs> Received;
@@ -36,13 +39,11 @@ namespace KS.Fiks.IO.Client.Amqp
             IBasicProperties properties,
             byte[] body)
         {
-            Console.WriteLine("HandlingBasicDeliver");
-            Console.WriteLine($"Received: {Received}");
             ReceivedMessage receivedMessage;
             try
             {
                 base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-                receivedMessage = ParseMessage(routingKey, properties, body);
+                receivedMessage = ParseMessage(properties, body);
             }
             catch (Exception ex)
             {
@@ -65,9 +66,9 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private ReceivedMessage ParseMessage(string routingKey, IBasicProperties properties, byte[] body)
+        private ReceivedMessage ParseMessage( IBasicProperties properties, byte[] body)
         {
-            var metadata = ReceivedMessageParser.Parse(routingKey, properties);
+            var metadata = ReceivedMessageParser.Parse(_accountId, properties);
             return new ReceivedMessage(metadata, body, _decrypter, _fileWriter);
         }
     }

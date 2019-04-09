@@ -13,16 +13,19 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly ISendHandler _sendHandler;
 
-        public AmqpConsumerFactory(ISendHandler sendHandler)
+        private readonly string _accountId;
+
+        public AmqpConsumerFactory(ISendHandler sendHandler, string accountId)
         {
             _fileWriter = new FileWriter();
             _decrypter = new AsicDecrypter();
             _sendHandler = sendHandler;
+            _accountId = accountId;
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)
         {
-            return new AmqpReceiveConsumer(channel, _fileWriter, _decrypter, _sendHandler);
+            return new AmqpReceiveConsumer(channel, _fileWriter, _decrypter, _sendHandler, _accountId);
         }
     }
 }

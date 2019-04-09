@@ -24,19 +24,20 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
             SendHandlerMock = new Mock<ISendHandler>();
             SetDefaultProperties();
+            DefaultMetadata = new ReceivedMessageMetadata
+            {
+                MessageId = Guid.NewGuid(),
+                MessageType = "TestType",
+                ReceiverAccountId = Guid.NewGuid(),
+                SenderAccountId = Guid.NewGuid(),
+                SvarPaMelding = Guid.NewGuid(),
+                Ttl = TimeSpan.FromDays(2)
+            };
         }
 
         public Mock<IModel> ModelMock { get; }
 
-        public ReceivedMessageMetadata DefaultMetadata => new ReceivedMessageMetadata
-        {
-            MessageId = Guid.NewGuid(),
-            MessageType = "TestType",
-            ReceiverAccountId = Guid.NewGuid(),
-            SenderAccountId = Guid.NewGuid(),
-            SvarPaMelding = Guid.NewGuid(),
-            Ttl = TimeSpan.FromDays(2)
-        };
+        public ReceivedMessageMetadata DefaultMetadata { get; }
 
         public IBasicProperties DefaultProperties => _defaultProperties.Object;
 
@@ -53,7 +54,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 ModelMock.Object,
                 FileWriterMock.Object,
                 AsicDecrypterMock.Object,
-                SendHandlerMock.Object);
+                SendHandlerMock.Object,
+                DefaultMetadata.ReceiverAccountId.ToString());
         }
 
         private void SetDefaultProperties()

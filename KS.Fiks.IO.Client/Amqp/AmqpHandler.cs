@@ -41,7 +41,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, _accountId);
         }
 
         public void AddMessageReceivedHandler(
