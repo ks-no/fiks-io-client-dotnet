@@ -1,6 +1,5 @@
 using System;
 using KS.Fiks.IO.Client.Asic;
-using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
@@ -19,8 +18,12 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly string _accountId;
 
-        public AmqpReceiveConsumer(IModel model, IFileWriter fileWriter, IAsicDecrypter decrypter,
-            ISendHandler sendHandler, string accountId)
+        public AmqpReceiveConsumer(
+            IModel model,
+            IFileWriter fileWriter,
+            IAsicDecrypter decrypter,
+            ISendHandler sendHandler,
+            string accountId)
             : base(model)
         {
             _fileWriter = fileWriter;
@@ -47,7 +50,6 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 try
                 {
-                    Console.WriteLine("Invoking");
                     Received.Invoke(
                         this,
                         new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));

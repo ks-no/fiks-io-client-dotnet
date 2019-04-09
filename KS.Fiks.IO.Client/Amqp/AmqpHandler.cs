@@ -120,7 +120,6 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
-            Console.WriteLine($"Queue name:{QueuePrefix}{_accountId}");
             return $"{QueuePrefix}{_accountId}";
         }
     }

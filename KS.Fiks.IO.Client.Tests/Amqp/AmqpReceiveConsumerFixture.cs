@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
-using KS.Fiks.IO.Client.Encryption;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
@@ -63,10 +62,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _defaultProperties = new Mock<IBasicProperties>();
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())},
-                {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())},
-                {"type", Encoding.UTF8.GetBytes("messageType")},
-                {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())}
+                {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
+                {"type", Encoding.UTF8.GetBytes("messageType") },
+                {"svar-til", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) }
             };
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);
@@ -79,7 +78,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<byte[]>()));
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<byte[]>()))
-                                .Returns((byte[] inStream) => (Stream) new MemoryStream(inStream));
+                                .Returns((byte[] inStream) => (Stream)new MemoryStream(inStream));
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
                                 .Returns((Stream inStream) => inStream);
         }
