@@ -42,6 +42,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (Received != null)
             {
+                Console.WriteLine("Invoking");
                 Received.Invoke(
                     this,
                     new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
