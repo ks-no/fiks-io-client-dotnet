@@ -41,6 +41,7 @@ namespace KS.Fiks.IO.Client.Amqp
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             var receivedMessage = ParseMessage(routingKey, properties, body);
 
+            Console.WriteLine("Pre Invoking");
             if (Received != null)
             {
                 Console.WriteLine("Invoking");
