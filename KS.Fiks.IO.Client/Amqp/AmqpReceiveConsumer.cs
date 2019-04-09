@@ -37,6 +37,7 @@ namespace KS.Fiks.IO.Client.Amqp
             byte[] body)
         {
             Console.WriteLine("HandlingBasicDeliver");
+            Console.WriteLine($"Received: {Received}");
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             var receivedMessage = ParseMessage(routingKey, properties, body);
 

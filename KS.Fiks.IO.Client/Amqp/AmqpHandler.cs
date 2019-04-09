@@ -48,7 +48,6 @@ namespace KS.Fiks.IO.Client.Amqp
             EventHandler<MessageReceivedArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
-            Console.WriteLine("Adding consume");
             if (_receiveConsumer == null)
             {
                 _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
@@ -57,8 +56,6 @@ namespace KS.Fiks.IO.Client.Amqp
             _receiveConsumer.Received += receivedEvent;
 
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
-
-            Console.WriteLine($"Adding message to queue: ${GetQueueName()}");
 
             _channel.BasicConsume(_receiveConsumer, GetQueueName());
         }
