@@ -9,6 +9,8 @@
         <Authors>KS DotNet Team</Authors>
         <Copyright>© KS 2019</Copyright>
         <Title>Client for Fiks IO</Title>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>        
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-build.20190429102019230" />
