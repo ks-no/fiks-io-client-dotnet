@@ -5,7 +5,7 @@
         <RootNamespace>KS.Fiks.IO.Client</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>KS.Fiks.IO.Client</PackageId>
-        <VersionPrefix>0.0.6</VersionPrefix>
+        <VersionPrefix>0.0.7</VersionPrefix>
         <Authors>KS DotNet Team</Authors>
         <Copyright>© KS 2019</Copyright>
         <Title>Client for Fiks IO</Title>
