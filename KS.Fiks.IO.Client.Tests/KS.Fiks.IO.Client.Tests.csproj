@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.6.0" />
         <PackageReference Include="JWT" Version="5.0.1" />
-        <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-dev-123" />
+        <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-build.20190429102019230" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-93" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-85" />
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0-dev-69" PrivateAssets="All" />
