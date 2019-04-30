@@ -11,7 +11,7 @@
         <Title>Client for Fiks IO</Title>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.0-dev0046" />
+        <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-dev-123" />
         <PackageReference Include="KS.Fiks.Crypto" Version="1.0.0-dev-70" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.3-dev-93" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.5-dev-85" />

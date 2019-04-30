@@ -10,7 +10,7 @@ namespace KS.Fiks.IO.Client.Asic
             Stream outStream,
             MessageDigestAlgorithm messageDigestAlgorithm)
         {
-            return AsiceBuilder.Create(outStream, messageDigestAlgorithm);
+            return AsiceBuilder.Create(outStream, messageDigestAlgorithm, null);
         }
     }
 }
