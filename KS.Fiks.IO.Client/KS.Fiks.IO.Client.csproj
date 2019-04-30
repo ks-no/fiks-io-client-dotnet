@@ -1,16 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
-        <RootNamespace>KS.Fiks.IO.Client</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageId>KS.Fiks.IO.Client</PackageId>
+        <Title>KS FIKS IO Client</Title>
+        <Authors>Ks-Kommunesektorens Organisasjon</Authors>
+        <Copyright>Ks-Kommunesektorens Organisasjon</Copyright>
+        <RootNamespace>KS.Fiks.IO.Client</RootNamespace>
+        <PackageProjectUrl>https://github.com/ks-no/fiks-io-client-dotnet</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/ks-no/fiks-io-client-dotnet/raw/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>FIKS</PackageTags>
         <VersionPrefix>0.0.7</VersionPrefix>
-        <Authors>KS DotNet Team</Authors>
-        <Copyright>© KS 2019</Copyright>
-        <Title>Client for Fiks IO</Title>
+        <PackageIconUrl>https://ks-no.github.io/images/favicon.png</PackageIconUrl>
+        <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
         <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>        
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="0.9.9-build.20190429102019230" />
