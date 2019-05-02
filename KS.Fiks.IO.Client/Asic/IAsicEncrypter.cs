@@ -7,6 +7,6 @@ namespace KS.Fiks.IO.Client.Asic
 {
     public interface IAsicEncrypter
     {
-        Stream Encrypt(X509Certificate receiverCertificate, IEnumerable<IPayload> payload);
+        Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payload);
     }
 }

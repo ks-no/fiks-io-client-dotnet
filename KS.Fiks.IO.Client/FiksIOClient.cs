@@ -61,7 +61,7 @@ namespace KS.Fiks.IO.Client
                                _sendHandler,
                                configuration.AmqpConfiguration,
                                configuration.FiksIntegrationConfiguration,
-                               AccountId);
+                               configuration.AccountConfiguration);
         }
 
         public string AccountId { get; }
@@ -71,7 +71,7 @@ namespace KS.Fiks.IO.Client
             return await _catalogHandler.Lookup(request).ConfigureAwait(false);
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, IEnumerable<IPayload> payload)
+        public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
         {
             return await _sendHandler.Send(request, payload).ConfigureAwait(false);
         }

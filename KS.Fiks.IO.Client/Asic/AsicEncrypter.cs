@@ -22,7 +22,7 @@ namespace KS.Fiks.IO.Client.Asic
             _encryptionServiceFactory = encryptionServiceFactory;
         }
 
-        public Stream Encrypt(X509Certificate receiverCertificate, IEnumerable<IPayload> payloads)
+        public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
         {
             ThrowIfEmpty(payloads);
 

@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.Client
 
         Task<Account> Lookup(LookupRequest request);
 
-        Task<SentMessage> Send(MessageRequest request, IEnumerable<IPayload> payload);
+        Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload);
 
         Task<SentMessage> Send(MessageRequest request, string pathToPayload);
 

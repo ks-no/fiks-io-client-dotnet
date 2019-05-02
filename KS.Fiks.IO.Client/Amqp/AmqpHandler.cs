@@ -21,7 +21,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IConnectionFactory _connectionFactory;
 
-        private readonly string _accountId;
+        private readonly AccountConfiguration _accountConfiguration;
 
         private readonly IMaskinportenClient _maskinportenClient;
 
@@ -32,16 +32,16 @@ namespace KS.Fiks.IO.Client.Amqp
             ISendHandler sendHandler,
             AmqpConfiguration amqpConfiguration,
             FiksIntegrationConfiguration integrationConfiguration,
-            string accountId,
+            AccountConfiguration accountConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             _maskinportenClient = maskinportenClient;
-            _accountId = accountId;
+            _accountConfiguration = accountConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, _accountId);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, _accountConfiguration);
         }
 
         public void AddMessageReceivedHandler(
@@ -120,7 +120,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
-            return $"{QueuePrefix}{_accountId}";
+            return $"{QueuePrefix}{_accountConfiguration.AccountId}";
         }
     }
 }

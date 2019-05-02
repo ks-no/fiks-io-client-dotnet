@@ -1,27 +1,39 @@
 using System.IO;
+using KS.Fiks.Crypto;
+using KS.Fiks.IO.Client.FileIO;
 
 namespace KS.Fiks.IO.Client.Asic
 {
-    public class AsicDecrypter : IAsicDecrypter
+    internal class AsicDecrypter : IAsicDecrypter
     {
-        public void WriteDecrypted(Stream encryptedZipStream, string outPath)
+        private readonly IFileWriter _fileWriter;
+
+        private readonly IDecryptionService _decryptionService;
+
+        public AsicDecrypter(IDecryptionService decryptionService, IFileWriter fileWriter = null)
         {
-            throw new System.NotImplementedException();
+            _decryptionService = decryptionService;
+            _fileWriter = fileWriter ?? new FileWriter();
         }
 
-        public Stream Decrypt(Stream encryptedZipStream)
+        public void WriteDecrypted(Stream encryptedZipStream, string outPath)
         {
-            throw new System.NotImplementedException();
+            _fileWriter.Write(outPath, Decrypt(encryptedZipStream));
         }
 
         public void WriteDecrypted(byte[] encryptedZipBytes, string outPath)
         {
-            throw new System.NotImplementedException();
+            _fileWriter.Write(outPath, Decrypt(encryptedZipBytes));
+        }
+
+        public Stream Decrypt(Stream encryptedZipStream)
+        {
+            return _decryptionService.Decrypt(encryptedZipStream);
         }
 
         public Stream Decrypt(byte[] encryptedZipBytes)
         {
-            throw new System.NotImplementedException();
+            return Decrypt(new MemoryStream(encryptedZipBytes));
         }
     }
 }

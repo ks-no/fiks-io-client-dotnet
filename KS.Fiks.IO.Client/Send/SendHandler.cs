@@ -39,7 +39,7 @@ namespace KS.Fiks.IO.Client.Send
         {
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, IEnumerable<IPayload> payload)
+        public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
         {
             var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
 
@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Send
             return SentMessage.FromSentMessageApiModel(sentMessageApiModel);
         }
 
-        private async Task<Stream> GetEncryptedPayload(MessageRequest request, IEnumerable<IPayload> payload)
+        private async Task<Stream> GetEncryptedPayload(MessageRequest request, IList<IPayload> payload)
         {
             var publicKey = await _catalogHandler.GetPublicKey(request.ReceiverAccountId).ConfigureAwait(false);
             return _asicEncrypter.Encrypt(publicKey, payload);

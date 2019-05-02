@@ -91,7 +91,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(
                 request,
-                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Payload == stream &&
                     actualPayload.FirstOrDefault().Filename == filename)));
@@ -111,7 +111,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(
                 request,
-                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Payload.Length == payload.Length &&
                     actualPayload.FirstOrDefault().Filename == filename)));
@@ -131,7 +131,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(
                 request,
-                It.Is<IEnumerable<IPayload>>(actualPayload =>
+                It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Filename == filename)));
         }

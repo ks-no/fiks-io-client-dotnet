@@ -111,7 +111,7 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupMocks()
         {
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
-            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MessageRequest>(), It.IsAny<IEnumerable<IPayload>>()))
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MessageRequest>(), It.IsAny<IList<IPayload>>()))
                            .ReturnsAsync(_sentMessageReturn);
             AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandler(
                 It.IsAny<EventHandler<MessageReceivedArgs>>(),
@@ -121,7 +121,7 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupConfiguration()
         {
             var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
-            var accountConfiguration = new AccountConfiguration(_accountId);
+            var accountConfiguration = new AccountConfiguration(_accountId, "dummyKey");
 
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,

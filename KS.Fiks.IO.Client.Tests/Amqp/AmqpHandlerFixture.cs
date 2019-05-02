@@ -81,7 +81,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 SendHandlerMock.Object,
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
-                _accountId,
+                new AccountConfiguration(_accountId, "dummy"),
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
         }

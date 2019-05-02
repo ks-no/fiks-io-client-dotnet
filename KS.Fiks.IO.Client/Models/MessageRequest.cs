@@ -6,7 +6,7 @@ namespace KS.Fiks.IO.Client.Models
     public class MessageRequest
     {
         private const int DefaultTtlInDays = 2;
-        
+
         public MessageRequest()
         {
             Ttl = TimeSpan.FromDays(DefaultTtlInDays);

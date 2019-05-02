@@ -17,7 +17,7 @@ namespace KS.Fiks.IO.Client.Send
             _receivedMessage = receivedMessage;
         }
 
-        public async Task<SentMessage> Reply(string messageType, IEnumerable<IPayload> payloads)
+        public async Task<SentMessage> Reply(string messageType, IList<IPayload> payloads)
         {
             return await _sendHandler.Send(CreateMessageRequest(messageType), payloads).ConfigureAwait(false);
         }
@@ -46,14 +46,14 @@ namespace KS.Fiks.IO.Client.Send
                 .ConfigureAwait(false);
         }
 
-        private async Task<SentMessage> Reply(string messageType, IPayload payload)
-        {
-            return await Reply(messageType, new List<IPayload> {payload}).ConfigureAwait(false);
-        }
-
         public void Ack()
         {
             throw new System.NotImplementedException();
+        }
+
+        private async Task<SentMessage> Reply(string messageType, IPayload payload)
+        {
+            return await Reply(messageType, new List<IPayload> {payload}).ConfigureAwait(false);
         }
 
         private MessageRequest CreateMessageRequest(string messageType)

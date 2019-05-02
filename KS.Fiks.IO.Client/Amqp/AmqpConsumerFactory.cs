@@ -1,4 +1,6 @@
+using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
+using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Send;
 using RabbitMQ.Client;
@@ -15,12 +17,12 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly string _accountId;
 
-        public AmqpConsumerFactory(ISendHandler sendHandler, string accountId)
+        public AmqpConsumerFactory(ISendHandler sendHandler, AccountConfiguration accountConfiguration)
         {
             _fileWriter = new FileWriter();
-            _decrypter = new AsicDecrypter();
+            _decrypter = new AsicDecrypter(DecryptionService.Create(accountConfiguration.PrivateKey));
             _sendHandler = sendHandler;
-            _accountId = accountId;
+            _accountId = accountConfiguration.AccountId;
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)

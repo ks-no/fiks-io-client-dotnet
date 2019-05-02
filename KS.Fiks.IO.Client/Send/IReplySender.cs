@@ -7,7 +7,7 @@ namespace KS.Fiks.IO.Client.Send
 {
     public interface IReplySender
     {
-        Task<SentMessage> Reply(string messageType, IEnumerable<IPayload> payloads);
+        Task<SentMessage> Reply(string messageType, IList<IPayload> payloads);
 
         Task<SentMessage> Reply(string messageType, Stream message, string filename);
 

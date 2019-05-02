@@ -53,7 +53,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                                 It.IsAny<Stream>()))
                             .ReturnsAsync(new SentMessageApiModel());
 
-            AsicEncrypterMock.Setup(_ => _.Encrypt(It.IsAny<X509Certificate>(), It.IsAny<IEnumerable<IPayload>>()))
+            AsicEncrypterMock.Setup(_ => _.Encrypt(It.IsAny<X509Certificate>(), It.IsAny<IList<IPayload>>()))
                                 .Returns(Mock.Of<Stream>());
 
             CatalogHandlerMock.Setup(_ => _.GetPublicKey(It.IsAny<Guid>())).ReturnsAsync(_publicKey);

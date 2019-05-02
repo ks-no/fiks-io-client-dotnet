@@ -201,7 +201,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             var catalogConfiguration = new CatalogConfiguration(_path, _scheme, _host, _port);
 
             var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
-            var accountConfiguration = new AccountConfiguration("notUsedId");
+            var accountConfiguration = new AccountConfiguration("notUsedId", "privateKey");
 
             return new FiksIOConfiguration(
                 accountConfiguration,
