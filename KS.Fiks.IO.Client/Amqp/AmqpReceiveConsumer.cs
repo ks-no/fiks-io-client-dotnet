@@ -43,7 +43,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IBasicProperties properties,
             byte[] body)
         {
-            Console.WriteLine($"Data received with length: ${body.Length}");
+            Console.WriteLine($"Data received with length: {body.Length}");
             
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             var receivedMessage = ParseMessage(properties, body);
