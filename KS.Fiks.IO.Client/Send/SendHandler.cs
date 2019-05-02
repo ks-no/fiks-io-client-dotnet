@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace KS.Fiks.IO.Client.Send
         public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
         {
             var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
-
+            Console.WriteLine($"Sending message with length: {encryptedPayload.Length}");
             var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload)
                                                    .ConfigureAwait(false);
 
