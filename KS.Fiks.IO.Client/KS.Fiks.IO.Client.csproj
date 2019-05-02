@@ -21,7 +21,7 @@
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.0-build.20190502082724308" />
         <PackageReference Include="KS.Fiks.Crypto" Version="1.0.0-build.20190430142108805" />
-        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.4-build.20190430151950000" />
+        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="0.0.4-build.20190502130239460" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="0.0.6-build.20190430153240973" />
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0-dev-69" PrivateAssets="All" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
