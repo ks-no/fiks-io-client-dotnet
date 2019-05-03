@@ -56,6 +56,7 @@ namespace KS.Fiks.IO.Client.Asic
                 {
                     foreach (var payload in payloads)
                     {
+                        payload.Payload.Seek(0, SeekOrigin.Begin);
                         asiceBuilder.AddFile(payload.Payload, payload.Filename);
                         asiceBuilder.Build();
                     }
