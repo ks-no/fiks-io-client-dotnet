@@ -14,9 +14,9 @@ namespace KS.Fiks.IO.Client.FileIO
 
         public void Write(string path, byte[] data)
         {
-            using (var file = new StreamWriter(path))
+            using (var file = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
-                file.Write(data);
+                file.Write(data, 0, data.Length);
             }
         }
     }
