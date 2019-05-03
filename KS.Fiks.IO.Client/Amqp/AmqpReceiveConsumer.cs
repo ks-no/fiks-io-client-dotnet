@@ -43,25 +43,25 @@ namespace KS.Fiks.IO.Client.Amqp
             IBasicProperties properties,
             byte[] body)
         {
-            Console.WriteLine($"Data received with length: {body.Length}");
-            
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             var receivedMessage = ParseMessage(properties, body);
 
-            if (Received != null)
+            if (Received == null)
             {
-                try
-                {
-                    Received.Invoke(
-                        this,
-                        new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
-                    Model.BasicAck(deliveryTag, false);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    throw;
-                }
+                return;
+            }
+
+            try
+            {
+                Received.Invoke(
+                    this,
+                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
+                Model.BasicAck(deliveryTag, false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
             }
         }
 
