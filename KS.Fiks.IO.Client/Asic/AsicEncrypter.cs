@@ -50,12 +50,10 @@ namespace KS.Fiks.IO.Client.Asic
         {
             var zipStream = new MemoryStream();
 
-            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+            var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256);
+            foreach (var payload in payloads)
             {
-                foreach (var payload in payloads)
-                {
-                    asiceBuilder.AddFile(payload.Payload, payload.Filename);
-                }
+                asiceBuilder.AddFile(payload.Payload, payload.Filename);
             }
 
             return zipStream;
