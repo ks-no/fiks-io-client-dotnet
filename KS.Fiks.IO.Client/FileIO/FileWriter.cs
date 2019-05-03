@@ -7,7 +7,8 @@ namespace KS.Fiks.IO.Client.FileIO
     {
         public void Write(string path, Stream data)
         {
-            var streamData = new byte[data.Length];
+            
+            var streamData = new byte[];
             data.Write(streamData, 0, Convert.ToInt32(data.Length));
             Write(path, streamData);
         }
