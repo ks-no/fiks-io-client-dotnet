@@ -7,9 +7,9 @@ namespace KS.Fiks.IO.Client.FileIO
     {
         public void Write(string path, Stream data)
         {
-            var streamData = new byte[10485760]; // Temp use 10mb byte array
-            data.Write(streamData, 0, Convert.ToInt32(data.Length));
-            Write(path, streamData);
+            var memoryStream = new MemoryStream();
+            data.CopyTo(memoryStream);
+            Write(path, memoryStream.ToArray());
         }
 
         public void Write(string path, byte[] data)
