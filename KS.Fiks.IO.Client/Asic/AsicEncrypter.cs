@@ -28,9 +28,9 @@ namespace KS.Fiks.IO.Client.Asic
 
             var zipStream = CreateZipStream(payloads);
 
-            var outStream = EncryptStream(zipStream, receiverCertificate);
+            // var outStream = EncryptStream(zipStream, receiverCertificate);
 
-            return outStream;
+            return zipStream;
         }
 
         private void ThrowIfEmpty(IEnumerable<IPayload> payloads)
