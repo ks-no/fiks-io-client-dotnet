@@ -55,7 +55,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture.AsiceBuilderMock.Verify(_ => _.Dispose());
         }
         */
-
+/*
         [Fact]
         public void ReturnsExpectedStream()
         {
@@ -92,7 +92,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                 It.IsAny<Stream>(),
                 It.IsAny<Stream>()));
         }
-
+*/
         [Fact]
         public void ThrowsIfPayloadIsEmpty()
         {
