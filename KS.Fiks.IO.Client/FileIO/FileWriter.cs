@@ -6,9 +6,10 @@ namespace KS.Fiks.IO.Client.FileIO
     {
         public void Write(string path, Stream data)
         {
-            using (var file = new StreamWriter(path))
+            using (var fileStream = File.Create(path))
             {
-                file.Write(data);
+                data.Seek(0, SeekOrigin.Begin);
+                data.CopyTo(fileStream);
             }
         }
 
