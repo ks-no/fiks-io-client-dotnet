@@ -59,9 +59,9 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.AddFile(payload.Payload, payload.Filename);
                         asiceBuilder.Build();
                     }
-
-                    zippedBytes = zipStream.ToArray();
                 }
+                
+                zippedBytes = zipStream.ToArray();
             }
 
             return new MemoryStream(zippedBytes);
