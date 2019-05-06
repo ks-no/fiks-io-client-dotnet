@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Send
             IAsicEncrypter asicEncrypter)
             : this(
                 catalogHandler,
-                new FiksIOSender(senderConfiguration, maskinportenClient, integrationConfiguration.IntegrastionId, integrationConfiguration.IntegrationPassword),
+                new FiksIOSender(senderConfiguration, maskinportenClient, integrationConfiguration.IntegrationId, integrationConfiguration.IntegrationPassword),
                 asicEncrypter)
         {
         }

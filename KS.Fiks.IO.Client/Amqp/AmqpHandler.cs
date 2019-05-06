@@ -103,7 +103,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private void SetupConnectionFactory(FiksIntegrationConfiguration integrationConfiguration)
         {
             var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
-            _connectionFactory.UserName = integrationConfiguration.IntegrastionId.ToString();
+            _connectionFactory.UserName = integrationConfiguration.IntegrationId.ToString();
             _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
         }
 

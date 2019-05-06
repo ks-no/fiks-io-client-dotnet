@@ -4,13 +4,13 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class FiksIntegrationConfiguration
     {
-        public FiksIntegrationConfiguration(Guid integrastionId, string integrationPassword)
+        public FiksIntegrationConfiguration(Guid integrationId, string integrationPassword)
         {
-            IntegrastionId = integrastionId;
+            IntegrationId = integrationId;
             IntegrationPassword = integrationPassword;
         }
 
-        public Guid IntegrastionId { get; }
+        public Guid IntegrationId { get; }
 
         public string IntegrationPassword { get; }
 

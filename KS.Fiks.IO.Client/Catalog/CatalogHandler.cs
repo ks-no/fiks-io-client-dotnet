@@ -106,7 +106,7 @@ namespace KS.Fiks.IO.Client.Catalog
             {
                 requestMessage.Headers.Add(
                     "integrasjonId",
-                    _integrationConfiguration.IntegrastionId.ToString());
+                    _integrationConfiguration.IntegrationId.ToString());
 
                 requestMessage.Headers.Add(
                     "integrasjonPassord",
