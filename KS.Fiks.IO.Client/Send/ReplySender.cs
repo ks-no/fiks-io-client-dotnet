@@ -58,13 +58,12 @@ namespace KS.Fiks.IO.Client.Send
 
         private MessageRequest CreateMessageRequest(string messageType)
         {
-            return new MessageRequest
-            {
-                MessageType = messageType,
-                ReceiverAccountId = _receivedMessage.SenderAccountId,
-                SenderAccountId = _receivedMessage.ReceiverAccountId,
-                RelatedMessageId = _receivedMessage.MessageId
-            };
+            return new MessageRequest(
+                _receivedMessage.SenderAccountId,
+                _receivedMessage.ReceiverAccountId,
+                messageType,
+                null,
+                _receivedMessage.MessageId);
         }
     }
 }

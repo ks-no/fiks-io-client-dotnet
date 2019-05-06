@@ -24,6 +24,11 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _publicKey = CreateTestCertificate();
         }
 
+        public MessageRequest DefaultRequest => new MessageRequest(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "defaultType");
+
         public SendHandlerFixture WithPublicKey(X509Certificate publicKey)
         {
             _publicKey = publicKey;

@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var payload = new List<IPayload>();
 
@@ -38,14 +38,12 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest
-            {
-                SenderAccountId = Guid.NewGuid(),
-                MessageType = "MessageType",
-                ReceiverAccountId = Guid.NewGuid(),
-                RelatedMessageId = Guid.NewGuid(),
-                Ttl = TimeSpan.FromDays(2)
-            };
+            var request = new MessageRequest(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "MessageType",
+                TimeSpan.FromDays(2),
+                Guid.NewGuid());
 
             var payload = new List<IPayload>();
 
@@ -65,7 +63,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             var expectedPublicKey = _fixture.CreateTestCertificate();
             var sut = _fixture.WithPublicKey(expectedPublicKey).CreateSut();
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
             var payload = Mock.Of<IList<IPayload>>();
 
             await sut.Send(request, payload).ConfigureAwait(false);
@@ -77,10 +75,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         public async Task GetsKeyFromCatalogHandler()
         {
             var sut = _fixture.CreateSut();
-            var request = new MessageRequest
-            {
-                ReceiverAccountId = Guid.NewGuid()
-            };
+            var request = _fixture.DefaultRequest;
             var payload = Mock.Of<IList<IPayload>>();
 
             await sut.Send(request, payload).ConfigureAwait(false);

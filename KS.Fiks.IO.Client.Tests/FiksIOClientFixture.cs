@@ -43,6 +43,11 @@ namespace KS.Fiks.IO.Client.Tests
         public Mock<IFiksIOSender> FiksIOSenderMock { get; }
 
         public Mock<ISendHandler> SendHandlerMock { get; }
+        
+        public MessageRequest DefaultRequest => new MessageRequest(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "defaultType");
 
         public FiksIOClient CreateSut()
         {

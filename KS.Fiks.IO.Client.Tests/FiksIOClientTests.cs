@@ -67,7 +67,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var payload = new List<IPayload>();
             payload.Add(Mock.Of<IPayload>());
@@ -82,7 +82,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var stream = Mock.Of<Stream>();
             var filename = "filename.file";
@@ -102,7 +102,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var payload = "string payload";
             var filename = "filename.txt";
@@ -122,7 +122,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var filename = "testfile.txt";
             var path = $"{filename}";
@@ -152,7 +152,7 @@ namespace KS.Fiks.IO.Client.Tests
             var payload = new List<IPayload>();
             payload.Add(Mock.Of<IPayload>());
 
-            var request = new MessageRequest();
+            var request = _fixture.DefaultRequest;
 
             var result = await sut.Send(request, payload).ConfigureAwait(false);
 

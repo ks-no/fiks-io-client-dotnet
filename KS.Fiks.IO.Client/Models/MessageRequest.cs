@@ -7,30 +7,38 @@ namespace KS.Fiks.IO.Client.Models
     {
         private const int DefaultTtlInDays = 2;
 
-        public MessageRequest()
+        public MessageRequest(
+            Guid senderAccountId,
+            Guid receiverAccountId,
+            string messageType,
+            TimeSpan? ttl = null,
+            Guid? relatedMessageId = null)
         {
-            Ttl = TimeSpan.FromDays(DefaultTtlInDays);
+            SenderAccountId = senderAccountId;
+            ReceiverAccountId = receiverAccountId;
+            MessageType = messageType;
+            Ttl = ttl ?? TimeSpan.FromDays(DefaultTtlInDays);
+            RelatedMessageId = RelatedMessageId;
         }
 
-        public Guid SenderAccountId { get; set; }
+        public Guid SenderAccountId { get; }
 
-        public Guid ReceiverAccountId { get; set; }
+        public Guid ReceiverAccountId { get; }
 
-        public string MessageType { get; set; }
+        public string MessageType { get; }
 
-        public TimeSpan Ttl { get; set; }
+        public TimeSpan Ttl { get; }
 
-        public Guid RelatedMessageId { get; set; }
+        public Guid RelatedMessageId { get; }
 
         public MessageSpecificationApiModel ToApiModel()
         {
-            return new MessageSpecificationApiModel
-            {
-                SenderAccountId = SenderAccountId,
-                ReceiverAccountId = ReceiverAccountId,
-                RelatedMessageId = RelatedMessageId,
-                Ttl = (long)Ttl.TotalMilliseconds
-            };
+            return new MessageSpecificationApiModel(
+                SenderAccountId,
+                ReceiverAccountId,
+                MessageType,
+                (long)Ttl.TotalMilliseconds,
+                RelatedMessageId);
         }
     }
 }
