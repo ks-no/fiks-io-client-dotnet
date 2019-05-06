@@ -91,14 +91,12 @@ var integration = new FiksIntegrationConfiguration(
                         integrationPassword: /* Integration password */);
 
 // ID-porten machine to machine configuration
-var maskinporten = new MaskinportenClientConfiguration
-{
-    Audience = @"https://oidc-ver2.difi.no/idporten-oidc-provider/", // ID-porten audience path
-    TokenEndpoint = @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
-    Issuer = @"oidc_ks_test",  // KS issuer name
-    NumberOfSecondsLeftBeforeExpire = 10, // The token will be refreshed 10 seconds before it expires
-    Certificate = /* X509Certificate2 from ID-Porten */
-};
+var maskinporten = new MaskinportenClientConfiguration(
+    audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/", // ID-porten audience path
+    tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
+    issuer: @"oidc_ks_test",  // KS issuer name
+    numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
+    certificate: /* X509Certificate2 from ID-Porten */);
 
 // Optional: Use custom api host (i.e. for connecting to test api)
 var api = new FiksApiConfiguration(
