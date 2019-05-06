@@ -63,7 +63,7 @@ namespace KS.Fiks.IO.Client.Send
                 MessageType = messageType,
                 ReceiverAccountId = _receivedMessage.SenderAccountId,
                 SenderAccountId = _receivedMessage.ReceiverAccountId,
-                SvarPaMelding = _receivedMessage.MessageId
+                RelatedMessageId = _receivedMessage.MessageId
             };
         }
     }

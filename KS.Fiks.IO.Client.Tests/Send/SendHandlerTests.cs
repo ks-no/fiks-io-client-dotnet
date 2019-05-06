@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Models;
 using Moq;
 using Xunit;
 
@@ -42,7 +43,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                 SenderAccountId = Guid.NewGuid(),
                 MessageType = "MessageType",
                 ReceiverAccountId = Guid.NewGuid(),
-                SvarPaMelding = Guid.NewGuid(),
+                RelatedMessageId = Guid.NewGuid(),
                 Ttl = TimeSpan.FromDays(2)
             };
 
@@ -53,10 +54,9 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _fixture.FiksIOSenderMock.Verify(_ => _.Send(
                 It.Is<MessageSpecificationApiModel>(
                     model => model.Ttl == (long)request.Ttl.TotalMilliseconds &&
-                             model.MeldingType == request.MessageType &&
-                             model.SvarPaMelding == request.SvarPaMelding &&
-                             model.AvsenderKontoId == request.SenderAccountId &&
-                             model.MottakerKontoId == request.ReceiverAccountId),
+                             model.RelatedMessageId == request.RelatedMessageId &&
+                             model.SenderAccountId == request.SenderAccountId &&
+                             model.ReceiverAccountId == request.ReceiverAccountId),
                 It.IsAny<Stream>()));
         }
 

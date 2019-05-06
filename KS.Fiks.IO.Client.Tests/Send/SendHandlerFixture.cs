@@ -6,6 +6,7 @@ using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Models;
 using Moq;
 using Org.BouncyCastle.X509;
 

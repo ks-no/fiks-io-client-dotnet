@@ -1,5 +1,5 @@
 using System;
-using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Models;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -20,16 +20,15 @@ namespace KS.Fiks.IO.Client.Models
 
         public TimeSpan Ttl { get; set; }
 
-        public Guid SvarPaMelding { get; set; }
+        public Guid RelatedMessageId { get; set; }
 
         public MessageSpecificationApiModel ToApiModel()
         {
             return new MessageSpecificationApiModel
             {
-                AvsenderKontoId = SenderAccountId,
-                MeldingType = MessageType,
-                MottakerKontoId = ReceiverAccountId,
-                SvarPaMelding = SvarPaMelding,
+                SenderAccountId = SenderAccountId,
+                ReceiverAccountId = ReceiverAccountId,
+                RelatedMessageId = RelatedMessageId,
                 Ttl = (long)Ttl.TotalMilliseconds
             };
         }

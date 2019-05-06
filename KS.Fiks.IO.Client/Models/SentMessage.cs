@@ -1,5 +1,5 @@
 using System;
-using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Models;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -9,10 +9,10 @@ namespace KS.Fiks.IO.Client.Models
         {
             return new SentMessage
             {
-                MessageType = sentMessageApiModel.MeldingType,
-                MessageId = sentMessageApiModel.MeldingId,
-                SenderAccountId = sentMessageApiModel.AvsenderKontoId,
-                ReceiverAccountId = sentMessageApiModel.MottakerKontoId,
+                MessageType = sentMessageApiModel.MessageType,
+                MessageId = sentMessageApiModel.MessageId,
+                SenderAccountId = sentMessageApiModel.SenderAccountId,
+                ReceiverAccountId = sentMessageApiModel.ReceiverAccountId,
                 Ttl = TimeSpan.FromMilliseconds(sentMessageApiModel.Ttl)
             };
         }
