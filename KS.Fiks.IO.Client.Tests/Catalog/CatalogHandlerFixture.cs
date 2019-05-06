@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Catalog;
@@ -206,7 +207,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             return new FiksIOConfiguration(
                 accountConfiguration,
                 new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
-                new MaskinportenClientConfiguration(),
+                new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
                 fiksApiConfiguration: apiConfiguration,
                 catalogConfiguration: catalogConfiguration);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
@@ -131,7 +132,7 @@ namespace KS.Fiks.IO.Client.Tests
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,
                 new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
-                new MaskinportenClientConfiguration(),
+                new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
                 fiksApiConfiguration: apiConfiguration,
                 catalogConfiguration: _catalogConfiguration);
         }
