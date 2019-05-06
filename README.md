@@ -3,24 +3,24 @@
 [![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://img.shields.io/nuget/vpre/KS.fiks.io.client)
 [![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/kryptering-dotnet.svg)](//github.com/ks-no/fiks-io-client-dotnet/issues)
 
+.net core library for sending and receiving messages using Fiks IO.
+
+Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-platform/tjenester_under_utvikling/svarinn/)
+
 ## Installation
+Install _KS.fiks.io.client_ nuget package.
 
 ## Prerequisites
 To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
 
-
 ## Examples
-
 ### Sending message
-
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 var messageRequest = new MessageRequest
                         {
-                            MessageType = "ExampleMessageType",
                             ReceiverAccountId = receiverId, // Receiver id as Guid
                             SenderAccountId = senderId, // Sender id as Guid
-                            SvarPaMelding = svarPaMeldingId // SvarPaMelding id as Guid
                         };
         
 // Sending a file
@@ -64,6 +64,8 @@ client.NewSubscription(onReceived);
 ```
 
 ### Lookup
+Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
+
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
@@ -116,5 +118,3 @@ var amqp = new AmqpConfiguration(
 // Combine all configurations
 var configuration = new FiksIOConfiguration(account, integration, maskinporten, api, amqp);
 ```
-
-## API
