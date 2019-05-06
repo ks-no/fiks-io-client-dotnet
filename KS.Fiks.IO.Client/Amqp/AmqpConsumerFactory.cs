@@ -1,3 +1,4 @@
+using System;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Configuration;
@@ -15,7 +16,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly ISendHandler _sendHandler;
 
-        private readonly string _accountId;
+        private readonly Guid _accountId;
 
         public AmqpConsumerFactory(ISendHandler sendHandler, AccountConfiguration accountConfiguration)
         {

@@ -64,7 +64,7 @@ namespace KS.Fiks.IO.Client
                                configuration.AccountConfiguration);
         }
 
-        public string AccountId { get; }
+        public Guid AccountId { get; }
 
         public async Task<Account> Lookup(LookupRequest request)
         {

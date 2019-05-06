@@ -23,7 +23,7 @@ namespace KS.Fiks.IO.Client.Tests
         [Fact]
         public void HasExpectedAccountId()
         {
-            var expectedAccountId = "TestId";
+            var expectedAccountId = Guid.NewGuid();
             var sut = _fixture.WithAccountId(expectedAccountId).CreateSut();
             var actualAccountId = sut.AccountId;
             actualAccountId.Should().Be(expectedAccountId);

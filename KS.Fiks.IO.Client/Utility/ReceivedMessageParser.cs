@@ -21,7 +21,7 @@ namespace KS.Fiks.IO.Client.Utility
         private const string SvarPaMeldingHeaderName = "svar-til";
 
         public static ReceivedMessageMetadata Parse(
-            string routingKey,
+            Guid receiverAccountId,
             IBasicProperties properties)
         {
             var headers = properties?.Headers;
@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Utility
             {
                 MessageId = RequireGuidFromHeader(headers, MessageIdHeaderName),
                 MessageType = RequireStringFromHeader(headers, MessageTypeHeaderName),
-                ReceiverAccountId = ParseGuid(routingKey, "routingKey"),
+                ReceiverAccountId = receiverAccountId,
                 SenderAccountId = RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
                 SvarPaMelding = GetGuidFromHeader(headers, SvarPaMeldingHeaderName),
                 Ttl = ParseTimeSpan(properties.Expiration, "Ttl")

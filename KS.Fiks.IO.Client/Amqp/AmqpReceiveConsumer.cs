@@ -16,14 +16,14 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly ISendHandler _sendHandler;
 
-        private readonly string _accountId;
+        private readonly Guid _accountId;
 
         public AmqpReceiveConsumer(
             IModel model,
             IFileWriter fileWriter,
             IAsicDecrypter decrypter,
             ISendHandler sendHandler,
-            string accountId)
+            Guid accountId)
             : base(model)
         {
             _fileWriter = fileWriter;

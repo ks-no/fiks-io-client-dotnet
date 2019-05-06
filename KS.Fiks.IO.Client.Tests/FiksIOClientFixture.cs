@@ -26,7 +26,7 @@ namespace KS.Fiks.IO.Client.Tests
         private string _accessToken = "token";
         private string _integrasjonPassword = "default";
         private Guid _integrasjonId = Guid.NewGuid();
-        private string _accountId = "defaultId";
+        private Guid _accountId = Guid.NewGuid();
         private CatalogConfiguration _catalogConfiguration;
 
         public FiksIOClientFixture()
@@ -43,7 +43,7 @@ namespace KS.Fiks.IO.Client.Tests
         public Mock<IFiksIOSender> FiksIOSenderMock { get; }
 
         public Mock<ISendHandler> SendHandlerMock { get; }
-        
+
         public MessageRequest DefaultRequest => new MessageRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -61,7 +61,7 @@ namespace KS.Fiks.IO.Client.Tests
                 AmqpHandlerMock.Object);
         }
 
-        public FiksIOClientFixture WithAccountId(string id)
+        public FiksIOClientFixture WithAccountId(Guid id)
         {
             _accountId = id;
             return this;

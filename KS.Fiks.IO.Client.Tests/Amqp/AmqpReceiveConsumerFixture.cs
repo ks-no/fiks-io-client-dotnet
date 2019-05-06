@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 FileWriterMock.Object,
                 AsicDecrypterMock.Object,
                 SendHandlerMock.Object,
-                DefaultMetadata.ReceiverAccountId.ToString());
+                DefaultMetadata.ReceiverAccountId);
         }
 
         private void SetDefaultProperties()

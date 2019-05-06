@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
     {
         private bool _connectionFactoryShouldThrow = false;
         private bool _connectionShouldThrow = false;
-        private string _accountId = "testId";
+        private Guid _accountId = Guid.NewGuid();
         private string _token = "testtoken";
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";

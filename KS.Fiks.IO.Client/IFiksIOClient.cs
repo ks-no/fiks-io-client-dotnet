@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client
 {
     public interface IFiksIOClient : IDisposable
     {
-        string AccountId { get; }
+        Guid AccountId { get; }
 
         Task<Account> Lookup(LookupRequest request);
 
