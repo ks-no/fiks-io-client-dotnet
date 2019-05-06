@@ -6,6 +6,8 @@
 ## Installation
 
 ## Prerequisites
+To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
+
 
 ## Examples
 
@@ -14,12 +16,12 @@
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 var messageRequest = new MessageRequest
-        {
-            MessageType = "ExampleMessageType",
-            ReceiverAccountId = receiverId, // Receiver id as Guid
-            SenderAccountId = senderId, // Sender id as Guid
-            SvarPaMelding = svarPaMeldingId // SvarPaMelding id as Guid
-        };
+                        {
+                            MessageType = "ExampleMessageType",
+                            ReceiverAccountId = receiverId, // Receiver id as Guid
+                            SenderAccountId = senderId, // Sender id as Guid
+                            SvarPaMelding = svarPaMeldingId // SvarPaMelding id as Guid
+                        };
         
 // Sending a file
 await client.Send(messageRequest, "c:\path\someFile.pdf");
@@ -40,7 +42,7 @@ var client = new FiksIOClient(configuration); // See setup of configuration belo
 
 var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
                 {
-                  fileArgs.Message.WriteDecryptedZip("c:\path\receivedFile.zip");
+                    fileArgs.Message.WriteDecryptedZip("c:\path\receivedFile.zip");
                 });
 
 client.NewSubscription(onReceived);
@@ -52,10 +54,10 @@ var client = new FiksIOClient(configuration); // See setup of configuration belo
 
 var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
                 {
-                  using (var archiveAsStream = fileArgs.Message.DecryptedStream) 
-                  {
-                    // Process the stream
-                  }
+                    using (var archiveAsStream = fileArgs.Message.DecryptedStream) 
+                    {
+                        // Process the stream
+                    }
                 });
 
 client.NewSubscription(onReceived);
@@ -72,7 +74,7 @@ var request = new LookupRequest
     MessageType = "ExampleMessageType"
 };
 
-var receiverAccount = await sut.Lookup(request);
+var receiverAccount = await sut.Lookup(request); // Id for the account receiving the specified request
 ```
 
 ### Configuration
