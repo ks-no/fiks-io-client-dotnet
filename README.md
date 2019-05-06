@@ -17,11 +17,10 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 ### Sending message
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
-var messageRequest = new MessageRequest
-                        {
-                            ReceiverAccountId = receiverId, // Receiver id as Guid
-                            SenderAccountId = senderId, // Sender id as Guid
-                        };
+var messageRequest = new MessageRequest(
+                            receiverAccountId: receiverId, // Receiver id as Guid
+                            senderAccountId: senderId, // Sender id as Guid
+                            messageType: messageType); // Message type as string
         
 // Sending a file
 await client.Send(messageRequest, "c:\path\someFile.pdf");
@@ -83,16 +82,13 @@ var receiverAccount = await sut.Lookup(request); // Id for the account receiving
 ```c#
 // Fiks IO account configuration
 var account = new AccountConfiguration(
-                    accountId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // Fiks IO account id
-                    publicKey: "xxx"); // Private key supplied to Fiks IO account
+                    accountId: /* Fiks IO accountId as Guid */,
+                    publicKey: /* Private key supplied to Fiks IO account */); 
 
 // Id and password for integration associated to the Fiks IO account.
 var integration = new FiksIntegrationConfiguration(
-                        integrationId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-                        integrationPassword: "xxx");
-
-// X509 certificate issued by ID-Porten
-var certificate = new X509Certificate2(fileName: @"c:/path/certificate.pem", password: "xxx");
+                        integrationId: /* Integration id as Guid */,
+                        integrationPassword: /* Integration password */);
 
 // ID-porten machine to machine configuration
 var maskinporten = new MaskinportenClientConfiguration
@@ -101,7 +97,7 @@ var maskinporten = new MaskinportenClientConfiguration
     TokenEndpoint = @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
     Issuer = @"oidc_ks_test",  // KS issuer name
     NumberOfSecondsLeftBeforeExpire = 10, // The token will be refreshed 10 seconds before it expires
-    Certificate = certificate
+    Certificate = /* X509Certificate2 from ID-Porten */
 };
 
 // Optional: Use custom api host (i.e. for connecting to test api)
