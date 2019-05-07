@@ -62,6 +62,19 @@ var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
 client.NewSubscription(onReceived);
 ```
 
+#### Reply to message
+`MessageReceivedArgs` conveniently contains a `ReplySender`, making it easy to reply to a message directly.
+
+```c#
+var client = new FiksIOClient(configuration); // See setup of configuration below
+
+var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
+                {
+                  await fileArgs.ReplySender.Reply(/* message type */, /* message as string, path or stream */);
+                });
+
+client.NewSubscription(onReceived);
+```
 ### Lookup
 Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
 
