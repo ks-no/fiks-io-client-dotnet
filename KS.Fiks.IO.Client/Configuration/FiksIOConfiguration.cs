@@ -9,9 +9,9 @@ namespace KS.Fiks.IO.Client.Configuration
             AccountConfiguration accountConfiguration,
             IntegrationConfiguration integrationConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
+            ApiConfiguration apiConfiguration = null,
             AmqpConfiguration amqpConfiguration = null,
             CatalogConfiguration catalogConfiguration = null,
-            ApiConfiguration apiConfiguration = null,
             FiksIOSenderConfiguration fiksIOSenderConfiguration = null)
         {
             AccountConfiguration = accountConfiguration;
