@@ -10,10 +10,6 @@ namespace KS.Fiks.IO.Client.Models
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
-        internal ReceivedMessage()
-        {
-        }
-
         internal ReceivedMessage(
             ReceivedMessageMetadata metadata,
             byte[] data,

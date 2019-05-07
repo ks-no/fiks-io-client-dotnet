@@ -5,7 +5,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Exceptions;
+using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using RabbitMQ.Client;
@@ -64,7 +66,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            var actualMessage = new ReceivedMessage();
+            var actualMessage = new ReceivedMessage(
+                _fixture.DefaultMetadata,
+                new byte[1],
+                Mock.Of<IAsicDecrypter>(),
+                Mock.Of<IFileWriter>());
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
             {
                 actualMessage = messageArgs.Message;

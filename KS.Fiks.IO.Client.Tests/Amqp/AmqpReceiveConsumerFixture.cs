@@ -23,15 +23,13 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
             SendHandlerMock = new Mock<ISendHandler>();
             SetDefaultProperties();
-            DefaultMetadata = new ReceivedMessageMetadata
-            {
-                MessageId = Guid.NewGuid(),
-                MessageType = "TestType",
-                ReceiverAccountId = Guid.NewGuid(),
-                SenderAccountId = Guid.NewGuid(),
-                RelatedMessageId = Guid.NewGuid(),
-                Ttl = TimeSpan.FromDays(2)
-            };
+            DefaultMetadata = new ReceivedMessageMetadata(
+                Guid.NewGuid(),
+                "TestType",
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                TimeSpan.FromDays(2));
         }
 
         public Mock<IModel> ModelMock { get; }

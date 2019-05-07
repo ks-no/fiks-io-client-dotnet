@@ -3,7 +3,7 @@ using KS.Fiks.IO.Send.Client.Models;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class MessageRequest
+    public class MessageRequest : MessageBase
     {
         private const int DefaultTtlInDays = 2;
 
@@ -13,23 +13,9 @@ namespace KS.Fiks.IO.Client.Models
             string messageType,
             TimeSpan? ttl = null,
             Guid? relatedMessageId = null)
+        : base(Guid.Empty, messageType, senderAccountId, receiverAccountId, ttl ?? TimeSpan.FromDays(DefaultTtlInDays), relatedMessageId)
         {
-            SenderAccountId = senderAccountId;
-            ReceiverAccountId = receiverAccountId;
-            MessageType = messageType;
-            Ttl = ttl ?? TimeSpan.FromDays(DefaultTtlInDays);
-            RelatedMessageId = relatedMessageId;
         }
-
-        public Guid SenderAccountId { get; }
-
-        public Guid ReceiverAccountId { get; }
-
-        public string MessageType { get; }
-
-        public TimeSpan Ttl { get; }
-
-        public Guid? RelatedMessageId { get; }
 
         public MessageSpecificationApiModel ToApiModel()
         {

@@ -4,14 +4,14 @@ namespace KS.Fiks.IO.Client.Models
 {
     public interface IMessage
     {
-        Guid MessageId { get; set; }
+        Guid MessageId { get; }
 
-        string MessageType { get; set; }
+        string MessageType { get; }
 
-        Guid SenderAccountId { get; set; }
+        Guid SenderAccountId { get; }
 
-        Guid ReceiverAccountId { get; set; }
+        Guid ReceiverAccountId { get; }
 
-        TimeSpan Ttl { get; set; }
+        TimeSpan Ttl { get; }
     }
 }

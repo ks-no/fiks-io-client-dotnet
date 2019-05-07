@@ -48,12 +48,10 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
         public Mock<IMaskinportenClient> MaskinportenClientMock { get; }
 
-        public LookupRequest DefaultLookupRequest => new LookupRequest
-        {
-            Identifier = "defaultIdentifier",
-            MessageType = "defaultMessageType",
-            AccessLevel = 0
-        };
+        public LookupRequest DefaultLookupRequest => new LookupRequest(
+            "defaultIdentifier",
+            "defaultMessageType",
+            0);
 
         public CatalogHandlerFixture WithStatusCode(HttpStatusCode code)
         {

@@ -41,7 +41,10 @@ namespace KS.Fiks.IO.Client.Tests
                 OrgId = Guid.NewGuid(),
                 OrgName = "testOrgName"
             };
-            var lookup = new LookupRequest();
+            var lookup = new LookupRequest(
+                "testIdentifier",
+                "testType",
+                3);
             var sut = _fixture.WithLookupAccount(expectedAccount).CreateSut();
             var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
             actualAccount.Should().Be(expectedAccount);
@@ -50,12 +53,10 @@ namespace KS.Fiks.IO.Client.Tests
         [Fact]
         public async Task LookupCallsCatalogHandlerWithExpectedLookup()
         {
-            var lookup = new LookupRequest
-            {
-                Identifier = "testIdentifier",
-                AccessLevel = 3,
-                MessageType = "testType"
-            };
+            var lookup = new LookupRequest(
+                "testIdentifier",
+                "testType",
+                 3);
             var sut = _fixture.WithLookupAccount(new Account()).CreateSut();
             var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
 
@@ -139,14 +140,12 @@ namespace KS.Fiks.IO.Client.Tests
         [Fact]
         public async Task SendReturnsExpectedSentMessage()
         {
-            var expectedMessage = new SentMessage
-            {
-                MessageId = Guid.NewGuid(),
-                MessageType = "msgType",
-                ReceiverAccountId = Guid.NewGuid(),
-                SenderAccountId = Guid.NewGuid(),
-                Ttl = TimeSpan.FromDays(1)
-            };
+            var expectedMessage = new SentMessage(
+                Guid.NewGuid(),
+                "msgType",
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                TimeSpan.FromDays(1));
             var sut = _fixture.WithSentMessageReturned(expectedMessage).CreateSut();
 
             var payload = new List<IPayload>();

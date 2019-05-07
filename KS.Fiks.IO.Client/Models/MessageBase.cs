@@ -8,6 +8,22 @@ namespace KS.Fiks.IO.Client.Models
         {
         }
 
+        protected MessageBase(
+            Guid messageId,
+            string messageType,
+            Guid senderAccountId,
+            Guid receiverAccountId,
+            TimeSpan ttl,
+            Guid? relatedMessageId = null)
+        {
+            MessageId = messageId;
+            MessageType = messageType;
+            SenderAccountId = senderAccountId;
+            ReceiverAccountId = receiverAccountId;
+            Ttl = ttl;
+            RelatedMessageId = relatedMessageId;
+        }
+
         protected MessageBase(IMessage message)
         {
             MessageId = message.MessageId;
@@ -17,14 +33,16 @@ namespace KS.Fiks.IO.Client.Models
             Ttl = message.Ttl;
         }
 
-        public Guid MessageId { get; set; }
+        public Guid MessageId { get; protected set; }
 
-        public string MessageType { get; set; }
+        public string MessageType { get; protected set; }
 
-        public Guid SenderAccountId { get; set; }
+        public Guid SenderAccountId { get; protected set; }
 
-        public Guid ReceiverAccountId { get; set; }
+        public Guid ReceiverAccountId { get; protected set; }
 
-        public TimeSpan Ttl { get; set; }
+        public TimeSpan Ttl { get; protected set; }
+
+        public Guid? RelatedMessageId { get; protected set; }
     }
 }

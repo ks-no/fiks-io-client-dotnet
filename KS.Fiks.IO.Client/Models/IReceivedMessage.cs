@@ -5,7 +5,7 @@ namespace KS.Fiks.IO.Client.Models
 {
     public interface IReceivedMessage : IMessage
     {
-        Guid? RelatedMessageId { get; set; }
+        Guid? RelatedMessageId { get; }
 
         Stream EncryptedStream { get;  }
 

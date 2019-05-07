@@ -28,15 +28,13 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Header is null. Cannot parse header.");
             }
 
-            return new ReceivedMessageMetadata
-            {
-                MessageId = RequireGuidFromHeader(headers, MessageIdHeaderName),
-                MessageType = RequireStringFromHeader(headers, MessageTypeHeaderName),
-                ReceiverAccountId = receiverAccountId,
-                SenderAccountId = RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
-                RelatedMessageId = GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
-                Ttl = ParseTimeSpan(properties.Expiration, "Ttl")
-            };
+            return new ReceivedMessageMetadata(
+                RequireGuidFromHeader(headers, MessageIdHeaderName),
+                RequireStringFromHeader(headers, MessageTypeHeaderName),
+                receiverAccountId,
+                RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
+                GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
+                ParseTimeSpan(properties.Expiration, "Ttl"));
         }
 
         private static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)
@@ -66,7 +64,7 @@ namespace KS.Fiks.IO.Client.Utility
 
             try
             {
-                return System.Text.Encoding.UTF8.GetString((byte[]) header[headerName]);
+                return System.Text.Encoding.UTF8.GetString((byte[])header[headerName]);
             }
             catch (Exception ex)
             {

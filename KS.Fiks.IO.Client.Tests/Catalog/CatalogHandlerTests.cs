@@ -120,12 +120,10 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         [Fact]
         public async Task UsesExpectedQueryParams()
         {
-            var request = new LookupRequest
-            {
-                Identifier = "testIdentifier",
-                MessageType = "testMessageType",
-                AccessLevel = 3
-            };
+            var request = new LookupRequest(
+                "testIdentifier",
+                "testMessageType",
+                3);
 
             var sut = _fixture.CreateSut();
 
