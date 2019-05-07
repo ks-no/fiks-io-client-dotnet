@@ -102,9 +102,16 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private void SetupConnectionFactory(IntegrationConfiguration integrationConfiguration)
         {
-            var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
-            _connectionFactory.UserName = integrationConfiguration.IntegrationId.ToString();
-            _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
+            try
+            {
+                var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
+                _connectionFactory.UserName = integrationConfiguration.IntegrationId.ToString();
+                _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
+            }
+            catch (AggregateException ex)
+            {
+                throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
+            }
         }
 
         private SslOption GetSslOptions()
