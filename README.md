@@ -81,12 +81,10 @@ Using lookup, you can find which Fiks IO account to send a message to, given org
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
-var request = new LookupRequest
-{
-    AccessLevel = 4,
-    Identifier = "ORG_NO.987654321",
-    MessageType = "ExampleMessageType"
-};
+var request = new LookupRequest(
+    identifier: "ORG_NO.987654321",
+    messageType: "ExampleMessageType",
+    accessLevel: 4);
 
 var receiverAccount = await sut.Lookup(request); // Id for the account receiving the specified request
 ```
