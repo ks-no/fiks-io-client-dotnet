@@ -86,7 +86,7 @@ var account = new AccountConfiguration(
                     publicKey: /* Private key supplied to Fiks IO account */); 
 
 // Id and password for integration associated to the Fiks IO account.
-var integration = new FiksIntegrationConfiguration(
+var integration = new IntegrationConfiguration(
                         integrationId: /* Integration id as Guid */,
                         integrationPassword: /* Integration password */);
 
@@ -99,7 +99,7 @@ var maskinporten = new MaskinportenClientConfiguration(
     certificate: /* X509Certificate2 from ID-Porten */);
 
 // Optional: Use custom api host (i.e. for connecting to test api)
-var api = new FiksApiConfiguration(
+var api = new ApiConfiguration(
                 scheme: "https",
                 host: "api.fiks.test.ks.no",
                 port: 443);
