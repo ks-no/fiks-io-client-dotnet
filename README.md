@@ -1,6 +1,6 @@
 # fiks-io-client-dotnet
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ks-no/fiks-io-client-dotnet/blob/master/LICENSE)
-[![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://img.shields.io/nuget/vpre/KS.fiks.io.client)
+[![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://www.nuget.org/packages/KS.Fiks.IO.Client)
 [![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/kryptering-dotnet.svg)](//github.com/ks-no/fiks-io-client-dotnet/issues)
 
 .net core library for sending and receiving messages using Fiks IO.
@@ -8,7 +8,7 @@
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-platform/tjenester_under_utvikling/svarinn/)
 
 ## Installation
-Install _KS.fiks.io.client_ nuget package.
+Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
 
 ## Prerequisites
 To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
@@ -62,6 +62,19 @@ var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
 client.NewSubscription(onReceived);
 ```
 
+#### Reply to message
+`MessageReceivedArgs` conveniently contains a `ReplySender`, making it easy to reply to a message directly.
+
+```c#
+var client = new FiksIOClient(configuration); // See setup of configuration below
+
+var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
+                {
+                  await fileArgs.ReplySender.Reply(/* message type */, /* message as string, path or stream */);
+                });
+
+client.NewSubscription(onReceived);
+```
 ### Lookup
 Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
 
@@ -86,7 +99,7 @@ var account = new AccountConfiguration(
                     publicKey: /* Private key supplied to Fiks IO account */); 
 
 // Id and password for integration associated to the Fiks IO account.
-var integration = new FiksIntegrationConfiguration(
+var integration = new IntegrationConfiguration(
                         integrationId: /* Integration id as Guid */,
                         integrationPassword: /* Integration password */);
 
@@ -99,7 +112,7 @@ var maskinporten = new MaskinportenClientConfiguration(
     certificate: /* X509Certificate2 from ID-Porten */);
 
 // Optional: Use custom api host (i.e. for connecting to test api)
-var api = new FiksApiConfiguration(
+var api = new ApiConfiguration(
                 scheme: "https",
                 host: "api.fiks.test.ks.no",
                 port: 443);
