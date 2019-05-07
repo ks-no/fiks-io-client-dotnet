@@ -11,9 +11,9 @@ namespace KS.Fiks.IO.Client.Models
         public ReceivedMessageMetadata(ReceivedMessageMetadata metadata)
             : base(metadata)
         {
-            SvarPaMelding = metadata.SvarPaMelding;
+            RelatedMessageId = metadata.RelatedMessageId;
         }
 
-        public Guid? SvarPaMelding { get; set; }
+        public Guid? RelatedMessageId { get; set; }
     }
 }

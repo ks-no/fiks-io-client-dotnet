@@ -15,7 +15,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string MessageTypeHeaderName = "type";
 
-        private const string SvarPaMeldingHeaderName = "svar-til";
+        private const string RelatedMessageIdHeaderName = "svar-til";
 
         public static ReceivedMessageMetadata Parse(
             Guid receiverAccountId,
@@ -34,7 +34,7 @@ namespace KS.Fiks.IO.Client.Utility
                 MessageType = RequireStringFromHeader(headers, MessageTypeHeaderName),
                 ReceiverAccountId = receiverAccountId,
                 SenderAccountId = RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
-                SvarPaMelding = GetGuidFromHeader(headers, SvarPaMeldingHeaderName),
+                RelatedMessageId = GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
                 Ttl = ParseTimeSpan(properties.Expiration, "Ttl")
             };
         }
@@ -64,7 +64,14 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Could not find required header: {headerName}.");
             }
 
-            return System.Text.Encoding.UTF8.GetString((byte[])header[headerName]);
+            try
+            {
+                return System.Text.Encoding.UTF8.GetString((byte[]) header[headerName]);
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIOParseException($"Unable to parse header({headerName}) from byte[] to string.", ex);
+            }
         }
 
         private static Guid ParseGuid(string guidAsString, string headerName)

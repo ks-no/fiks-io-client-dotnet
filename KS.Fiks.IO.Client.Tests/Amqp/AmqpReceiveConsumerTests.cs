@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
                 {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageId.ToString()) },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -85,7 +85,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             actualMessage.MessageType.Should().Be(expectedMessageMetadata.MessageType);
             actualMessage.ReceiverAccountId.Should().Be(expectedMessageMetadata.ReceiverAccountId);
             actualMessage.SenderAccountId.Should().Be(expectedMessageMetadata.SenderAccountId);
-            actualMessage.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
+            actualMessage.RelatedMessageId.Should().Be(expectedMessageMetadata.RelatedMessageId);
             actualMessage.Ttl.Should().Be(expectedMessageMetadata.Ttl);
         }
 
@@ -99,7 +99,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
                 {"melding-id", Encoding.UTF8.GetBytes("NoTGuid") },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -162,7 +162,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             {
                 {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();

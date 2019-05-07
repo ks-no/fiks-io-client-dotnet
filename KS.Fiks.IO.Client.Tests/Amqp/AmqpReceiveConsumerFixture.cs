@@ -29,7 +29,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 MessageType = "TestType",
                 ReceiverAccountId = Guid.NewGuid(),
                 SenderAccountId = Guid.NewGuid(),
-                SvarPaMelding = Guid.NewGuid(),
+                RelatedMessageId = Guid.NewGuid(),
                 Ttl = TimeSpan.FromDays(2)
             };
         }
