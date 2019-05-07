@@ -43,7 +43,7 @@ namespace KS.Fiks.IO.Client
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
                                   configuration.CatalogConfiguration,
-                                  configuration.FiksIntegrationConfiguration,
+                                  configuration.IntegrationConfiguration,
                                   maskinportenClient);
 
             var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
@@ -53,14 +53,14 @@ namespace KS.Fiks.IO.Client
                                _catalogHandler,
                                maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
-                               configuration.FiksIntegrationConfiguration,
+                               configuration.IntegrationConfiguration,
                                asicEncrypter);
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
                                _sendHandler,
                                configuration.AmqpConfiguration,
-                               configuration.FiksIntegrationConfiguration,
+                               configuration.IntegrationConfiguration,
                                configuration.AccountConfiguration);
         }
 

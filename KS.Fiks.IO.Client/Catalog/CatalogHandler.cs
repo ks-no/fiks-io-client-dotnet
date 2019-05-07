@@ -30,12 +30,12 @@ namespace KS.Fiks.IO.Client.Catalog
         private readonly HttpClient _httpClient;
 
         private readonly CatalogConfiguration _catalogConfiguration;
-        private readonly FiksIntegrationConfiguration _integrationConfiguration;
+        private readonly IntegrationConfiguration _integrationConfiguration;
         private readonly IMaskinportenClient _maskinportenClient;
 
         public CatalogHandler(
             CatalogConfiguration catalogConfiguration,
-            FiksIntegrationConfiguration integrationConfiguration,
+            IntegrationConfiguration integrationConfiguration,
             IMaskinportenClient maskinportenClient,
             HttpClient httpClient = null)
         {

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
-    public class AsicEncrypterTests
+    public class AsicEncrypterTests : IDisposable
     {
         private AsicEncrypterFixture _fixture;
 
@@ -96,6 +96,20 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             var sut = _fixture.CreateSut();
             Assert.Throws<ArgumentException>(() => { sut.Encrypt(null, new List<IPayload>()); });
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fixture.Dispose();
+            }
         }
     }
 }

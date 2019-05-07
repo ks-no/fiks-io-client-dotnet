@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using FluentAssertions;
 using Moq;
@@ -5,7 +6,7 @@ using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
-    public class AsicDecrypterTests
+    public class AsicDecrypterTests : IDisposable
     {
         private AsicDecrypterFixture _fixture;
 
@@ -76,6 +77,20 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
             var stream = new byte[10];
             sut.Decrypt(stream).Should().Be(decryptedStream);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fixture.Dispose();
+            }
         }
     }
 }

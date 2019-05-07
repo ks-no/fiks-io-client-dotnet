@@ -18,7 +18,7 @@ namespace KS.Fiks.IO.Client.Models
             ReceiverAccountId = receiverAccountId;
             MessageType = messageType;
             Ttl = ttl ?? TimeSpan.FromDays(DefaultTtlInDays);
-            RelatedMessageId = RelatedMessageId;
+            RelatedMessageId = relatedMessageId;
         }
 
         public Guid SenderAccountId { get; }
@@ -29,7 +29,7 @@ namespace KS.Fiks.IO.Client.Models
 
         public TimeSpan Ttl { get; }
 
-        public Guid RelatedMessageId { get; }
+        public Guid? RelatedMessageId { get; }
 
         public MessageSpecificationApiModel ToApiModel()
         {

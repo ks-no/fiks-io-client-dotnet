@@ -31,7 +31,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
             AmqpConfiguration amqpConfiguration,
-            FiksIntegrationConfiguration integrationConfiguration,
+            IntegrationConfiguration integrationConfiguration,
             AccountConfiguration accountConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
@@ -100,7 +100,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void SetupConnectionFactory(FiksIntegrationConfiguration integrationConfiguration)
+        private void SetupConnectionFactory(IntegrationConfiguration integrationConfiguration)
         {
             var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
             _connectionFactory.UserName = integrationConfiguration.IntegrationId.ToString();

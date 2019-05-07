@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -139,7 +140,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                     (req) =>
                         queryFromReq(req, "identifikator") == request.Identifier &&
                         queryFromReq(req, "meldingType") == request.MessageType &&
-                        int.Parse(queryFromReq(req, "sikkerhetsniva")) == request.AccessLevel),
+                        int.Parse(queryFromReq(req, "sikkerhetsniva"), CultureInfo.InvariantCulture) == request.AccessLevel),
                 ItExpr.IsAny<CancellationToken>());
         }
 

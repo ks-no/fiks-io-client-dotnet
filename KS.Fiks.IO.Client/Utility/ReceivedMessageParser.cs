@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using RabbitMQ.Client;
@@ -12,11 +13,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string MessageIdHeaderName = "melding-id";
 
-        private const string AvsenderNavnHeaderName = "avsender-navn";
-
         private const string MessageTypeHeaderName = "type";
-
-        private const string DokumentlagerIdHeaderName = "dokumentlager-id";
 
         private const string SvarPaMeldingHeaderName = "svar-til";
 
@@ -85,7 +82,15 @@ namespace KS.Fiks.IO.Client.Utility
 
         private static TimeSpan ParseTimeSpan(string longAsString, string headerName)
         {
-            return TimeSpan.FromMilliseconds(long.Parse(longAsString));
+            if (long.TryParse(longAsString, NumberStyles.Any, CultureInfo.InvariantCulture, out var timeAsLong))
+            {
+                return TimeSpan.FromMilliseconds(timeAsLong);
+            }
+            else
+            {
+                throw new FiksIOParseException(
+                    $"Unable to convert header ({headerName}) from string ({longAsString}) to long");
+            }
         }
     }
 }

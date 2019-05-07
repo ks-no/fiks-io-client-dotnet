@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Asic
         private Stream CreateZipStream(IEnumerable<IPayload> payloads)
         {
             byte[] zippedBytes;
-            
+
             using (var zipStream = new MemoryStream())
             {
                 using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
@@ -61,7 +61,7 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.Build();
                     }
                 }
-                
+
                 zippedBytes = zipStream.ToArray();
             }
 

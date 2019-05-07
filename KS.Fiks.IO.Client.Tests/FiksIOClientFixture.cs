@@ -23,8 +23,7 @@ namespace KS.Fiks.IO.Client.Tests
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
         private int _port = 80;
-        private string _path = "/svarinn2/katalog/api/v1";
-        private string _accessToken = "token";
+        private string _path;
         private string _integrasjonPassword = "default";
         private Guid _integrasjonId = Guid.NewGuid();
         private Guid _accountId = Guid.NewGuid();
@@ -126,14 +125,14 @@ namespace KS.Fiks.IO.Client.Tests
 
         private void SetupConfiguration()
         {
-            var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
+            var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
             var accountConfiguration = new AccountConfiguration(_accountId, "dummyKey");
 
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,
-                new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new IntegrationConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
-                fiksApiConfiguration: apiConfiguration,
+                apiConfiguration: apiConfiguration,
                 catalogConfiguration: _catalogConfiguration);
         }
     }

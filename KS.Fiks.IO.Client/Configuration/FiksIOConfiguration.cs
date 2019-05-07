@@ -7,24 +7,24 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         public FiksIOConfiguration(
             AccountConfiguration accountConfiguration,
-            FiksIntegrationConfiguration fiksIntegrationConfiguration,
+            IntegrationConfiguration integrationConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
             AmqpConfiguration amqpConfiguration = null,
             CatalogConfiguration catalogConfiguration = null,
-            FiksApiConfiguration fiksApiConfiguration = null,
+            ApiConfiguration apiConfiguration = null,
             FiksIOSenderConfiguration fiksIOSenderConfiguration = null)
         {
             AccountConfiguration = accountConfiguration;
-            FiksIntegrationConfiguration = fiksIntegrationConfiguration;
+            IntegrationConfiguration = integrationConfiguration;
             MaskinportenConfiguration = maskinportenConfiguration;
-            FiksApiConfiguration = fiksApiConfiguration ?? new FiksApiConfiguration();
-            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(FiksApiConfiguration.Host);
-            CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(FiksApiConfiguration);
+            ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
+            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
+            CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(ApiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
                                             null,
-                                            FiksApiConfiguration.Scheme,
-                                            FiksApiConfiguration.Host,
-                                            FiksApiConfiguration.Port);
+                                            ApiConfiguration.Scheme,
+                                            ApiConfiguration.Host,
+                                            ApiConfiguration.Port);
         }
 
         public AccountConfiguration AccountConfiguration { get; }
@@ -33,9 +33,9 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public CatalogConfiguration CatalogConfiguration { get; }
 
-        public FiksApiConfiguration FiksApiConfiguration { get; }
+        public ApiConfiguration ApiConfiguration { get; }
 
-        public FiksIntegrationConfiguration FiksIntegrationConfiguration { get; }
+        public IntegrationConfiguration IntegrationConfiguration { get; }
 
         public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 

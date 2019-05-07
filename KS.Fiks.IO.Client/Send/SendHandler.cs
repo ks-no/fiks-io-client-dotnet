@@ -31,7 +31,7 @@ namespace KS.Fiks.IO.Client.Send
             ICatalogHandler catalogHandler,
             IMaskinportenClient maskinportenClient,
             FiksIOSenderConfiguration senderConfiguration,
-            FiksIntegrationConfiguration integrationConfiguration,
+            IntegrationConfiguration integrationConfiguration,
             IAsicEncrypter asicEncrypter)
             : this(
                 catalogHandler,

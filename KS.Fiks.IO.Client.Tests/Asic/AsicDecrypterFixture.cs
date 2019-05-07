@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
@@ -6,7 +7,7 @@ using Moq;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
-    internal class AsicDecrypterFixture
+    internal class AsicDecrypterFixture : IDisposable
     {
         private Stream _decryptedStream = new MemoryStream();
 
@@ -14,6 +15,11 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             FileWriterMock = new Mock<IFileWriter>();
             DecryptionServiceMock = new Mock<IDecryptionService>();
+        }
+
+        public void Dispose()
+        {
+            _decryptedStream.Dispose();
         }
 
         internal AsicDecrypter CreateSut()

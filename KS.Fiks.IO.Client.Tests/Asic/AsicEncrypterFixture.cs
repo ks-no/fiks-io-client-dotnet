@@ -9,7 +9,7 @@ using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
-    public class AsicEncrypterFixture
+    internal class AsicEncrypterFixture : IDisposable
     {
         private readonly Mock<IAsiceBuilderFactory> _asiceBuilderFactoryMock;
         private readonly Mock<IEncryptionServiceFactory> _encryptionServiceFactoryMock;
@@ -32,6 +32,12 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             _outZipStream = stream;
             return this;
+        }
+
+        public void Dispose()
+        {
+            _outZipStream.Dispose();
+            _outEncryptedZipStream.Dispose();
         }
 
         public AsicEncrypterFixture WithContentAsEncryptedZipStreamed(Stream stream)

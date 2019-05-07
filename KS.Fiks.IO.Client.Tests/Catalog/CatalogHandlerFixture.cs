@@ -39,7 +39,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             SetupMocks();
             return new CatalogHandler(
                 CreateConfiguration().CatalogConfiguration,
-                CreateConfiguration().FiksIntegrationConfiguration,
+                CreateConfiguration().IntegrationConfiguration,
                 MaskinportenClientMock.Object,
                 new HttpClient(HttpMessageHandleMock.Object));
         }
@@ -201,14 +201,14 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var catalogConfiguration = new CatalogConfiguration(_path, _scheme, _host, _port);
 
-            var apiConfiguration = new FiksApiConfiguration(_scheme, _host, _port);
+            var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
             var accountConfiguration = new AccountConfiguration(Guid.NewGuid(), "privateKey");
 
             return new FiksIOConfiguration(
                 accountConfiguration,
-                new FiksIntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new IntegrationConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
-                fiksApiConfiguration: apiConfiguration,
+                apiConfiguration: apiConfiguration,
                 catalogConfiguration: catalogConfiguration);
         }
     }

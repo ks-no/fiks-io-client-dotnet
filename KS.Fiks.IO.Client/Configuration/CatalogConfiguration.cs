@@ -1,6 +1,6 @@
 namespace KS.Fiks.IO.Client.Configuration
 {
-    public class CatalogConfiguration : FiksApiConfiguration
+    public class CatalogConfiguration : ApiConfiguration
     {
         private const string DefaultPath = "/svarinn2/katalog/api/v1";
 
@@ -10,8 +10,8 @@ namespace KS.Fiks.IO.Client.Configuration
             Path = path ?? DefaultPath;
         }
 
-        public CatalogConfiguration(FiksApiConfiguration fiksApiConfiguration)
-            : base(fiksApiConfiguration)
+        public CatalogConfiguration(ApiConfiguration apiConfiguration)
+            : base(apiConfiguration)
         {
             Path = DefaultPath;
         }

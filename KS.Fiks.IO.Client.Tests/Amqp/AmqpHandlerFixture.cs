@@ -86,6 +86,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 AmqpConsumerFactoryMock.Object);
         }
 
+        private static AmqpConfiguration CreateConfiguration()
+        {
+            return new AmqpConfiguration("api.fiks.test.ks.no");
+        }
+
         private void SetupMocks()
         {
             if (_connectionFactoryShouldThrow)
@@ -118,14 +123,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                                   .ReturnsAsync(new MaskinportenToken(_token, 100));
         }
 
-        private AmqpConfiguration CreateConfiguration()
+        private IntegrationConfiguration CreateIntegrationConfiguration()
         {
-            return new AmqpConfiguration("api.fiks.test.ks.no");
-        }
-
-        private FiksIntegrationConfiguration CreateIntegrationConfiguration()
-        {
-            return new FiksIntegrationConfiguration(_integrationId, _integrationPassword);
+            return new IntegrationConfiguration(_integrationId, _integrationPassword);
         }
     }
 }
