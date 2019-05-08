@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 using KS.Fiks.Crypto;
+using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 
 namespace KS.Fiks.IO.Client.Asic
@@ -28,7 +30,14 @@ namespace KS.Fiks.IO.Client.Asic
 
         public Stream Decrypt(Stream encryptedZipStream)
         {
-            return _decryptionService.Decrypt(encryptedZipStream);
+            try
+            {
+                return _decryptionService.Decrypt(encryptedZipStream);
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+            }
         }
 
         public Stream Decrypt(byte[] encryptedZipBytes)

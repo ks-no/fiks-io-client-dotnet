@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using FluentAssertions;
+using KS.Fiks.IO.Client.Exceptions;
 using Moq;
 using Xunit;
 
@@ -77,6 +78,25 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
             var stream = new byte[10];
             sut.Decrypt(stream).Should().Be(decryptedStream);
+        }
+
+        [Fact]
+        public void ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnDecrypt()
+        {
+            var sut = _fixture.WithExceptionThrown().CreateSut();
+            var stream = new MemoryStream();
+
+            Assert.Throws<FiksIODecryptionException>(() => sut.Decrypt(stream));
+        }
+
+        [Fact]
+        public void ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnWriteDecrypted()
+        {
+            var sut = _fixture.WithExceptionThrown().CreateSut();
+            var stream = new MemoryStream();
+            var path = "test/path/some.zip";
+
+            Assert.Throws<FiksIODecryptionException>(() => sut.WriteDecrypted(stream, path));
         }
 
         public void Dispose()
