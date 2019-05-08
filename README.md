@@ -42,6 +42,7 @@ var client = new FiksIOClient(configuration); // See setup of configuration belo
 var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
                 {
                     fileArgs.Message.WriteDecryptedZip("c:\path\receivedFile.zip");
+                    fileArgs.ReplySender.Ack() // Ack message if write succeeded to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
@@ -57,20 +58,23 @@ var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
                     {
                         // Process the stream
                     }
+                    fileArgs.ReplySender.Ack() // Ack message if handling of stream succeeded to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
 ```
 
 #### Reply to message
-`MessageReceivedArgs` conveniently contains a `ReplySender`, making it easy to reply to a message directly.
-
+You can reply directly to a message using the ReplySender.
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
                 {
+                  // Process the message
+                  
                   await fileArgs.ReplySender.Reply(/* message type */, /* message as string, path or stream */);
+                  fileArgs.ReplySender.Ack() // Ack message to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
