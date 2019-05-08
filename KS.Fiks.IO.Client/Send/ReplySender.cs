@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,10 +12,13 @@ namespace KS.Fiks.IO.Client.Send
 
         private readonly ReceivedMessage _receivedMessage;
 
-        public ReplySender(ISendHandler sendHandler, ReceivedMessage receivedMessage)
+        private readonly Action _ack;
+
+        public ReplySender(ISendHandler sendHandler, ReceivedMessage receivedMessage, Action ack)
         {
             _sendHandler = sendHandler;
             _receivedMessage = receivedMessage;
+            _ack = ack;
         }
 
         public async Task<SentMessage> Reply(string messageType, IList<IPayload> payloads)
@@ -48,7 +52,7 @@ namespace KS.Fiks.IO.Client.Send
 
         public void Ack()
         {
-            throw new System.NotImplementedException();
+            _ack.Invoke();
         }
 
         private async Task<SentMessage> Reply(string messageType, IPayload payload)

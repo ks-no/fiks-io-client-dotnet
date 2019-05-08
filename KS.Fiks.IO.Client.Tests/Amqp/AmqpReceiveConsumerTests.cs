@@ -312,12 +312,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void BasicAckIsCalledWithDeliveryTagIfReceiverIsSet()
+        public void BasicAckIsCalledFromReplySender()
         {
             var sut = _fixture.CreateSut();
             var data = new[] {default(byte), byte.MaxValue};
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, b) => { });
+            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { messageArgs.ReplySender.Ack(); });
             var deliveryTag = (ulong)3423423;
 
             sut.Received += handler;

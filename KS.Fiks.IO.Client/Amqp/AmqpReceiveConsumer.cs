@@ -55,8 +55,7 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 Received.Invoke(
                     this,
-                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage)));
-                Model.BasicAck(deliveryTag, false);
+                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage, () => Model.BasicAck(deliveryTag, false))));
             }
             catch (Exception ex)
             {
