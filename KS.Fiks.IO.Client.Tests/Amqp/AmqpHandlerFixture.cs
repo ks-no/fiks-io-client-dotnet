@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
@@ -27,6 +28,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             AmqpConsumerFactoryMock = new Mock<IAmqpConsumerFactory>();
             MaskinportenClientMock = new Mock<IMaskinportenClient>();
             SendHandlerMock = new Mock<ISendHandler>();
+            DokumentlagerHandlerMock = new Mock<IDokumentlagerHandler>();
         }
 
         public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
@@ -71,6 +73,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IMaskinportenClient> MaskinportenClientMock { get; }
 
+        internal Mock<IDokumentlagerHandler> DokumentlagerHandlerMock { get; }
+
         internal Mock<ISendHandler> SendHandlerMock { get; }
 
         internal AmqpHandler CreateSut()
@@ -79,6 +83,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return new AmqpHandler(
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
+                DokumentlagerHandlerMock.Object,
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
                 new AccountConfiguration(_accountId, "dummy"),
