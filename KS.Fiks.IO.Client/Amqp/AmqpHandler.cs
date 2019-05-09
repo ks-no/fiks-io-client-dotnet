@@ -26,8 +26,6 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IMaskinportenClient _maskinportenClient;
 
-        private readonly IDokumentlagerHandler _dokumentlagerHandler;
-
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
@@ -41,12 +39,11 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null)
         {
             _maskinportenClient = maskinportenClient;
-            _dokumentlagerHandler = dokumentlagerHandler;
             _accountConfiguration = accountConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, _accountConfiguration);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
         }
 
         public void AddMessageReceivedHandler(

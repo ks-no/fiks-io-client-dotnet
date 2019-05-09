@@ -222,6 +222,56 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
+        public void DokumentlagerHandlerIsUsedWhenHeaderIsSet()
+        {
+            var sut = _fixture.WithDokumentlagerHeader().CreateSut();
+
+            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            {
+                var stream = messageArgs.Message.EncryptedStream;
+            });
+
+            sut.Received += handler;
+
+            sut.HandleBasicDeliver(
+                "tag",
+                34,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                null);
+
+            _fixture.DokumentlagerHandler.Verify(_ => _.Download(It.IsAny<Guid>()));
+        }
+
+        [Fact]
+        public void DokumentlagerHandlerIsNotUsedWhenHeaderIsNotSet()
+        {
+            var sut = _fixture.WithoutDokumentlagerHeader().CreateSut();
+
+            var data = new[] {default(byte) };
+
+            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            {
+                var stream = messageArgs.Message.EncryptedStream;
+            });
+
+            sut.Received += handler;
+
+            sut.HandleBasicDeliver(
+                "tag",
+                34,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.DokumentlagerHandler.Verify(_ => _.Download(It.IsAny<Guid>()), Times.Never);
+        }
+
+        [Fact]
         public async Task DataAsStreamIsReturnedWhenGettingEncryptedStream()
         {
             var sut = _fixture.CreateSut();
