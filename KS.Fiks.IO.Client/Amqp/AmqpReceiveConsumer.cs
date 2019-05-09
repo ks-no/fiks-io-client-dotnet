@@ -76,7 +76,25 @@ namespace KS.Fiks.IO.Client.Amqp
         private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new ReceivedMessage(metadata, () => new MemoryStream(body), _decrypter, _fileWriter);
+            return new ReceivedMessage(metadata, GetDataProvider(properties, body, metadata.MessageId), _decrypter, _fileWriter);
+        }
+
+
+        private Func<Stream> GetDataProvider(IBasicProperties properties, byte[] body, Guid messageId)
+        {
+            if (IsDataInDokumentlager(properties))
+            {
+                return () => _dokumentlagerHandler.Download(messageId);
+            }
+            else
+            {
+                return () => new MemoryStream(body);
+            }
+        }
+
+        private bool IsDataInDokumentlager(IBasicProperties properties)
+        {
+            return properties.Headers.ContainsKey(DokumentlagerHeaderName);
         }
 
 
