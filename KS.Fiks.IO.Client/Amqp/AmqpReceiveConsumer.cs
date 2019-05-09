@@ -76,7 +76,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new ReceivedMessage(metadata, GetDataProvider(properties, body, metadata.MessageId), _decrypter, _fileWriter);
+            return new ReceivedMessage(metadata, () => new MemoryStream(body), _decrypter, _fileWriter);
         }
 
 
