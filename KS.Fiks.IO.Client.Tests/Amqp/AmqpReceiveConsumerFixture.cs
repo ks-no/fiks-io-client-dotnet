@@ -73,10 +73,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private void SetupMocks()
         {
-            FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<byte[]>()));
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
-            AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<byte[]>()))
-                                .Returns((byte[] inStream) => (Stream)new MemoryStream(inStream));
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
                                 .Returns((Stream inStream) => inStream);
         }

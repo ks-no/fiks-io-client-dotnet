@@ -68,7 +68,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
             var actualMessage = new ReceivedMessage(
                 _fixture.DefaultMetadata,
-                new byte[1],
+                () => new MemoryStream(new byte[1]),
                 Mock.Of<IAsicDecrypter>(),
                 Mock.Of<IFileWriter>());
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
@@ -218,7 +218,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.FileWriterMock.Verify(_ => _.Write(filePath, data));
+            _fixture.FileWriterMock.Verify(_ => _.Write(filePath, It.IsAny<Stream>()));
         }
 
         [Fact]
@@ -276,7 +276,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(data));
+            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(It.IsAny<Stream>()));
 
             var actualData = new byte[2];
             await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
@@ -308,7 +308,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(data, filePath));
+            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(It.IsAny<Stream>(), filePath));
         }
 
         [Fact]

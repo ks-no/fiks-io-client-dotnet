@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client;
@@ -35,6 +36,7 @@ namespace KS.Fiks.IO.Client.Tests
             MaskinportenClientMock = new Mock<IMaskinportenClient>();
             FiksIOSenderMock = new Mock<IFiksIOSender>();
             SendHandlerMock = new Mock<ISendHandler>();
+            DokumentlagerHandlerMock = new Mock<IDokumentlagerHandler>();
             AmqpHandlerMock = new Mock<IAmqpHandler>();
         }
 
@@ -58,6 +60,7 @@ namespace KS.Fiks.IO.Client.Tests
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
+                DokumentlagerHandlerMock.Object,
                 AmqpHandlerMock.Object);
         }
 
@@ -110,6 +113,8 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         internal Mock<ICatalogHandler> CatalogHandlerMock { get; }
+
+        internal Mock<IDokumentlagerHandler> DokumentlagerHandlerMock { get; }
 
         internal Mock<IAmqpHandler> AmqpHandlerMock { get; }
 

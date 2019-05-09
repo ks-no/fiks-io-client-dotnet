@@ -42,7 +42,6 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             return this;
         }
 
-
         internal Mock<IFileWriter> FileWriterMock { get; }
 
         internal Mock<IDecryptionService> DecryptionServiceMock { get; }
@@ -50,7 +49,6 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         private void SetupMocks()
         {
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
-            FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<byte[]>()));
             if (_shouldThrow)
             {
                 DecryptionServiceMock.Setup(_ => _.Decrypt(It.IsAny<Stream>())).Throws<Exception>();
