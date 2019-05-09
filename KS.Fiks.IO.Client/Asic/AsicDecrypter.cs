@@ -23,11 +23,6 @@ namespace KS.Fiks.IO.Client.Asic
             _fileWriter.Write(outPath, Decrypt(encryptedZipStream));
         }
 
-        public void WriteDecrypted(byte[] encryptedZipBytes, string outPath)
-        {
-            _fileWriter.Write(outPath, Decrypt(encryptedZipBytes));
-        }
-
         public Stream Decrypt(Stream encryptedZipStream)
         {
             try
@@ -38,11 +33,6 @@ namespace KS.Fiks.IO.Client.Asic
             {
                 throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
             }
-        }
-
-        public Stream Decrypt(byte[] encryptedZipBytes)
-        {
-            return Decrypt(new MemoryStream(encryptedZipBytes));
         }
     }
 }

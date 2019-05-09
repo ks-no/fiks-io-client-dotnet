@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -67,7 +68,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new ReceivedMessage(metadata, body, _decrypter, _fileWriter);
+            return new ReceivedMessage(metadata, () => new MemoryStream(body), _decrypter, _fileWriter);
         }
     }
 }

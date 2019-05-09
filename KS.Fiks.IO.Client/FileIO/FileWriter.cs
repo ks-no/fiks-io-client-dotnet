@@ -12,7 +12,7 @@ namespace KS.Fiks.IO.Client.FileIO
             Write(path, memoryStream.ToArray());
         }
 
-        public void Write(string path, byte[] data)
+        private void Write(string path, byte[] data)
         {
             using (var file = new FileStream(path, FileMode.Create, FileAccess.Write))
             {

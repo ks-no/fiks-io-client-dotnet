@@ -7,6 +7,7 @@ using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
@@ -25,8 +26,10 @@ namespace KS.Fiks.IO.Client
 
         private readonly IAmqpHandler _amqpHandler;
 
+        private readonly IDokumentlagerHandler _dokumentlagerHandler;
+
         public FiksIOClient(FiksIOConfiguration configuration)
-            : this(configuration, null, null, null, null)
+            : this(configuration, null, null, null, null, null)
         {
         }
 
@@ -35,6 +38,7 @@ namespace KS.Fiks.IO.Client
             ICatalogHandler catalogHandler,
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
+            IDokumentlagerHandler dokumentlagerHandler,
             IAmqpHandler amqpHandler)
         {
             AccountId = configuration.AccountConfiguration.AccountId;
@@ -56,9 +60,12 @@ namespace KS.Fiks.IO.Client
                                configuration.IntegrationConfiguration,
                                asicEncrypter);
 
+            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler();
+
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
                                _sendHandler,
+                               _dokumentlagerHandler,
                                configuration.AmqpConfiguration,
                                configuration.IntegrationConfiguration,
                                configuration.AccountConfiguration);

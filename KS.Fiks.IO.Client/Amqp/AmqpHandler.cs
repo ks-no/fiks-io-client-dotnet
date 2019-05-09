@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
@@ -25,11 +26,14 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IMaskinportenClient _maskinportenClient;
 
+        private readonly IDokumentlagerHandler _dokumentlagerHandler;
+
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
+            IDokumentlagerHandler dokumentlagerHandler,
             AmqpConfiguration amqpConfiguration,
             IntegrationConfiguration integrationConfiguration,
             AccountConfiguration accountConfiguration,
@@ -37,6 +41,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null)
         {
             _maskinportenClient = maskinportenClient;
+            _dokumentlagerHandler = dokumentlagerHandler;
             _accountConfiguration = accountConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
