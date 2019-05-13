@@ -98,7 +98,7 @@ var receiverAccount = await sut.Lookup(request); // Id for the account receiving
 // Fiks IO account configuration
 var account = new AccountConfiguration(
                     accountId: /* Fiks IO accountId as Guid */,
-                    publicKey: /* Private key supplied to Fiks IO account */); 
+                    privateKey: /* Private key, paired with the public key supplied to Fiks IO account */); 
 
 // Id and password for integration associated to the Fiks IO account.
 var integration = new IntegrationConfiguration(
