@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
@@ -25,14 +26,16 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 
         private int _port;
 
+        private Stream _outStream;
+
         public DokumentlagerHandlerFixture()
         {
             HttpMessageHandleMock = new Mock<HttpMessageHandler>();
-
+            _outStream = new MemoryStream(Encoding.ASCII.GetBytes("NotEmpty"));
         }
 
         public Mock<HttpMessageHandler> HttpMessageHandleMock { get; }
-        
+
         public Uri RequestUri { get; private set; }
 
         public DokumentlagerHandler CreateSut()
@@ -66,6 +69,12 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
             return this;
         }
 
+        public DokumentlagerHandlerFixture WithEmptyOutStream()
+        {
+            _outStream = new MemoryStream();
+            return this;
+        }
+
         private void SetupConfiguration()
         {
             _configuration = new DokumentlagerConfiguration(scheme: _scheme, host: _host, port: _port, downloadPath: _downloadPath);
@@ -76,7 +85,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
             var responseMessage = new HttpResponseMessage()
             {
                 StatusCode = _statusCode,
-                Content = new StreamContent(new MemoryStream())
+                Content = new StreamContent(_outStream)
             };
 
             HttpMessageHandleMock

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using KS.Fiks.IO.Client.Exceptions;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -63,6 +64,17 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
                 ItExpr.Is<HttpRequestMessage>(
                     req => req.Method == HttpMethod.Get),
                 ItExpr.IsAny<CancellationToken>());
+        }
+        
+        [Fact]
+        public async Task ThrowsFiksIODokumentlagerResponseExceptionIfOutStreamIsEmpty()
+        {
+            var sut = _fixture.WithEmptyOutStream().CreateSut();
+
+            var messageId = Guid.NewGuid();
+
+            await Assert.ThrowsAsync<FiksIODokumentlagerResponseException>(async () => await sut.Download(messageId).ConfigureAwait(false))
+                        .ConfigureAwait(false);
         }
     }
 }
