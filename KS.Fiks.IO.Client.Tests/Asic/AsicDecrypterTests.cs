@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using Moq;
@@ -17,66 +18,69 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         }
 
         [Fact]
-        public void CallsWriteWithExpectedPathWithStream()
+        public async Task CallsWriteWithExpectedPathWithStream()
         {
             var sut = _fixture.CreateSut();
-            var stream = new MemoryStream();
+            var stream = Task.FromResult((Stream)new MemoryStream());
             var path = "test/path/some.zip";
-            sut.WriteDecrypted(stream, path);
+            await sut.WriteDecrypted(stream, path).ConfigureAwait(false);
 
             _fixture.FileWriterMock.Verify(_ => _.Write(path, It.IsAny<Stream>()));
         }
 
         [Fact]
-        public void CallsDecryptOnStream()
+        public async Task CallsDecryptOnStream()
         {
             var sut = _fixture.CreateSut();
             var stream = new MemoryStream();
+            var streamTask = Task.FromResult((Stream) stream);
             var path = "test/path/some.zip";
-            sut.WriteDecrypted(stream, path);
+            await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
             _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(stream));
         }
 
         [Fact]
-        public void WritesDecryptedStream()
+        public async Task WritesDecryptedStream()
         {
             var decryptedStream = new MemoryStream(20);
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
             var stream = new MemoryStream();
+            var streamTask = Task.FromResult((Stream) stream);
             var path = "test/path/some.zip";
-            sut.WriteDecrypted(stream, path);
+            await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
             _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(stream));
             _fixture.FileWriterMock.Verify(_ => _.Write(path, decryptedStream));
         }
 
         [Fact]
-        public void ReturnsDecryptedStream()
+        public async Task ReturnsDecryptedStream()
         {
             var decryptedStream = new MemoryStream(20);
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
-            var stream = new MemoryStream();
-            sut.Decrypt(stream).Should().Be(decryptedStream);
+            var stream = Task.FromResult((Stream)new MemoryStream());
+            var result = await sut.Decrypt(stream).ConfigureAwait(false);
+            result.Should().Be(decryptedStream);
         }
 
         [Fact]
-        public void ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnDecrypt()
+        public async Task ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnDecrypt()
         {
             var sut = _fixture.WithExceptionThrown().CreateSut();
-            var stream = new MemoryStream();
+            var stream = Task.FromResult((Stream)new MemoryStream());
 
-            Assert.Throws<FiksIODecryptionException>(() => sut.Decrypt(stream));
+            await Assert.ThrowsAsync<FiksIODecryptionException>(async () => await sut.Decrypt(stream).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [Fact]
-        public void ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnWriteDecrypted()
+        public async Task ThrowsFiksIODecryptionExceptionIfDecrypterThrowsOnWriteDecrypted()
         {
             var sut = _fixture.WithExceptionThrown().CreateSut();
-            var stream = new MemoryStream();
+            var stream = Task.FromResult((Stream)new MemoryStream());
             var path = "test/path/some.zip";
 
-            Assert.Throws<FiksIODecryptionException>(() => sut.WriteDecrypted(stream, path));
+            Assert.ThrowsAsync<FiksIODecryptionException>(async () => await sut.WriteDecrypted(stream, path).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         public void Dispose()

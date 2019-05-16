@@ -60,7 +60,7 @@ namespace KS.Fiks.IO.Client
                                configuration.IntegrationConfiguration,
                                asicEncrypter);
 
-            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler();
+            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(configuration.DokumentlagerConfiguration);
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,

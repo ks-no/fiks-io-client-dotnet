@@ -68,7 +68,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
             var actualMessage = new ReceivedMessage(
                 _fixture.DefaultMetadata,
-                () => new MemoryStream(new byte[1]),
+                () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
                 Mock.Of<IAsicDecrypter>(),
                 Mock.Of<IFileWriter>());
             var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
@@ -279,9 +279,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MessageReceivedArgs>(async (a, messageArgs) =>
             {
-                actualDataStream = messageArgs.Message.EncryptedStream;
+                actualDataStream = await messageArgs.Message.EncryptedStream.ConfigureAwait(false);
             });
 
             sut.Received += handler;
@@ -310,9 +310,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MessageReceivedArgs>(async (a, messageArgs) =>
             {
-                actualDataStream = messageArgs.Message.DecryptedStream;
+                actualDataStream = await messageArgs.Message.DecryptedStream.ConfigureAwait(false);
             });
 
             sut.Received += handler;
@@ -326,7 +326,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(It.IsAny<Stream>()));
+            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(It.IsAny<Task<Stream>>()));
 
             var actualData = new byte[2];
             await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
@@ -358,7 +358,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(It.IsAny<Stream>(), filePath));
+            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(It.IsAny<Task<Stream>>(), filePath));
         }
 
         [Fact]
