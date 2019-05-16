@@ -17,6 +17,8 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string RelatedMessageIdHeaderName = "svar-til";
 
+        private const string TtlHeaderName = "Ttl";
+
         public static ReceivedMessageMetadata Parse(
             Guid receiverAccountId,
             IBasicProperties properties)
@@ -34,7 +36,7 @@ namespace KS.Fiks.IO.Client.Utility
                 receiverAccountId,
                 RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
                 GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
-                ParseTimeSpan(properties.Expiration, "Ttl"));
+                ParseTimeSpan(properties.Expiration, TtlHeaderName));
         }
 
         private static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)

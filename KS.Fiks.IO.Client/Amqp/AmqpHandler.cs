@@ -114,6 +114,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
+        // Todo: Make SSL work
         private SslOption GetSslOptions()
         {
             return new SslOption
