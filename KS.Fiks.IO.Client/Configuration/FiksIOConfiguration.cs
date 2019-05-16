@@ -12,7 +12,8 @@ namespace KS.Fiks.IO.Client.Configuration
             ApiConfiguration apiConfiguration = null,
             AmqpConfiguration amqpConfiguration = null,
             CatalogConfiguration catalogConfiguration = null,
-            FiksIOSenderConfiguration fiksIOSenderConfiguration = null)
+            FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
+            DokumentlagerConfiguration dokumentlagerConfiguration = null)
         {
             AccountConfiguration = accountConfiguration;
             IntegrationConfiguration = integrationConfiguration;
@@ -20,6 +21,7 @@ namespace KS.Fiks.IO.Client.Configuration
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
             AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
             CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(ApiConfiguration);
+            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(apiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
                                             null,
                                             ApiConfiguration.Scheme,
@@ -40,5 +42,7 @@ namespace KS.Fiks.IO.Client.Configuration
         public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 
         public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
+
+        public DokumentlagerConfiguration DokumentlagerConfiguration { get; }
     }
 }

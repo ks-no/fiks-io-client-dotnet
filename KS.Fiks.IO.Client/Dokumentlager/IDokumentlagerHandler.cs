@@ -1,10 +1,11 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Dokumentlager
 {
     internal interface IDokumentlagerHandler
     {
-        Stream Download(Guid messageId);
+        Task<Stream> Download(Guid messageId);
     }
 }

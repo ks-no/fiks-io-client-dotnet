@@ -1,0 +1,68 @@
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Moq;
+using Moq.Protected;
+using Xunit;
+
+namespace KS.Fiks.IO.Client.Tests.Dokumentlager
+{
+    public class DokumentlagerHandlerTests
+    {
+        private DokumentlagerHandlerFixture _fixture;
+
+        public DokumentlagerHandlerTests()
+        {
+            _fixture = new DokumentlagerHandlerFixture();
+        }
+
+        [Fact]
+        public void DownloadReturnsAStream()
+        {
+            var sut = _fixture.CreateSut();
+
+            var result = sut.Download(Guid.NewGuid());
+        }
+
+        [Fact]
+        public async Task CallsExpectedUri()
+        {
+            var sut = _fixture.WithSchema("https").WithPort(554).WithHost("api.ks.no").WithDownloadPath("/dokumentlager/download").CreateSut();
+
+            var messageId = Guid.NewGuid();
+
+            var expectedUri = $"https://api.ks.no:554/dokumentlager/download/{messageId}";
+
+            var result = await sut.Download(messageId).ConfigureAwait(false);
+
+            _fixture.RequestUri.ToString().Should().Be(expectedUri);
+
+            _fixture.HttpMessageHandleMock.Protected().Verify(
+                "SendAsync",
+                Times.Exactly(1),
+                ItExpr.Is<HttpRequestMessage>(
+                    req => req.RequestUri.ToString() == expectedUri),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task CallsUsingGet()
+        {
+            var sut = _fixture.CreateSut();
+
+            var messageId = Guid.NewGuid();
+
+            var result = await sut.Download(messageId).ConfigureAwait(false);
+
+            _fixture.HttpMessageHandleMock.Protected().Verify(
+                "SendAsync",
+                Times.Exactly(1),
+                ItExpr.Is<HttpRequestMessage>(
+                    req => req.Method == HttpMethod.Get),
+                ItExpr.IsAny<CancellationToken>());
+        }
+    }
+}

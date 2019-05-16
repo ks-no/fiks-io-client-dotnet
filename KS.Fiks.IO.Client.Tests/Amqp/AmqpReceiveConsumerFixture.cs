@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -100,9 +101,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private void SetupMocks()
         {
             FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
-            AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Stream>()))
-                                .Returns((Stream inStream) => inStream);
-            DokumentlagerHandler.Setup(_ => _.Download(It.IsAny<Guid>())).Returns(DokumentlagerOutStream);
+            AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Task<Stream>>()))
+                                .Returns((Task<Stream> inStream) => inStream);
+            DokumentlagerHandler.Setup(_ => _.Download(It.IsAny<Guid>())).Returns(Task.FromResult(DokumentlagerOutStream));
         }
     }
 }

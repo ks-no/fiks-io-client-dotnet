@@ -1,11 +1,12 @@
 using System.IO;
+using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Asic
 {
     public interface IAsicDecrypter
     {
-        void WriteDecrypted(Stream encryptedZipStream, string outPath);
+        Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath);
 
-        Stream Decrypt(Stream encryptedZipStream);
+        Task<Stream> Decrypt(Task<Stream> encryptedZipStream);
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -7,12 +8,12 @@ namespace KS.Fiks.IO.Client.Models
     {
         Guid? RelatedMessageId { get; }
 
-        Stream EncryptedStream { get;  }
+        Task<Stream> EncryptedStream { get;  }
 
-        Stream DecryptedStream { get;  }
+        Task<Stream> DecryptedStream { get;  }
 
-        void WriteEncryptedZip(string outPath);
+        Task WriteEncryptedZip(string outPath);
 
-        void WriteDecryptedZip(string outPath);
+        Task WriteDecryptedZip(string outPath);
     }
 }

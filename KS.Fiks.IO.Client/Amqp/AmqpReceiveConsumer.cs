@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.FileIO;
@@ -80,15 +81,15 @@ namespace KS.Fiks.IO.Client.Amqp
         }
 
 
-        private Func<Stream> GetDataProvider(IBasicProperties properties, byte[] body, Guid messageId)
+        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body, Guid messageId)
         {
             if (IsDataInDokumentlager(properties))
             {
-                return () => _dokumentlagerHandler.Download(messageId);
+                return async () => await _dokumentlagerHandler.Download(messageId);
             }
             else
             {
-                return () => new MemoryStream(body);
+                return async () => await Task.FromResult(new MemoryStream(body));
             }
         }
 

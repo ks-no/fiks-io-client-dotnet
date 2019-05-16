@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
@@ -18,16 +19,16 @@ namespace KS.Fiks.IO.Client.Asic
             _fileWriter = fileWriter ?? new FileWriter();
         }
 
-        public void WriteDecrypted(Stream encryptedZipStream, string outPath)
+        public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
-            _fileWriter.Write(outPath, Decrypt(encryptedZipStream));
+            _fileWriter.Write(outPath, await Decrypt(encryptedZipStream).ConfigureAwait(false));
         }
 
-        public Stream Decrypt(Stream encryptedZipStream)
+        public async Task<Stream> Decrypt(Task<Stream> encryptedZipStream)
         {
             try
             {
-                return _decryptionService.Decrypt(encryptedZipStream);
+                return _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false));
             }
             catch (Exception ex)
             {
