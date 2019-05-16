@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -74,7 +75,8 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
         {
             var responseMessage = new HttpResponseMessage()
             {
-                StatusCode = _statusCode
+                StatusCode = _statusCode,
+                Content = new StreamContent(new MemoryStream())
             };
 
             HttpMessageHandleMock
