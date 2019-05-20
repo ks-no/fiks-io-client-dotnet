@@ -16,6 +16,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 {
     public class AmqpReceiveConsumerFixture
     {
+        private const string DokumentlagerHeaderName = "dokumentlager-id";
+
         private Mock<IBasicProperties> _defaultProperties;
 
         private bool _shouldUseDokumentlager = false;
@@ -90,7 +92,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             if (_shouldUseDokumentlager)
             {
-                headers.Add("DOKUMENTLAGER_PAYLOAD", "YES");
+                headers.Add(DokumentlagerHeaderName, Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
             }
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);

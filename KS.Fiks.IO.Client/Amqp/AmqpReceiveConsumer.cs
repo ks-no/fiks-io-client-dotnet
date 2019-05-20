@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpReceiveConsumer : DefaultBasicConsumer, IAmqpReceiveConsumer
     {
-        private const string DokumentlagerHeaderName = "DOKUMENTLAGER_PAYLOAD";
+        private const string DokumentlagerHeaderName = "dokumentlager-id";
 
         private readonly IAsicDecrypter _decrypter;
 
@@ -77,15 +77,15 @@ namespace KS.Fiks.IO.Client.Amqp
         private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new ReceivedMessage(metadata, GetDataProvider(properties, body, metadata.MessageId), _decrypter, _fileWriter);
+            return new ReceivedMessage(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
         }
 
 
-        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body, Guid messageId)
+        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
         {
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await _dokumentlagerHandler.Download(messageId);
+                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
             else
             {
@@ -98,22 +98,18 @@ namespace KS.Fiks.IO.Client.Amqp
             return properties.Headers.ContainsKey(DokumentlagerHeaderName);
         }
 
-
-        private Func<Stream> GetDataProvider(IBasicProperties properties, byte[] body, Guid messageId)
+        private Guid GetDokumentlagerId(IBasicProperties properties)
         {
-            if (IsDataInDokumentlager(properties))
+            Console.WriteLine($"DokumentlagerId:{properties.Headers[DokumentlagerHeaderName]}");
+            try
             {
-                return () => _dokumentlagerHandler.Download(messageId);
+                return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
             }
-            else
+            catch (Exception ex)
             {
-                return () => new MemoryStream(body);
+                Console.WriteLine(ex.Message);
+                throw;
             }
-        }
-
-        private bool IsDataInDokumentlager(IBasicProperties properties)
-        {
-            return properties.Headers.ContainsKey(DokumentlagerHeaderName);
         }
     }
 }
