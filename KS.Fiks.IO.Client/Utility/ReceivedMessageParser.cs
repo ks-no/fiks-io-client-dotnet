@@ -45,7 +45,7 @@ namespace KS.Fiks.IO.Client.Utility
             return ParseGuid(headerAsString, headerName);
         }
 
-        private static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)
+        internal static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)
         {
             try
             {
@@ -56,8 +56,6 @@ namespace KS.Fiks.IO.Client.Utility
                 return null;
             }
         }
-
-
 
         private static string RequireStringFromHeader(IDictionary<string, object> header, string headerName)
         {
