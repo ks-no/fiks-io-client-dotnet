@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
+using KS.Fiks.IO.Send.Client.Authentication;
+using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using Moq.Protected;
 
@@ -14,7 +17,9 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 {
     internal class DokumentlagerHandlerFixture
     {
-        private DokumentlagerConfiguration _configuration;
+        private DokumentlagerConfiguration _dokumentlagerConfiguration;
+
+        private IntegrationConfiguration _integrationConfiguration;
 
         private HttpStatusCode _statusCode = HttpStatusCode.OK;
 
@@ -31,10 +36,16 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
         public DokumentlagerHandlerFixture()
         {
             HttpMessageHandleMock = new Mock<HttpMessageHandler>();
+            MaskinportenClientMock = new Mock<IMaskinportenClient>();
+            AuthenticationStrategyMock = new Mock<IAuthenticationStrategy>();
             _outStream = new MemoryStream(Encoding.ASCII.GetBytes("NotEmpty"));
         }
 
         public Mock<HttpMessageHandler> HttpMessageHandleMock { get; }
+
+        public Mock<IMaskinportenClient> MaskinportenClientMock { get; }
+
+        public Mock<IAuthenticationStrategy> AuthenticationStrategyMock { get; }
 
         public Uri RequestUri { get; private set; }
 
@@ -42,7 +53,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
         {
             SetupConfiguration();
             SetupMocks();
-            return new DokumentlagerHandler(_configuration, new HttpClient(HttpMessageHandleMock.Object));
+            return new DokumentlagerHandler(_dokumentlagerConfiguration, _integrationConfiguration, MaskinportenClientMock.Object, AuthenticationStrategyMock.Object, new HttpClient(HttpMessageHandleMock.Object));
         }
 
         public DokumentlagerHandlerFixture WithSchema(string scheme)
@@ -77,7 +88,8 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 
         private void SetupConfiguration()
         {
-            _configuration = new DokumentlagerConfiguration(scheme: _scheme, host: _host, port: _port, downloadPath: _downloadPath);
+            _dokumentlagerConfiguration = new DokumentlagerConfiguration(scheme: _scheme, host: _host, port: _port, downloadPath: _downloadPath);
+            _integrationConfiguration = new IntegrationConfiguration(Guid.NewGuid(), "password");
         }
 
         private void SetupMocks()
@@ -97,6 +109,10 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
                 .Callback<HttpRequestMessage,CancellationToken>((req, c) => RequestUri = req.RequestUri)
                 .ReturnsAsync(responseMessage)
                 .Verifiable();
+            MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<IEnumerable<string>>()))
+                                  .ReturnsAsync(new MaskinportenToken("test", 10));
+            AuthenticationStrategyMock.Setup(_ => _.GetAuthorizationHeaders())
+                                      .ReturnsAsync(new Dictionary<string, string>());
         }
     }
 }
