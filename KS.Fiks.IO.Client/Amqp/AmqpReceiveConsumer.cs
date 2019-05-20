@@ -95,7 +95,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private bool IsDataInDokumentlager(IBasicProperties properties)
         {
-            return properties.Headers.ContainsKey(DokumentlagerHeaderName);
+            return ReceivedMessageParser.GetGuidFromHeader(properties.Headers, DokumentlagerHeaderName) != null;
         }
 
         private Guid GetDokumentlagerId(IBasicProperties properties)
