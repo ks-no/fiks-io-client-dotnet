@@ -41,6 +41,25 @@ namespace KS.Fiks.IO.Client.Amqp
             _accountId = accountId;
         }
 
+        private static bool IsDataInDokumentlager(IBasicProperties properties)
+        {
+            return ReceivedMessageParser.GetGuidFromHeader(properties.Headers, DokumentlagerHeaderName) != null;
+        }
+
+        private static Guid GetDokumentlagerId(IBasicProperties properties)
+        {
+            Console.WriteLine($"DokumentlagerId:{properties.Headers[DokumentlagerHeaderName]}");
+            try
+            {
+                return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
         public event EventHandler<MessageReceivedArgs> Received;
 
         public override void HandleBasicDeliver(
@@ -80,7 +99,6 @@ namespace KS.Fiks.IO.Client.Amqp
             return new ReceivedMessage(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
         }
 
-
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
         {
             if (IsDataInDokumentlager(properties))
@@ -90,25 +108,6 @@ namespace KS.Fiks.IO.Client.Amqp
             else
             {
                 return async () => await Task.FromResult(new MemoryStream(body));
-            }
-        }
-
-        private bool IsDataInDokumentlager(IBasicProperties properties)
-        {
-            return ReceivedMessageParser.GetGuidFromHeader(properties.Headers, DokumentlagerHeaderName) != null;
-        }
-
-        private Guid GetDokumentlagerId(IBasicProperties properties)
-        {
-            Console.WriteLine($"DokumentlagerId:{properties.Headers[DokumentlagerHeaderName]}");
-            try
-            {
-                return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
             }
         }
     }
