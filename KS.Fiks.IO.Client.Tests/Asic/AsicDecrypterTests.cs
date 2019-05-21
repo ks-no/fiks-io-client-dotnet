@@ -51,7 +51,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
             _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(stream));
-            _fixture.FileWriterMock.Verify(_ => _.Write(path, decryptedStream));
+            _fixture.FileWriterMock.Verify(_ => _.Write(path, It.IsAny<Stream>()));
         }
 
         [Fact]
