@@ -15,7 +15,7 @@ using Moq.Protected;
 
 namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 {
-    internal class DokumentlagerHandlerFixture
+    internal class DokumentlagerHandlerFixture : IDisposable
     {
         private DokumentlagerConfiguration _dokumentlagerConfiguration;
 
@@ -86,6 +86,11 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
             return this;
         }
 
+        public void Dispose()
+        {
+            _outStream.Dispose();
+        }
+
         private void SetupConfiguration()
         {
             _dokumentlagerConfiguration = new DokumentlagerConfiguration(scheme: _scheme, host: _host, port: _port, downloadPath: _downloadPath);
@@ -106,7 +111,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
-                .Callback<HttpRequestMessage,CancellationToken>((req, c) => RequestUri = req.RequestUri)
+                .Callback<HttpRequestMessage, CancellationToken>((req, c) => RequestUri = req.RequestUri)
                 .ReturnsAsync(responseMessage)
                 .Verifiable();
             MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<IEnumerable<string>>()))

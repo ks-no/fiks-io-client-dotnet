@@ -11,7 +11,7 @@ using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 {
-    public class DokumentlagerHandlerTests
+    public class DokumentlagerHandlerTests : IDisposable
     {
         private DokumentlagerHandlerFixture _fixture;
 
@@ -65,7 +65,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
                     req => req.Method == HttpMethod.Get),
                 ItExpr.IsAny<CancellationToken>());
         }
-        
+
         [Fact]
         public async Task ThrowsFiksIODokumentlagerResponseExceptionIfOutStreamIsEmpty()
         {
@@ -75,6 +75,20 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 
             await Assert.ThrowsAsync<FiksIODokumentlagerResponseException>(async () => await sut.Download(messageId).ConfigureAwait(false))
                         .ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fixture.Dispose();
+            }
         }
     }
 }

@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             var sut = _fixture.CreateSut();
             var stream = new MemoryStream();
-            var streamTask = Task.FromResult((Stream) stream);
+            var streamTask = Task.FromResult((Stream)stream);
             var path = "test/path/some.zip";
             await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
@@ -46,7 +46,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             var decryptedStream = new MemoryStream(20);
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
             var stream = new MemoryStream();
-            var streamTask = Task.FromResult((Stream) stream);
+            var streamTask = Task.FromResult((Stream)stream);
             var path = "test/path/some.zip";
             await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
@@ -80,7 +80,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             var stream = Task.FromResult((Stream)new MemoryStream());
             var path = "test/path/some.zip";
 
-            Assert.ThrowsAsync<FiksIODecryptionException>(async () => await sut.WriteDecrypted(stream, path).ConfigureAwait(false)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<FiksIODecryptionException>(async () => await sut.WriteDecrypted(stream, path).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         public void Dispose()
