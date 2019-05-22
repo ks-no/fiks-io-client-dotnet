@@ -8,34 +8,34 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class ReceivedMessage : ReceivedMessageMetadata, IReceivedMessage
     {
-        private readonly Func<Task<Stream>> _dataProvider;
+        private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
         internal ReceivedMessage(
             ReceivedMessageMetadata metadata,
-            Func<Task<Stream>> dataProvider,
+            Func<Task<Stream>> streamProvider,
             IAsicDecrypter decrypter,
             IFileWriter fileWriter)
             : base(metadata)
         {
-            _dataProvider = dataProvider;
+            _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
         }
 
-        public Task<Stream> EncryptedStream => _dataProvider();
+        public Task<Stream> EncryptedStream => _streamProvider();
 
-        public Task<Stream> DecryptedStream => _decrypter.Decrypt(_dataProvider());
+        public Task<Stream> DecryptedStream => _decrypter.Decrypt(_streamProvider());
 
         public async Task WriteEncryptedZip(string outPath)
         {
-            _fileWriter.Write(outPath, await _dataProvider().ConfigureAwait(false));
+            _fileWriter.Write(await _streamProvider().ConfigureAwait(false), outPath);
         }
 
         public async Task WriteDecryptedZip(string outPath)
         {
-            await _decrypter.WriteDecrypted(_dataProvider(), outPath).ConfigureAwait(false);
+            await _decrypter.WriteDecrypted(_streamProvider(), outPath).ConfigureAwait(false);
         }
     }
 }

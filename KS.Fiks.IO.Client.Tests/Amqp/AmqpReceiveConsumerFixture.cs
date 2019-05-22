@@ -102,7 +102,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private void SetupMocks()
         {
-            FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
+            FileWriterMock.Setup(_ => _.Write(It.IsAny<Stream>(), It.IsAny<string>()));
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Task<Stream>>()))
                                 .Returns((Task<Stream> inStream) => inStream);
             DokumentlagerHandler.Setup(_ => _.Download(It.IsAny<Guid>())).Returns(Task.FromResult(DokumentlagerOutStream));
