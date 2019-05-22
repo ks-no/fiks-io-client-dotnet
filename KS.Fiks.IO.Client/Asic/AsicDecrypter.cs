@@ -18,15 +18,17 @@ namespace KS.Fiks.IO.Client.Asic
 
         public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
-            var fileStream = new FileStream(outPath, FileMode.OpenOrCreate);
-            try
+            using (var fileStream = new FileStream(outPath, FileMode.OpenOrCreate))
             {
-                _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false)).CopyTo(fileStream);
-                fileStream.Flush();
-            }
-            catch (Exception ex)
-            {
-                throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+                try
+                {
+                    _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false)).CopyTo(fileStream);
+                    fileStream.Flush();
+                }
+                catch (Exception ex)
+                {
+                    throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+                }
             }
         }
 

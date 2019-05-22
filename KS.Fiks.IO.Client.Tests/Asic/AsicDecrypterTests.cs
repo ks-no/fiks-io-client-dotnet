@@ -8,6 +8,7 @@ using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
+    [Collection("Sequential")]
     public class AsicDecrypterTests : IDisposable
     {
         private AsicDecrypterFixture _fixture;
