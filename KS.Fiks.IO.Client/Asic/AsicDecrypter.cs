@@ -22,8 +22,9 @@ namespace KS.Fiks.IO.Client.Asic
             {
                 try
                 {
-                    _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false)).CopyTo(fileStream);
-                    fileStream.Flush();
+                    await _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false))
+                                            .CopyToAsync(fileStream).ConfigureAwait(false);
+                    await fileStream.FlushAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
