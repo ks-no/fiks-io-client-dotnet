@@ -22,9 +22,7 @@ namespace KS.Fiks.IO.Client.Asic
         public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
             var decryptedStream = await Decrypt(encryptedZipStream).ConfigureAwait(false);
-            var writeStream = new MemoryStream();
-            decryptedStream.CopyTo(writeStream);
-            _fileWriter.Write(outPath, writeStream);
+            _fileWriter.Write(outPath, decryptedStream);
         }
 
         public async Task<Stream> Decrypt(Task<Stream> encryptedZipStream)
