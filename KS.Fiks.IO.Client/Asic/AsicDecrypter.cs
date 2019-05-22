@@ -9,20 +9,25 @@ namespace KS.Fiks.IO.Client.Asic
 {
     internal class AsicDecrypter : IAsicDecrypter
     {
-        private readonly IFileWriter _fileWriter;
-
         private readonly IDecryptionService _decryptionService;
 
-        public AsicDecrypter(IDecryptionService decryptionService, IFileWriter fileWriter = null)
+        public AsicDecrypter(IDecryptionService decryptionService)
         {
             _decryptionService = decryptionService;
-            _fileWriter = fileWriter ?? new FileWriter();
         }
 
         public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
-            var decryptedStream = await Decrypt(encryptedZipStream).ConfigureAwait(false);
-            _fileWriter.Write(outPath, decryptedStream);
+            var fileStream = new FileStream(outPath, FileMode.OpenOrCreate);
+            try
+            {
+                _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false)).CopyTo(fileStream);
+                fileStream.Flush();
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+            }
         }
 
         public async Task<Stream> Decrypt(Task<Stream> encryptedZipStream)
