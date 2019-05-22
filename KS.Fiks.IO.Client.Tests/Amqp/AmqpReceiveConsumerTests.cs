@@ -66,7 +66,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            var actualMessage = new ReceivedMessage(
+            IReceivedMessage actualMessage = new ReceivedMessage(
                 _fixture.DefaultMetadata,
                 () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
                 Mock.Of<IAsicDecrypter>(),
@@ -218,7 +218,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.FileWriterMock.Verify(_ => _.Write(filePath, It.IsAny<Stream>()));
+            _fixture.FileWriterMock.Verify(_ => _.Write(It.IsAny<Stream>(), filePath));
         }
 
         [Fact]

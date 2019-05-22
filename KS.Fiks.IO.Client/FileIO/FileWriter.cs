@@ -5,7 +5,7 @@ namespace KS.Fiks.IO.Client.FileIO
 {
     internal class FileWriter : IFileWriter
     {
-        public void Write(string path, Stream data)
+        public void Write(Stream data, string path)
         {
             var memoryStream = new MemoryStream();
             data.CopyTo(memoryStream);

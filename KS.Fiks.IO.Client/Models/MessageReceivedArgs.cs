@@ -4,13 +4,13 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class MessageReceivedArgs
     {
-        public MessageReceivedArgs(ReceivedMessage message, IReplySender sender)
+        public MessageReceivedArgs(IReceivedMessage message, IReplySender sender)
         {
             Message = message;
             ReplySender = sender;
         }
 
-        public ReceivedMessage Message { get; }
+        public IReceivedMessage Message { get; }
 
         public IReplySender ReplySender { get; }
     }
