@@ -15,7 +15,6 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
         internal AsicDecrypterFixture()
         {
-            FileWriterMock = new Mock<IFileWriter>();
             DecryptionServiceMock = new Mock<IDecryptionService>();
         }
 
@@ -27,7 +26,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         internal AsicDecrypter CreateSut()
         {
             SetupMocks();
-            return new AsicDecrypter(DecryptionServiceMock.Object, FileWriterMock.Object);
+            return new AsicDecrypter(DecryptionServiceMock.Object);
         }
 
         internal AsicDecrypterFixture WithDecryptedStream(Stream decryptedStream)
@@ -42,13 +41,10 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             return this;
         }
 
-        internal Mock<IFileWriter> FileWriterMock { get; }
-
         internal Mock<IDecryptionService> DecryptionServiceMock { get; }
 
         private void SetupMocks()
         {
-            FileWriterMock.Setup(_ => _.Write(It.IsAny<string>(), It.IsAny<Stream>()));
             if (_shouldThrow)
             {
                 DecryptionServiceMock.Setup(_ => _.Decrypt(It.IsAny<Stream>())).Throws<Exception>();

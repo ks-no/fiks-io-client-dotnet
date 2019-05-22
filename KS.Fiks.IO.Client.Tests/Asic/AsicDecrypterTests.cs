@@ -18,40 +18,15 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         }
 
         [Fact]
-        public async Task CallsWriteWithExpectedPathWithStream()
-        {
-            var sut = _fixture.CreateSut();
-            var stream = Task.FromResult((Stream)new MemoryStream());
-            var path = "test/path/some.zip";
-            await sut.WriteDecrypted(stream, path).ConfigureAwait(false);
-
-            _fixture.FileWriterMock.Verify(_ => _.Write(path, It.IsAny<Stream>()));
-        }
-
-        [Fact]
-        public async Task CallsDecryptOnStream()
+        public async Task CallsDecryptOnFileStream()
         {
             var sut = _fixture.CreateSut();
             var stream = new MemoryStream();
             var streamTask = Task.FromResult((Stream)stream);
-            var path = "test/path/some.zip";
+            var path = "some.zip";
             await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
 
-            _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(stream));
-        }
-
-        [Fact]
-        public async Task WritesDecryptedStream()
-        {
-            var decryptedStream = new MemoryStream(20);
-            var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
-            var stream = new MemoryStream();
-            var streamTask = Task.FromResult((Stream)stream);
-            var path = "test/path/some.zip";
-            await sut.WriteDecrypted(streamTask, path).ConfigureAwait(false);
-
-            _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(stream));
-            _fixture.FileWriterMock.Verify(_ => _.Write(path, It.IsAny<Stream>()));
+            _fixture.DecryptionServiceMock.Verify(_ => _.Decrypt(It.IsAny<Stream>()));
         }
 
         [Fact]
@@ -78,7 +53,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             var sut = _fixture.WithExceptionThrown().CreateSut();
             var stream = Task.FromResult((Stream)new MemoryStream());
-            var path = "test/path/some.zip";
+            var path = "some.zip";
 
             await Assert.ThrowsAsync<FiksIODecryptionException>(async () => await sut.WriteDecrypted(stream, path).ConfigureAwait(false)).ConfigureAwait(false);
         }
