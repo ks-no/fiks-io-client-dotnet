@@ -19,13 +19,6 @@ namespace KS.Fiks.IO.Client.Asic
         public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
             var tmpPath = outPath + ".tmp";
-            using (var tmpFileStream = new FileStream(tmpPath, FileMode.OpenOrCreate))
-            {
-                var stream = await encryptedZipStream.ConfigureAwait(false);
-                await stream.CopyToAsync(tmpFileStream).ConfigureAwait(false);
-                await stream.FlushAsync().ConfigureAwait(false);
-            }
-
             using (var tmpFileStream = new FileStream(tmpPath, FileMode.Open))
             {
                 using (var fileStream = new FileStream(outPath, FileMode.OpenOrCreate))
