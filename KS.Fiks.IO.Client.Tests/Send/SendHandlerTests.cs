@@ -18,8 +18,8 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             _fixture = new SendHandlerFixture();
         }
-
-        [Fact(Skip ="Debugging stream problems")]
+        
+        [Fact]
         public async Task CallsFiksIOSenderSend()
         {
             var sut = _fixture.CreateSut();
@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _fixture.FiksIOSenderMock.Verify(_ => _.Send(It.IsAny<MessageSpecificationApiModel>(), It.IsAny<Stream>()));
         }
 
-        [Fact(Skip ="Debugging stream problems")]
+        [Fact]
         public async Task CallsSendWithExpectedMessageSpecificationApiModel()
         {
             var sut = _fixture.CreateSut();
@@ -58,7 +58,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                 It.IsAny<Stream>()));
         }
 
-        [Fact(Skip ="Debugging stream problems")]
+        [Fact]
         public async Task CallsEncrypterWithExpectedPrivateKey()
         {
             var expectedPublicKey = _fixture.CreateTestCertificate();
@@ -71,7 +71,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _fixture.AsicEncrypterMock.Verify(_ => _.Encrypt(expectedPublicKey, payload), Times.Once());
         }
 
-        [Fact(Skip ="Debugging stream problems")]
+        [Fact]
         public async Task GetsKeyFromCatalogHandler()
         {
             var sut = _fixture.CreateSut();

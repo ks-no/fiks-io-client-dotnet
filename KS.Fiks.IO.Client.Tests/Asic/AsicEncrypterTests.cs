@@ -18,7 +18,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture = new AsicEncrypterFixture();
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void ReturnsANonNullStream()
         {
             var sut = _fixture.CreateSut();
@@ -30,7 +30,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             outStream.Should().NotBeNull();
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void CallsAsiceBuilderAddFile()
         {
             var sut = _fixture.CreateSut();
@@ -42,7 +42,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture.AsiceBuilderMock.Verify(_ => _.AddFile(payload.Payload, payload.Filename));
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void AsiceBuilderIsDisposed()
         {
             var sut = _fixture.CreateSut();
@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture.AsiceBuilderMock.Verify(_ => _.Dispose());
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void ReturnsExpectedStream()
         {
             var expectedOutputString = "myStringToSend";
@@ -73,7 +73,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             outputAsString.Should().Be(expectedOutputString);
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void CallsEncrypt()
         {
             var expectedOutputString = "myStringToSend";
@@ -91,7 +91,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                 It.IsAny<Stream>()));
         }
 
-        [Fact(Skip = "Temporarily skip as encryption is disabled")]
+        [Fact]
         public void ThrowsIfPayloadIsEmpty()
         {
             var sut = _fixture.CreateSut();

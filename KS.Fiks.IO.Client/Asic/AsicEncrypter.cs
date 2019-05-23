@@ -49,7 +49,6 @@ namespace KS.Fiks.IO.Client.Asic
         private Stream CreateZipStream(IEnumerable<IPayload> payloads)
         {
             byte[] zippedBytes;
-            /*
             using (var zipStream = new MemoryStream())
             {
                 using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
@@ -64,22 +63,15 @@ namespace KS.Fiks.IO.Client.Asic
 
                 zippedBytes = zipStream.ToArray();
             }
-            
-            var memStream = new MemoryStream();
-            payloads.FirstOrDefault()?.Payload.CopyTo(memStream);
-            zippedBytes = memStream.ToArray();
 
             return new MemoryStream(zippedBytes);
-            */
-            return payloads.FirstOrDefault()?.Payload;
         }
 
         private Stream EncryptStream(Stream zipStream, X509Certificate certificate)
         {
             var encryptionService = _encryptionServiceFactory.Create(certificate);
             var outStream = new MemoryStream();
-            //encryptionService.Encrypt(zipStream, outStream);
-            zipStream.CopyTo(outStream);
+            encryptionService.Encrypt(zipStream, outStream);
 
             return outStream;
         }
