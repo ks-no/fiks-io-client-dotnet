@@ -48,6 +48,7 @@ namespace KS.Fiks.IO.Client.Send
             encryptedPayload.Seek(0, SeekOrigin.Begin);*/
             var writer = new FileWriter();
             writer.Write(payload.FirstOrDefault()?.Payload, payload.FirstOrDefault()?.Filename + ".orig");
+            payload.FirstOrDefault()?.Payload.Seek(0l, SeekOrigin.Begin);
             var sentMessageApiModel = await _sender.Send(request.ToApiModel(), payload.FirstOrDefault()?.Payload)
                                                    .ConfigureAwait(false);
 
