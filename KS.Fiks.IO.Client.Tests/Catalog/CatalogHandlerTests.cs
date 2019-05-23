@@ -137,7 +137,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 ItExpr.Is<HttpRequestMessage>(
                     (req) =>
                         queryFromReq(req, "identifikator") == request.Identifier &&
-                        queryFromReq(req, "meldingType") == request.MessageType &&
+                        queryFromReq(req, "meldingProtokoll") == request.MessageType &&
                         int.Parse(queryFromReq(req, "sikkerhetsniva"), CultureInfo.InvariantCulture) == request.AccessLevel),
                 ItExpr.IsAny<CancellationToken>());
         }

@@ -23,7 +23,7 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private const string IdentifyerQueryName = "identifikator";
 
-        private const string MessageTypeQueryName = "meldingType";
+        private const string MessageProtocolQueryName = "meldingProtokoll";
 
         private const string AccessLevelQueryName = "sikkerhetsniva";
 
@@ -73,7 +73,7 @@ namespace KS.Fiks.IO.Client.Catalog
         {
             var servicePath = $"{_catalogConfiguration.Path}/{LookupEndpoint}";
             var query = $"?{IdentifyerQueryName}={request.Identifier}&" +
-                        $"{MessageTypeQueryName}={request.MessageType}&" +
+                        $"{MessageProtocolQueryName}={request.MessageType}&" +
                         $"{AccessLevelQueryName}={request.AccessLevel}";
 
             return new UriBuilder(
