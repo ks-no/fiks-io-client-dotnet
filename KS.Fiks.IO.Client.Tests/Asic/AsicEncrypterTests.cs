@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             _fixture.AsiceBuilderMock.Verify(_ => _.Dispose());
         }
 
-        [Fact]
+        [Fact(Skip = "Temporarily skip as encryption is disabled")]
         public void ReturnsExpectedStream()
         {
             var expectedOutputString = "myStringToSend";
@@ -73,7 +73,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             outputAsString.Should().Be(expectedOutputString);
         }
 
-        [Fact]
+        [Fact(Skip = "Temporarily skip as encryption is disabled")]
         public void CallsEncrypt()
         {
             var expectedOutputString = "myStringToSend";
