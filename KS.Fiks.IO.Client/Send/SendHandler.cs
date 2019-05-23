@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
@@ -42,9 +43,9 @@ namespace KS.Fiks.IO.Client.Send
 
         public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
         {
-            var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
-            encryptedPayload.Seek(0, SeekOrigin.Begin);
-            var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload)
+            /*var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
+            encryptedPayload.Seek(0, SeekOrigin.Begin);*/
+            var sentMessageApiModel = await _sender.Send(request.ToApiModel(), payload.FirstOrDefault()?.Payload)
                                                    .ConfigureAwait(false);
 
             return SentMessage.FromSentMessageApiModel(sentMessageApiModel);
