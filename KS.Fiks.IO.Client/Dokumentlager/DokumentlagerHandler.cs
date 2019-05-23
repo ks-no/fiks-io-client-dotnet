@@ -34,7 +34,10 @@ namespace KS.Fiks.IO.Client.Dokumentlager
         {
             var response = await _httpClient.SendAsync(await CreateRequestMessage(messageId).ConfigureAwait(false)).ConfigureAwait(false);
             ThrowIfContentIsEmpty(response, messageId);
-            return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var content = response.Content;
+            var contentBytes = await content.ReadAsByteArrayAsync().ConfigureAwait(false);
+            return new MemoryStream(contentBytes);
+            //return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }
 
         private async Task<HttpRequestMessage> CreateRequestMessage(Guid messageId)

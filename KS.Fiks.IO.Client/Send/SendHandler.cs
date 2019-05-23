@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
-using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Configuration;
@@ -46,9 +45,6 @@ namespace KS.Fiks.IO.Client.Send
         {
             /*var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
             encryptedPayload.Seek(0, SeekOrigin.Begin);*/
-            var writer = new FileWriter();
-            writer.Write(payload.FirstOrDefault()?.Payload, payload.FirstOrDefault()?.Filename + ".orig");
-            payload.FirstOrDefault()?.Payload.Seek(0l, SeekOrigin.Begin);
             var sentMessageApiModel = await _sender.Send(request.ToApiModel(), payload.FirstOrDefault()?.Payload)
                                                    .ConfigureAwait(false);
 
