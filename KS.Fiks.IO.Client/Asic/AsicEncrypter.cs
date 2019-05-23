@@ -64,12 +64,14 @@ namespace KS.Fiks.IO.Client.Asic
 
                 zippedBytes = zipStream.ToArray();
             }
-            */
+            
             var memStream = new MemoryStream();
             payloads.FirstOrDefault()?.Payload.CopyTo(memStream);
             zippedBytes = memStream.ToArray();
 
             return new MemoryStream(zippedBytes);
+            */
+            return payloads.FirstOrDefault()?.Payload;
         }
 
         private Stream EncryptStream(Stream zipStream, X509Certificate certificate)
