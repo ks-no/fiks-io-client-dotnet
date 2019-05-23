@@ -48,7 +48,6 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private static Guid GetDokumentlagerId(IBasicProperties properties)
         {
-            Console.WriteLine($"DokumentlagerId:{properties.Headers[DokumentlagerHeaderName]}");
             try
             {
                 return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
