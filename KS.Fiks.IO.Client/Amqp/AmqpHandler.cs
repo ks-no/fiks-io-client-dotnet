@@ -40,13 +40,13 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
             _accountConfiguration = accountConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
-            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
         }
 
         public void AddMessageReceivedHandler(
