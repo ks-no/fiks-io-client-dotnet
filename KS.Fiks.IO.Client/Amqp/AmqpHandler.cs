@@ -93,7 +93,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, GetSslOptions());
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port);
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
