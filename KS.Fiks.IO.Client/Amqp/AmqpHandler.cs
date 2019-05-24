@@ -47,6 +47,8 @@ namespace KS.Fiks.IO.Client.Amqp
             _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            Console.WriteLine($"SslOption.Enabled: {_sslOption?.Enabled}");
+            Console.WriteLine($"SslOption.ServerName: {_sslOption?.ServerName}");
         }
 
         public void AddMessageReceivedHandler(
