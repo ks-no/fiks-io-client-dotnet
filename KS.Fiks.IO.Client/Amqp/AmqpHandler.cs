@@ -26,6 +26,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IMaskinportenClient _maskinportenClient;
 
+        private readonly SslOption _sslOption;
+
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
@@ -44,6 +46,7 @@ namespace KS.Fiks.IO.Client.Amqp
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
         }
 
         public void AddMessageReceivedHandler(
@@ -93,7 +96,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port);
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
@@ -114,18 +117,6 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
             }
-        }
-
-        // Todo: Make SSL work
-        private SslOption GetSslOptions()
-        {
-            return new SslOption
-            {
-                Enabled = true,
-                ServerName = "ubergenkom.no",
-                AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable,
-                CertificateValidationCallback = (sender, certificate, chain, errors) => true
-            };
         }
 
         private string GetQueueName()
