@@ -96,6 +96,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
+                Console.WriteLine(_sslOption.ServerName);
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
