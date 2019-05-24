@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Security;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
@@ -96,7 +95,6 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                Console.WriteLine(_sslOption?.ServerName);
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
