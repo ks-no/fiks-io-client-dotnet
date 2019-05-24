@@ -47,8 +47,6 @@ namespace KS.Fiks.IO.Client.Amqp
             _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            Console.WriteLine($"SslOption.Enabled: {_sslOption?.Enabled}");
-            Console.WriteLine($"SslOption.ServerName: {_sslOption?.ServerName}");
         }
 
         public void AddMessageReceivedHandler(
@@ -104,7 +102,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName};", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
             }
         }
 
