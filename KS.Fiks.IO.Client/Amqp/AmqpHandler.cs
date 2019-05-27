@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Security;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
@@ -25,23 +25,27 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IMaskinportenClient _maskinportenClient;
 
+        private readonly SslOption _sslOption;
+
         private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
+            IDokumentlagerHandler dokumentlagerHandler,
             AmqpConfiguration amqpConfiguration,
             IntegrationConfiguration integrationConfiguration,
             AccountConfiguration accountConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
             _accountConfiguration = accountConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrationConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, _accountConfiguration);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
         }
 
         public void AddMessageReceivedHandler(
@@ -91,12 +95,12 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, GetSslOptions());
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
                 return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName};", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
             }
         }
 
@@ -112,18 +116,6 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
             }
-        }
-
-        // Todo: Make SSL work
-        private SslOption GetSslOptions()
-        {
-            return new SslOption
-            {
-                Enabled = true,
-                ServerName = "ubergenkom.no",
-                AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNotAvailable,
-                CertificateValidationCallback = (sender, certificate, chain, errors) => true
-            };
         }
 
         private string GetQueueName()

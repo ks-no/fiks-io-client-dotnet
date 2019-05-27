@@ -5,14 +5,14 @@ namespace KS.Fiks.IO.Client.FileIO
 {
     internal class FileWriter : IFileWriter
     {
-        public void Write(string path, Stream data)
+        public void Write(Stream data, string path)
         {
             var memoryStream = new MemoryStream();
             data.CopyTo(memoryStream);
             Write(path, memoryStream.ToArray());
         }
 
-        public void Write(string path, byte[] data)
+        private void Write(string path, byte[] data)
         {
             using (var file = new FileStream(path, FileMode.Create, FileAccess.Write))
             {

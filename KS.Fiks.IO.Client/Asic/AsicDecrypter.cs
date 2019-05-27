@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
@@ -8,41 +9,40 @@ namespace KS.Fiks.IO.Client.Asic
 {
     internal class AsicDecrypter : IAsicDecrypter
     {
-        private readonly IFileWriter _fileWriter;
-
         private readonly IDecryptionService _decryptionService;
 
-        public AsicDecrypter(IDecryptionService decryptionService, IFileWriter fileWriter = null)
+        public AsicDecrypter(IDecryptionService decryptionService)
         {
             _decryptionService = decryptionService;
-            _fileWriter = fileWriter ?? new FileWriter();
         }
 
-        public void WriteDecrypted(Stream encryptedZipStream, string outPath)
+        public async Task WriteDecrypted(Task<Stream> encryptedZipStream, string outPath)
         {
-            _fileWriter.Write(outPath, Decrypt(encryptedZipStream));
+                using (var fileStream = new FileStream(outPath, FileMode.OpenOrCreate))
+                {
+                    try
+                    {
+                        await _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false))
+                                                .CopyToAsync(fileStream).ConfigureAwait(false);
+                        await fileStream.FlushAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+                    }
+                }
         }
 
-        public void WriteDecrypted(byte[] encryptedZipBytes, string outPath)
-        {
-            _fileWriter.Write(outPath, Decrypt(encryptedZipBytes));
-        }
-
-        public Stream Decrypt(Stream encryptedZipStream)
+        public async Task<Stream> Decrypt(Task<Stream> encryptedZipStream)
         {
             try
             {
-                return _decryptionService.Decrypt(encryptedZipStream);
+                return _decryptionService.Decrypt(await encryptedZipStream.ConfigureAwait(false));
             }
             catch (Exception ex)
             {
                 throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
             }
-        }
-
-        public Stream Decrypt(byte[] encryptedZipBytes)
-        {
-            return Decrypt(new MemoryStream(encryptedZipBytes));
         }
     }
 }

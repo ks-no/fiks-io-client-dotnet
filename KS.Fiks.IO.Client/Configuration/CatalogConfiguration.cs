@@ -16,6 +16,6 @@ namespace KS.Fiks.IO.Client.Configuration
             Path = DefaultPath;
         }
 
-        public string Path { get; set; }
+        public string Path { get; }
     }
 }

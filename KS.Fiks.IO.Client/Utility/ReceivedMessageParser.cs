@@ -19,7 +19,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string TtlHeaderName = "Ttl";
 
-        public static ReceivedMessageMetadata Parse(
+        internal static ReceivedMessageMetadata Parse(
             Guid receiverAccountId,
             IBasicProperties properties)
         {
@@ -39,7 +39,13 @@ namespace KS.Fiks.IO.Client.Utility
                 ParseTimeSpan(properties.Expiration, TtlHeaderName));
         }
 
-        private static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)
+        internal static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)
+        {
+            var headerAsString = RequireStringFromHeader(header, headerName);
+            return ParseGuid(headerAsString, headerName);
+        }
+
+        internal static Guid? GetGuidFromHeader(IDictionary<string, object> header, string headerName)
         {
             try
             {
@@ -49,12 +55,6 @@ namespace KS.Fiks.IO.Client.Utility
             {
                 return null;
             }
-        }
-
-        private static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)
-        {
-            var headerAsString = RequireStringFromHeader(header, headerName);
-            return ParseGuid(headerAsString, headerName);
         }
 
         private static string RequireStringFromHeader(IDictionary<string, object> header, string headerName)

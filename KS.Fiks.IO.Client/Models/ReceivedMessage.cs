@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
 
@@ -6,34 +8,34 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class ReceivedMessage : ReceivedMessageMetadata, IReceivedMessage
     {
-        private readonly byte[] _data;
+        private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
         internal ReceivedMessage(
             ReceivedMessageMetadata metadata,
-            byte[] data,
+            Func<Task<Stream>> streamProvider,
             IAsicDecrypter decrypter,
             IFileWriter fileWriter)
             : base(metadata)
         {
-            _data = data;
+            _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
         }
 
-        public Stream EncryptedStream => new MemoryStream(_data);
+        public Task<Stream> EncryptedStream => _streamProvider();
 
-        public Stream DecryptedStream => _decrypter.Decrypt(_data);
+        public Task<Stream> DecryptedStream => _decrypter.Decrypt(_streamProvider());
 
-        public void WriteEncryptedZip(string outPath)
+        public async Task WriteEncryptedZip(string outPath)
         {
-            _fileWriter.Write(outPath, _data);
+            _fileWriter.Write(await _streamProvider().ConfigureAwait(false), outPath);
         }
 
-        public void WriteDecryptedZip(string outPath)
+        public async Task WriteDecryptedZip(string outPath)
         {
-            _decrypter.WriteDecrypted(_data, outPath);
+            await _decrypter.WriteDecrypted(_streamProvider(), outPath).ConfigureAwait(false);
         }
     }
 }
