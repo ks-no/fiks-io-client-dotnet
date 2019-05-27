@@ -28,8 +28,7 @@ namespace KS.Fiks.IO.Client.Asic
                     }
                     catch (Exception ex)
                     {
-                        throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?",
-                            ex);
+                        throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
                     }
                 }
         }

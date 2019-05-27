@@ -18,7 +18,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             _fixture = new SendHandlerFixture();
         }
-        
+
         [Fact]
         public async Task CallsFiksIOSenderSend()
         {
