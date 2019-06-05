@@ -98,16 +98,16 @@ namespace KS.Fiks.IO.Client
             return await Send(request, new StreamPayload(payload, filename)).ConfigureAwait(false);
         }
 
-        public void NewSubscription(EventHandler<MottattMeldingArgs> onMotattMelding)
+        public void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding)
         {
-            NewSubscription(onMotattMelding, null);
+            NewSubscription(onMottattMelding, null);
         }
 
         public void NewSubscription(
-            EventHandler<MottattMeldingArgs> onMotattMelding,
+            EventHandler<MottattMeldingArgs> onMottattMelding,
             EventHandler<ConsumerEventArgs> onCanceled)
         {
-            _amqpHandler.AddMessageReceivedHandler(onMotattMelding, onCanceled);
+            _amqpHandler.AddMessageReceivedHandler(onMottattMelding, onCanceled);
         }
 
         public void Dispose()

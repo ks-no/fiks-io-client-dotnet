@@ -2,9 +2,9 @@ using System;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class MotattMeldingMetadata : MeldingBase
+    public class MottattMeldingMetadata : MeldingBase
     {
-        public MotattMeldingMetadata(Guid meldingId, string meldingType, Guid mottakerKontoId, Guid avsenderKontoId, Guid? svarPaMelding, TimeSpan ttl)
+        public MottattMeldingMetadata(Guid meldingId, string meldingType, Guid mottakerKontoId, Guid avsenderKontoId, Guid? svarPaMelding, TimeSpan ttl)
         {
             MeldingId = meldingId;
             MeldingType = meldingType;
@@ -14,7 +14,7 @@ namespace KS.Fiks.IO.Client.Models
             Ttl = ttl;
         }
 
-        public MotattMeldingMetadata(MotattMeldingMetadata metadata)
+        public MottattMeldingMetadata(MottattMeldingMetadata metadata)
             : base(metadata)
         {
             SvarPaMelding = metadata.SvarPaMelding;

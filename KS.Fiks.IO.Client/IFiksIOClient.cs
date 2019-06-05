@@ -21,8 +21,8 @@ namespace KS.Fiks.IO.Client
 
         Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename);
 
-        void NewSubscription(EventHandler<MottattMeldingArgs> onMotattMelding);
+        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding);
 
-        void NewSubscription(EventHandler<MottattMeldingArgs> onMotattMelding, EventHandler<ConsumerEventArgs> onCanceled);
+        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding, EventHandler<ConsumerEventArgs> onCanceled);
     }
 }

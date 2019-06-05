@@ -10,14 +10,14 @@ namespace KS.Fiks.IO.Client.Send
     {
         private readonly ISendHandler _sendHandler;
 
-        private readonly MotattMelding _motattMelding;
+        private readonly MottattMelding _mottattMelding;
 
         private readonly Action _ack;
 
-        public SvarSender(ISendHandler sendHandler, MotattMelding motattMelding, Action ack)
+        public SvarSender(ISendHandler sendHandler, MottattMelding mottattMelding, Action ack)
         {
             _sendHandler = sendHandler;
-            _motattMelding = motattMelding;
+            _mottattMelding = mottattMelding;
             _ack = ack;
         }
 
@@ -63,11 +63,11 @@ namespace KS.Fiks.IO.Client.Send
         private MeldingRequest CreateMessageRequest(string messageType)
         {
             return new MeldingRequest(
-                _motattMelding.AvsenderKontoId,
-                _motattMelding.MottakerKontoId,
+                _mottattMelding.AvsenderKontoId,
+                _mottattMelding.MottakerKontoId,
                 messageType,
                 null,
-                _motattMelding.MeldingId);
+                _mottattMelding.MeldingId);
         }
     }
 }

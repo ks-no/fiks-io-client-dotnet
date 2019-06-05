@@ -92,10 +92,10 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private MotattMelding ParseMessage(IBasicProperties properties, byte[] body)
+        private MottattMelding ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new MotattMelding(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
+            return new MottattMelding(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)

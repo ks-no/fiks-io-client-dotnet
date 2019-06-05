@@ -29,7 +29,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             FileWriterMock = new Mock<IFileWriter>();
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
             SendHandlerMock = new Mock<ISendHandler>();
-            DefaultMetadata = new MotattMeldingMetadata(
+            DefaultMetadata = new MottattMeldingMetadata(
                 Guid.NewGuid(),
                 "TestType",
                 Guid.NewGuid(),
@@ -42,7 +42,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Mock<IModel> ModelMock { get; }
 
-        public MotattMeldingMetadata DefaultMetadata { get; }
+        public MottattMeldingMetadata DefaultMetadata { get; }
 
         public IBasicProperties DefaultProperties => _defaultProperties.Object;
 

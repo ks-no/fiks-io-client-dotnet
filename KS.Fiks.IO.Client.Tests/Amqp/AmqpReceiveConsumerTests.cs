@@ -66,7 +66,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            IMottattMelding actualMelding = new MotattMelding(
+            IMottattMelding actualMelding = new MottattMelding(
                 _fixture.DefaultMetadata,
                 () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
                 Mock.Of<IAsicDecrypter>(),
