@@ -28,29 +28,29 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         [Fact]
         public async Task GetsExpectedAccount()
         {
-            var expectedAccount = new AccountResponse
+            var expectedAccount = new KatalogKonto
             {
-                AccountId = Guid.NewGuid(),
-                AccountName = "accountName",
-                OrgId = Guid.NewGuid(),
-                OrgName = "orgName",
-                Status = new AccountResponseStatus
+                KontoId = Guid.NewGuid(),
+                KontoNavn = "accountName",
+                FiksOrgId = Guid.NewGuid(),
+                FiksOrgNavn = "orgName",
+                Status = new KontoSvarStatus
                 {
-                    Message = "No message",
-                    ValidSender = true,
-                    ValidReceiver = false
+                    Melding = "No melding",
+                    GyldigAvsender = true,
+                    GyldigMottaker = false
                 }
             };
             var sut = _fixture.WithAccountResponse(expectedAccount).CreateSut();
 
             var result = await sut.Lookup(_fixture.DefaultLookupRequest).ConfigureAwait(false);
 
-            result.OrgId.Should().Be(expectedAccount.OrgId);
-            result.OrgName.Should().Be(expectedAccount.OrgName);
-            result.AccountId.Should().Be(expectedAccount.AccountId);
-            result.AccountName.Should().Be(expectedAccount.AccountName);
-            result.IsValidSender.Should().Be(expectedAccount.Status.ValidSender);
-            result.IsValidReceiver.Should().Be(expectedAccount.Status.ValidReceiver);
+            result.FiksOrgId.Should().Be(expectedAccount.FiksOrgId);
+            result.FiksOrgNavn.Should().Be(expectedAccount.FiksOrgNavn);
+            result.KontoId.Should().Be(expectedAccount.KontoId);
+            result.KontoNavn.Should().Be(expectedAccount.KontoNavn);
+            result.IsGyldigAvsender.Should().Be(expectedAccount.Status.GyldigAvsender);
+            result.IsGyldigMottaker.Should().Be(expectedAccount.Status.GyldigMottaker);
         }
 
         [Fact]
@@ -136,9 +136,9 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 Times.Exactly(1),
                 ItExpr.Is<HttpRequestMessage>(
                     (req) =>
-                        queryFromReq(req, "identifikator") == request.Identifier &&
-                        queryFromReq(req, "meldingProtokoll") == request.MessageType &&
-                        int.Parse(queryFromReq(req, "sikkerhetsniva"), CultureInfo.InvariantCulture) == request.AccessLevel),
+                        queryFromReq(req, "identifikator") == request.Identifikator &&
+                        queryFromReq(req, "meldingProtokoll") == request.Meldingsprotokoll &&
+                        int.Parse(queryFromReq(req, "sikkerhetsniva"), CultureInfo.InvariantCulture) == request.Sikkerhetsniva),
                 ItExpr.IsAny<CancellationToken>());
         }
 

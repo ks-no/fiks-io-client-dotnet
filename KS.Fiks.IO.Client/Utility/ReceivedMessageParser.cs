@@ -19,7 +19,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string TtlHeaderName = "Ttl";
 
-        internal static ReceivedMessageMetadata Parse(
+        internal static MotattMeldingMetadata Parse(
             Guid receiverAccountId,
             IBasicProperties properties)
         {
@@ -30,7 +30,7 @@ namespace KS.Fiks.IO.Client.Utility
                 throw new FiksIOMissingHeaderException($"Header is null. Cannot parse header.");
             }
 
-            return new ReceivedMessageMetadata(
+            return new MotattMeldingMetadata(
                 RequireGuidFromHeader(headers, MessageIdHeaderName),
                 RequireStringFromHeader(headers, MessageTypeHeaderName),
                 receiverAccountId,

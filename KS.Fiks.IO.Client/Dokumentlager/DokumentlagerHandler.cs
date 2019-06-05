@@ -19,14 +19,14 @@ namespace KS.Fiks.IO.Client.Dokumentlager
 
         public DokumentlagerHandler(
             DokumentlagerConfiguration dokumentlagerConfiguration,
-            IntegrationConfiguration integrationConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
             IMaskinportenClient maskinportenClient,
             IAuthenticationStrategy authenticationStrategy = null,
             HttpClient httpClient = null)
         {
             _dokumentlagerConfiguration = dokumentlagerConfiguration;
             _authenticationStrategy = authenticationStrategy ??
-                                      new IntegrasjonAuthenticationStrategy(maskinportenClient, integrationConfiguration.IntegrationId, integrationConfiguration.IntegrationPassword);
+                                      new IntegrasjonAuthenticationStrategy(maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord);
             _httpClient = httpClient ?? new HttpClient();
         }
 
@@ -56,7 +56,7 @@ namespace KS.Fiks.IO.Client.Dokumentlager
             if (responseMessage.Content.Headers.ContentLength < 1)
             {
                 throw new FiksIODokumentlagerResponseException(
-                    $"Response content for message ({messageId.ToString()}) is empty.");
+                    $"Response content for melding ({messageId.ToString()}) is empty.");
             }
         }
     }

@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Exceptions;
-using KS.Fiks.IO.Client.FileIO;
 
 namespace KS.Fiks.IO.Client.Asic
 {
@@ -28,7 +27,7 @@ namespace KS.Fiks.IO.Client.Asic
                     }
                     catch (Exception ex)
                     {
-                        throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+                        throw new FiksIODecryptionException("Unable to decrypt melding. Is your private key correct?", ex);
                     }
                 }
         }
@@ -41,7 +40,7 @@ namespace KS.Fiks.IO.Client.Asic
             }
             catch (Exception ex)
             {
-                throw new FiksIODecryptionException("Unable to decrypt message. Is your private key correct?", ex);
+                throw new FiksIODecryptionException("Unable to decrypt melding. Is your private key correct?", ex);
             }
         }
     }

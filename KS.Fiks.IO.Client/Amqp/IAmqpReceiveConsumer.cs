@@ -6,6 +6,6 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal interface IAmqpReceiveConsumer : IBasicConsumer
     {
-        event EventHandler<MessageReceivedArgs> Received;
+        event EventHandler<MottattMeldingArgs> Received;
     }
 }

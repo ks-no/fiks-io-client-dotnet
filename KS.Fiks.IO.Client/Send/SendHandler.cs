@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -31,28 +30,28 @@ namespace KS.Fiks.IO.Client.Send
             ICatalogHandler catalogHandler,
             IMaskinportenClient maskinportenClient,
             FiksIOSenderConfiguration senderConfiguration,
-            IntegrationConfiguration integrationConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
             IAsicEncrypter asicEncrypter)
             : this(
                 catalogHandler,
-                new FiksIOSender(senderConfiguration, maskinportenClient, integrationConfiguration.IntegrationId, integrationConfiguration.IntegrationPassword),
+                new FiksIOSender(senderConfiguration, maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord),
                 asicEncrypter)
         {
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
+        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
         {
             var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
             encryptedPayload.Seek(0, SeekOrigin.Begin);
             var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload)
                                                    .ConfigureAwait(false);
 
-            return SentMessage.FromSentMessageApiModel(sentMessageApiModel);
+            return SendtMelding.FromSentMessageApiModel(sentMessageApiModel);
         }
 
-        private async Task<Stream> GetEncryptedPayload(MessageRequest request, IList<IPayload> payload)
+        private async Task<Stream> GetEncryptedPayload(MeldingRequest request, IList<IPayload> payload)
         {
-            var publicKey = await _catalogHandler.GetPublicKey(request.ReceiverAccountId).ConfigureAwait(false);
+            var publicKey = await _catalogHandler.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
             return _asicEncrypter.Encrypt(publicKey, payload);
         }
     }

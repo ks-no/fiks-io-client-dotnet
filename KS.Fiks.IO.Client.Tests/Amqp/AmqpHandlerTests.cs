@@ -47,7 +47,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var sut = _fixture.CreateSut();
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, _) => { });
+            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { });
 
             sut.AddMessageReceivedHandler(handler, null);
 
@@ -60,7 +60,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
 
             var counter = 0;
-            var handler = new EventHandler<MessageReceivedArgs>((a, _) => { counter++; });
+            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { counter++; });
 
             sut.AddMessageReceivedHandler(handler, null);
 

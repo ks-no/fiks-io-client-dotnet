@@ -30,7 +30,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
 
             var hasBeenCalled = false;
-            var handler = new EventHandler<MessageReceivedArgs>((a, _) => { hasBeenCalled = true; });
+            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { hasBeenCalled = true; });
 
             sut.Received += handler;
 
@@ -53,10 +53,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
-                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageId.ToString()) },
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -66,14 +66,14 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            IReceivedMessage actualMessage = new ReceivedMessage(
+            IMottattMelding actualMelding = new MotattMelding(
                 _fixture.DefaultMetadata,
                 () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
                 Mock.Of<IAsicDecrypter>(),
                 Mock.Of<IFileWriter>());
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
             {
-                actualMessage = messageArgs.Message;
+                actualMelding = messageArgs.Melding;
             });
 
             sut.Received += handler;
@@ -83,16 +83,16 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 34,
                 false,
                 "exchange",
-                expectedMessageMetadata.ReceiverAccountId.ToString(),
+                expectedMessageMetadata.MottakerKontoId.ToString(),
                 propertiesMock.Object,
                 Array.Empty<byte>());
 
-            actualMessage.MessageId.Should().Be(expectedMessageMetadata.MessageId);
-            actualMessage.MessageType.Should().Be(expectedMessageMetadata.MessageType);
-            actualMessage.ReceiverAccountId.Should().Be(expectedMessageMetadata.ReceiverAccountId);
-            actualMessage.SenderAccountId.Should().Be(expectedMessageMetadata.SenderAccountId);
-            actualMessage.RelatedMessageId.Should().Be(expectedMessageMetadata.RelatedMessageId);
-            actualMessage.Ttl.Should().Be(expectedMessageMetadata.Ttl);
+            actualMelding.MeldingId.Should().Be(expectedMessageMetadata.MeldingId);
+            actualMelding.MeldingType.Should().Be(expectedMessageMetadata.MeldingType);
+            actualMelding.MottakerKontoId.Should().Be(expectedMessageMetadata.MottakerKontoId);
+            actualMelding.AvsenderKontoId.Should().Be(expectedMessageMetadata.AvsenderKontoId);
+            actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
+            actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
         }
 
         [Fact]
@@ -102,10 +102,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
                 {"melding-id", Encoding.UTF8.GetBytes("NoTGuid") },
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -115,7 +115,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
             Assert.Throws<FiksIOParseException>(() =>
@@ -125,7 +125,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                     34,
                     false,
                     "exchange",
-                    expectedMessageMetadata.ReceiverAccountId.ToString(),
+                    expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
                     Array.Empty<byte>());
             });
@@ -143,7 +143,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
             Assert.Throws<FiksIOMissingHeaderException>(() =>
@@ -153,7 +153,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                     34,
                     false,
                     "exchange",
-                    expectedMessageMetadata.ReceiverAccountId.ToString(),
+                    expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
                     Array.Empty<byte>());
             });
@@ -166,9 +166,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.SenderAccountId.ToString()) },
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MessageType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.RelatedMessageId.ToString()) }
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -178,7 +178,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                               expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { });
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
 
             sut.Received += handler;
             Assert.Throws<FiksIOMissingHeaderException>(() =>
@@ -188,7 +188,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                     34,
                     false,
                     "exchange",
-                    expectedMessageMetadata.ReceiverAccountId.ToString(),
+                    expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
                     Array.Empty<byte>());
             });
@@ -202,9 +202,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var filePath = "/my/path/something.zip";
             var data = new[] {default(byte) };
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
             {
-                messageArgs.Message.WriteEncryptedZip(filePath);
+                messageArgs.Melding.WriteEncryptedZip(filePath);
             });
 
             sut.Received += handler;
@@ -226,9 +226,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var sut = _fixture.WithDokumentlagerHeader().CreateSut();
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
             {
-                var stream = messageArgs.Message.EncryptedStream;
+                var stream = messageArgs.Melding.EncryptedStream;
             });
 
             sut.Received += handler;
@@ -252,9 +252,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var data = new[] {default(byte) };
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
             {
-                var stream = messageArgs.Message.EncryptedStream;
+                var stream = messageArgs.Melding.EncryptedStream;
             });
 
             sut.Received += handler;
@@ -279,9 +279,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MessageReceivedArgs>(async (a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
             {
-                actualDataStream = await messageArgs.Message.EncryptedStream.ConfigureAwait(false);
+                actualDataStream = await messageArgs.Melding.EncryptedStream.ConfigureAwait(false);
             });
 
             sut.Received += handler;
@@ -310,9 +310,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MessageReceivedArgs>(async (a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
             {
-                actualDataStream = await messageArgs.Message.DecryptedStream.ConfigureAwait(false);
+                actualDataStream = await messageArgs.Melding.DecryptedStream.ConfigureAwait(false);
             });
 
             sut.Received += handler;
@@ -342,9 +342,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var data = new[] {default(byte), byte.MaxValue};
             var filePath = "/my/path/something.zip";
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) =>
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
             {
-                messageArgs.Message.WriteDecryptedZip(filePath);
+                messageArgs.Melding.WriteDecryptedZip(filePath);
             });
 
             sut.Received += handler;
@@ -367,7 +367,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var sut = _fixture.CreateSut();
             var data = new[] {default(byte), byte.MaxValue};
 
-            var handler = new EventHandler<MessageReceivedArgs>((a, messageArgs) => { messageArgs.ReplySender.Ack(); });
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { messageArgs.SvarSender.Ack(); });
             var deliveryTag = (ulong)3423423;
 
             sut.Received += handler;

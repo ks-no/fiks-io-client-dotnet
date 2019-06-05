@@ -21,7 +21,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IConnectionFactory _connectionFactory;
 
-        private readonly AccountConfiguration _accountConfiguration;
+        private readonly KontoConfiguration _kontoConfiguration;
 
         private readonly IMaskinportenClient _maskinportenClient;
 
@@ -34,22 +34,22 @@ namespace KS.Fiks.IO.Client.Amqp
             ISendHandler sendHandler,
             IDokumentlagerHandler dokumentlagerHandler,
             AmqpConfiguration amqpConfiguration,
-            IntegrationConfiguration integrationConfiguration,
-            AccountConfiguration accountConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
+            KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
-            _accountConfiguration = accountConfiguration;
+            _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
-            SetupConnectionFactory(integrationConfiguration);
+            SetupConnectionFactory(integrasjonConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _accountConfiguration);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
         }
 
         public void AddMessageReceivedHandler(
-            EventHandler<MessageReceivedArgs> receivedEvent,
+            EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
             if (_receiveConsumer == null)
@@ -104,13 +104,13 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void SetupConnectionFactory(IntegrationConfiguration integrationConfiguration)
+        private void SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
         {
             try
             {
-                var maskinportenToken = _maskinportenClient.GetAccessToken(integrationConfiguration.Scope).Result;
-                _connectionFactory.UserName = integrationConfiguration.IntegrationId.ToString();
-                _connectionFactory.Password = $"{integrationConfiguration.IntegrationPassword} {maskinportenToken.Token}";
+                var maskinportenToken = _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
+                _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
+                _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
             catch (AggregateException ex)
             {
@@ -120,7 +120,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
-            return $"{QueuePrefix}{_accountConfiguration.AccountId}";
+            return $"{QueuePrefix}{_kontoConfiguration.KontoId}";
         }
     }
 }

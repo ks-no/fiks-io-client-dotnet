@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _publicKey = CreateTestCertificate();
         }
 
-        public MessageRequest DefaultRequest => new MessageRequest(
+        public MeldingRequest DefaultRequest => new MeldingRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
             "defaultType");
@@ -55,9 +55,9 @@ namespace KS.Fiks.IO.Client.Tests.Send
         private void SetupMocks()
         {
             FiksIOSenderMock.Setup(_ => _.Send(
-                                It.IsAny<MessageSpecificationApiModel>(),
+                                It.IsAny<MeldingSpesifikasjonApiModel>(),
                                 It.IsAny<Stream>()))
-                            .ReturnsAsync(new SentMessageApiModel());
+                            .ReturnsAsync(new SendtMeldingApiModel());
 
             AsicEncrypterMock.Setup(_ => _.Encrypt(It.IsAny<X509Certificate>(), It.IsAny<IList<IPayload>>()))
                                 .Returns(Mock.Of<Stream>());

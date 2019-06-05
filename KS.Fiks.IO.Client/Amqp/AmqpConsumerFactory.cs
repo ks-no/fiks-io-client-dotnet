@@ -21,13 +21,13 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly Guid _accountId;
 
-        public AmqpConsumerFactory(ISendHandler sendHandler, IDokumentlagerHandler dokumentlagerHandler, AccountConfiguration accountConfiguration)
+        public AmqpConsumerFactory(ISendHandler sendHandler, IDokumentlagerHandler dokumentlagerHandler, KontoConfiguration kontoConfiguration)
         {
             _dokumentlagerHandler = dokumentlagerHandler;
             _fileWriter = new FileWriter();
-            _decrypter = new AsicDecrypter(DecryptionService.Create(accountConfiguration.PrivateKey));
+            _decrypter = new AsicDecrypter(DecryptionService.Create(kontoConfiguration.PrivatNokkel));
             _sendHandler = sendHandler;
-            _accountId = accountConfiguration.AccountId;
+            _accountId = kontoConfiguration.KontoId;
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)

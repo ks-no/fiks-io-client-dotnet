@@ -59,7 +59,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        public event EventHandler<MessageReceivedArgs> Received;
+        public event EventHandler<MottattMeldingArgs> Received;
 
         public override void HandleBasicDeliver(
             string consumerTag,
@@ -83,7 +83,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
                 Received?.Invoke(
                     this,
-                    new MessageReceivedArgs(receivedMessage, new ReplySender(_sendHandler, receivedMessage, () => Model.BasicAck(deliveryTag, false))));
+                    new MottattMeldingArgs(receivedMessage, new SvarSender(_sendHandler, receivedMessage, () => Model.BasicAck(deliveryTag, false))));
             }
             catch (Exception ex)
             {
@@ -92,10 +92,10 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private ReceivedMessage ParseMessage(IBasicProperties properties, byte[] body)
+        private MotattMelding ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new ReceivedMessage(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
+            return new MotattMelding(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)

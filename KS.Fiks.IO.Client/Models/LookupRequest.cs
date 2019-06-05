@@ -2,17 +2,17 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class LookupRequest
     {
-        public LookupRequest(string identifier, string messageType, int accessLevel)
+        public LookupRequest(string identifikator, string meldingsprotokoll, int sikkerhetsniva)
         {
-            Identifier = identifier;
-            MessageType = messageType;
-            AccessLevel = accessLevel;
+            Identifikator = identifikator;
+            Meldingsprotokoll = meldingsprotokoll;
+            Sikkerhetsniva = sikkerhetsniva;
         }
 
-        public string Identifier { get; }
+        public string Identifikator { get; }
 
-        public string MessageType { get; }
+        public string Meldingsprotokoll { get; }
 
-        public int AccessLevel { get; }
+        public int Sikkerhetsniva { get; }
     }
 }

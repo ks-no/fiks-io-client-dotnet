@@ -3,10 +3,10 @@ using Newtonsoft.Json;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class AccountPublicKey
+    public class KontoOffentligNokkel
     {
-        [JsonProperty("nokkel")]
-        public string Certificate { get; set; }
+        [JsonProperty("Nokkel")]
+        public string Nokkel { get; set; }
 
         [JsonProperty("validFrom")]
         public DateTime ValidFrom { get; set; }

@@ -3,21 +3,21 @@ using Newtonsoft.Json;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class AccountResponse
+    public class KatalogKonto
     {
         [JsonProperty("fiksOrgId")]
-        public Guid OrgId { get; set; }
+        public Guid FiksOrgId { get; set; }
 
         [JsonProperty("fiksOrgNavn")]
-        public string OrgName { get; set; }
+        public string FiksOrgNavn { get; set; }
 
         [JsonProperty("kontoId")]
-        public Guid AccountId { get; set; }
+        public Guid KontoId { get; set; }
 
         [JsonProperty("kontoNavn")]
-        public string AccountName { get; set; }
+        public string KontoNavn { get; set; }
 
         [JsonProperty("status")]
-        public AccountResponseStatus Status { get; set; }
+        public KontoSvarStatus Status { get; set; }
     }
 }

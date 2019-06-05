@@ -7,7 +7,7 @@ namespace KS.Fiks.IO.Client.Amqp
     internal interface IAmqpHandler : IDisposable
     {
         void AddMessageReceivedHandler(
-            EventHandler<MessageReceivedArgs> receivedEvent,
+            EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent);
     }
 }
