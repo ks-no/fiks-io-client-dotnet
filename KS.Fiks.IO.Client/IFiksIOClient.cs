@@ -9,20 +9,20 @@ namespace KS.Fiks.IO.Client
 {
     public interface IFiksIOClient : IDisposable
     {
-        Guid AccountId { get; }
+        Guid KontoId { get; }
 
-        Task<Account> Lookup(LookupRequest request);
+        Task<Konto> Lookup(LookupRequest request);
 
-        Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload);
+        Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload);
 
-        Task<SentMessage> Send(MessageRequest request, string pathToPayload);
+        Task<SendtMelding> Send(MeldingRequest request, string pathToPayload);
 
-        Task<SentMessage> Send(MessageRequest request, string payload, string filename);
+        Task<SendtMelding> Send(MeldingRequest request, string payload, string filename);
 
-        Task<SentMessage> Send(MessageRequest request, Stream payload, string filename);
+        Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename);
 
-        void NewSubscription(EventHandler<MessageReceivedArgs> onReceived);
+        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding);
 
-        void NewSubscription(EventHandler<MessageReceivedArgs> onReceived, EventHandler<ConsumerEventArgs> onCanceled);
+        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding, EventHandler<ConsumerEventArgs> onCanceled);
     }
 }

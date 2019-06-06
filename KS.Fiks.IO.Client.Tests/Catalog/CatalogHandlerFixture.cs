@@ -17,8 +17,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
     public class CatalogHandlerFixture
     {
         private HttpStatusCode _statusCode = HttpStatusCode.OK;
-        private AccountResponse _accountResponse;
-        private AccountPublicKey _accountPublicKey;
+        private KatalogKonto _katalogKonto;
+        private KontoOffentligNokkel _kontoOffentligNokkel;
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
         private int _port = 80;
@@ -38,8 +38,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             SetupMocks();
             return new CatalogHandler(
-                CreateConfiguration().CatalogConfiguration,
-                CreateConfiguration().IntegrationConfiguration,
+                CreateConfiguration().KatalogConfiguration,
+                CreateConfiguration().IntegrasjonConfiguration,
                 MaskinportenClientMock.Object,
                 new HttpClient(HttpMessageHandleMock.Object));
         }
@@ -59,15 +59,15 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             return this;
         }
 
-        public CatalogHandlerFixture WithAccountResponse(AccountResponse response)
+        public CatalogHandlerFixture WithAccountResponse(KatalogKonto response)
         {
-            _accountResponse = response;
+            _katalogKonto = response;
             return this;
         }
 
-        public CatalogHandlerFixture WithPublicKeyResponse(AccountPublicKey response)
+        public CatalogHandlerFixture WithPublicKeyResponse(KontoOffentligNokkel response)
         {
-            _accountPublicKey = response;
+            _kontoOffentligNokkel = response;
             return this;
         }
 
@@ -113,12 +113,12 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             return this;
         }
 
-        public AccountPublicKey CreateDefaultPublicKey()
+        public KontoOffentligNokkel CreateDefaultPublicKey()
         {
-            return new AccountPublicKey
+            return new KontoOffentligNokkel
             {
                 IssuerDN = "C=AU",
-                Certificate = "-----BEGIN CERTIFICATE-----\n"+
+                Nokkel = "-----BEGIN CERTIFICATE-----\n"+
                 "MIICLDCCAdKgAwIBAgIBADAKBggqhkjOPQQDAjB9MQswCQYDVQQGEwJCRTEPMA0G\n"+
                 "A1UEChMGR251VExTMSUwIwYDVQQLExxHbnVUTFMgY2VydGlmaWNhdGUgYXV0aG9y\n"+
                 "aXR5MQ8wDQYDVQQIEwZMZXV2ZW4xJTAjBgNVBAMTHEdudVRMUyBjZXJ0aWZpY2F0\n"+
@@ -171,14 +171,14 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
         private StringContent GetDefaultContent()
         {
-            if (_accountResponse != null)
+            if (_katalogKonto != null)
             {
-                return new StringContent(JsonConvert.SerializeObject(_accountResponse));
+                return new StringContent(JsonConvert.SerializeObject(_katalogKonto));
             }
 
-            if (_accountPublicKey != null)
+            if (_kontoOffentligNokkel != null)
             {
-                return new StringContent(JsonConvert.SerializeObject(_accountPublicKey));
+                return new StringContent(JsonConvert.SerializeObject(_kontoOffentligNokkel));
             }
 
             var responseAsJsonString = @"{" +
@@ -197,17 +197,17 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
         private FiksIOConfiguration CreateConfiguration()
         {
-            var catalogConfiguration = new CatalogConfiguration(_path, _scheme, _host, _port);
+            var catalogConfiguration = new KatalogConfiguration(_path, _scheme, _host, _port);
 
             var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
-            var accountConfiguration = new AccountConfiguration(Guid.NewGuid(), "privateKey");
+            var accountConfiguration = new KontoConfiguration(Guid.NewGuid(), "privateKey");
 
             return new FiksIOConfiguration(
                 accountConfiguration,
-                new IntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new IntegrasjonConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
                 apiConfiguration: apiConfiguration,
-                catalogConfiguration: catalogConfiguration);
+                katalogConfiguration: catalogConfiguration);
         }
     }
 }

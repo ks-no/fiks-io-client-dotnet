@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public interface IReceivedMessage : IMessage
+    public interface IMottattMelding : IMelding
     {
-        Guid? RelatedMessageId { get; }
+        Guid? SvarPaMelding { get; }
 
         Task<Stream> EncryptedStream { get;  }
 

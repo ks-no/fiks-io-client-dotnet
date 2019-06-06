@@ -29,34 +29,34 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private readonly HttpClient _httpClient;
 
-        private readonly CatalogConfiguration _catalogConfiguration;
-        private readonly IntegrationConfiguration _integrationConfiguration;
+        private readonly KatalogConfiguration _katalogConfiguration;
+        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
         private readonly IMaskinportenClient _maskinportenClient;
 
         public CatalogHandler(
-            CatalogConfiguration catalogConfiguration,
-            IntegrationConfiguration integrationConfiguration,
+            KatalogConfiguration katalogConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
             IMaskinportenClient maskinportenClient,
             HttpClient httpClient = null)
         {
-            _catalogConfiguration = catalogConfiguration;
-            _integrationConfiguration = integrationConfiguration;
+            _katalogConfiguration = katalogConfiguration;
+            _integrasjonConfiguration = integrasjonConfiguration;
             _maskinportenClient = maskinportenClient;
             _httpClient = httpClient ?? new HttpClient();
         }
 
-        public async Task<Account> Lookup(LookupRequest request)
+        public async Task<Konto> Lookup(LookupRequest request)
         {
             var requestUri = CreateLookupUri(request);
-            var responseAsAccount = await GetAsModel<AccountResponse>(requestUri).ConfigureAwait(false);
-            return Account.FromAccountResponse(responseAsAccount);
+            var responseAsAccount = await GetAsModel<KatalogKonto>(requestUri).ConfigureAwait(false);
+            return Konto.FromKatalogModel(responseAsAccount);
         }
 
         public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)
         {
             var requestUri = CreatePublicKeyUri(receiverAccountId);
-            var responseAsPublicKeyModel = await GetAsModel<AccountPublicKey>(requestUri).ConfigureAwait(false);
-            return X509CertificateReader.ExtractCertificate(responseAsPublicKeyModel.Certificate);
+            var responseAsPublicKeyModel = await GetAsModel<KontoOffentligNokkel>(requestUri).ConfigureAwait(false);
+            return X509CertificateReader.ExtractCertificate(responseAsPublicKeyModel.Nokkel);
         }
 
         private static async Task ThrowIfResponseIsInvalid(HttpResponseMessage response, Uri requestUri)
@@ -71,15 +71,15 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private Uri CreateLookupUri(LookupRequest request)
         {
-            var servicePath = $"{_catalogConfiguration.Path}/{LookupEndpoint}";
-            var query = $"?{IdentifyerQueryName}={request.Identifier}&" +
-                        $"{MessageProtocolQueryName}={request.MessageType}&" +
-                        $"{AccessLevelQueryName}={request.AccessLevel}";
+            var servicePath = $"{_katalogConfiguration.Path}/{LookupEndpoint}";
+            var query = $"?{IdentifyerQueryName}={request.Identifikator}&" +
+                        $"{MessageProtocolQueryName}={request.Meldingsprotokoll}&" +
+                        $"{AccessLevelQueryName}={request.Sikkerhetsniva}";
 
             return new UriBuilder(
-                    _catalogConfiguration.Scheme,
-                    _catalogConfiguration.Host,
-                    _catalogConfiguration.Port,
+                    _katalogConfiguration.Scheme,
+                    _katalogConfiguration.Host,
+                    _katalogConfiguration.Port,
                     servicePath,
                     query)
                 .Uri;
@@ -88,11 +88,11 @@ namespace KS.Fiks.IO.Client.Catalog
         private Uri CreatePublicKeyUri(Guid receiverAccountId)
         {
             var servicePath =
-                $"{_catalogConfiguration.Path}/{AccountsEndpoint}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
+                $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{receiverAccountId.ToString()}/{PublicKeyEndpoint}";
             return new UriBuilder(
-                    _catalogConfiguration.Scheme,
-                    _catalogConfiguration.Host,
-                    _catalogConfiguration.Port,
+                    _katalogConfiguration.Scheme,
+                    _katalogConfiguration.Host,
+                    _katalogConfiguration.Port,
                     servicePath)
                 .Uri;
         }
@@ -100,17 +100,17 @@ namespace KS.Fiks.IO.Client.Catalog
         private async Task<T> GetAsModel<T>(Uri requestUri)
         {
             var accessToken = await _maskinportenClient
-                                    .GetAccessToken(_integrationConfiguration.Scope).ConfigureAwait(false);
+                                    .GetAccessToken(_integrasjonConfiguration.Scope).ConfigureAwait(false);
 
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 requestMessage.Headers.Add(
                     "integrasjonId",
-                    _integrationConfiguration.IntegrationId.ToString());
+                    _integrasjonConfiguration.IntegrasjonId.ToString());
 
                 requestMessage.Headers.Add(
                     "integrasjonPassord",
-                    _integrationConfiguration.IntegrationPassword);
+                    _integrasjonConfiguration.IntegrasjonPassord);
                 requestMessage.Headers.Authorization =
                     new AuthenticationHeaderValue("Bearer", accessToken.Token);
 

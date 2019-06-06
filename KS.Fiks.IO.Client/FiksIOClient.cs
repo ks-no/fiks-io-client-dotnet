@@ -41,13 +41,13 @@ namespace KS.Fiks.IO.Client
             IDokumentlagerHandler dokumentlagerHandler,
             IAmqpHandler amqpHandler)
         {
-            AccountId = configuration.AccountConfiguration.AccountId;
+            KontoId = configuration.KontoConfiguration.KontoId;
 
             maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration);
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
-                                  configuration.CatalogConfiguration,
-                                  configuration.IntegrationConfiguration,
+                                  configuration.KatalogConfiguration,
+                                  configuration.IntegrasjonConfiguration,
                                   maskinportenClient);
 
             var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
@@ -57,57 +57,57 @@ namespace KS.Fiks.IO.Client
                                _catalogHandler,
                                maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
-                               configuration.IntegrationConfiguration,
+                               configuration.IntegrasjonConfiguration,
                                asicEncrypter);
 
-            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(configuration.DokumentlagerConfiguration, configuration.IntegrationConfiguration, maskinportenClient);
+            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(configuration.DokumentlagerConfiguration, configuration.IntegrasjonConfiguration, maskinportenClient);
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
                                _sendHandler,
                                _dokumentlagerHandler,
                                configuration.AmqpConfiguration,
-                               configuration.IntegrationConfiguration,
-                               configuration.AccountConfiguration);
+                               configuration.IntegrasjonConfiguration,
+                               configuration.KontoConfiguration);
         }
 
-        public Guid AccountId { get; }
+        public Guid KontoId { get; }
 
-        public async Task<Account> Lookup(LookupRequest request)
+        public async Task<Konto> Lookup(LookupRequest request)
         {
             return await _catalogHandler.Lookup(request).ConfigureAwait(false);
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload)
+        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
         {
             return await _sendHandler.Send(request, payload).ConfigureAwait(false);
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, string pathToPayload)
+        public async Task<SendtMelding> Send(MeldingRequest request, string pathToPayload)
         {
             return await Send(request, new FilePayload(pathToPayload)).ConfigureAwait(false);
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, string payload, string filename)
+        public async Task<SendtMelding> Send(MeldingRequest request, string payload, string filename)
         {
             return await Send(request, new StringPayload(payload, filename)).ConfigureAwait(false);
         }
 
-        public async Task<SentMessage> Send(MessageRequest request, Stream payload, string filename)
+        public async Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename)
         {
             return await Send(request, new StreamPayload(payload, filename)).ConfigureAwait(false);
         }
 
-        public void NewSubscription(EventHandler<MessageReceivedArgs> onReceived)
+        public void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding)
         {
-            NewSubscription(onReceived, null);
+            NewSubscription(onMottattMelding, null);
         }
 
         public void NewSubscription(
-            EventHandler<MessageReceivedArgs> onReceived,
+            EventHandler<MottattMeldingArgs> onMottattMelding,
             EventHandler<ConsumerEventArgs> onCanceled)
         {
-            _amqpHandler.AddMessageReceivedHandler(onReceived, onCanceled);
+            _amqpHandler.AddMessageReceivedHandler(onMottattMelding, onCanceled);
         }
 
         public void Dispose()
@@ -124,7 +124,7 @@ namespace KS.Fiks.IO.Client
             }
         }
 
-        private async Task<SentMessage> Send(MessageRequest request, IPayload payload)
+        private async Task<SendtMelding> Send(MeldingRequest request, IPayload payload)
         {
             return await Send(request, new List<IPayload> {payload}).ConfigureAwait(false);
         }

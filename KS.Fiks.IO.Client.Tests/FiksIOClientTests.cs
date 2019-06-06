@@ -25,21 +25,21 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var expectedAccountId = Guid.NewGuid();
             var sut = _fixture.WithAccountId(expectedAccountId).CreateSut();
-            var actualAccountId = sut.AccountId;
+            var actualAccountId = sut.KontoId;
             actualAccountId.Should().Be(expectedAccountId);
         }
 
         [Fact]
         public async Task LookupReturnsExpectedAccount()
         {
-            var expectedAccount = new Account
+            var expectedAccount = new Konto
             {
-                AccountId = Guid.NewGuid(),
-                AccountName = "testName",
-                IsValidSender = true,
-                IsValidReceiver = false,
-                OrgId = Guid.NewGuid(),
-                OrgName = "testOrgName"
+                KontoId = Guid.NewGuid(),
+                KontoNavn = "testName",
+                IsGyldigAvsender = true,
+                IsGyldigMottaker = false,
+                FiksOrgId = Guid.NewGuid(),
+                FiksOrgNavn = "testOrgName"
             };
             var lookup = new LookupRequest(
                 "testIdentifier",
@@ -57,7 +57,7 @@ namespace KS.Fiks.IO.Client.Tests
                 "testIdentifier",
                 "testType",
                  3);
-            var sut = _fixture.WithLookupAccount(new Account()).CreateSut();
+            var sut = _fixture.WithLookupAccount(new Konto()).CreateSut();
             var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
 
             _fixture.CatalogHandlerMock.Verify(_ => _.Lookup(lookup));
@@ -140,7 +140,7 @@ namespace KS.Fiks.IO.Client.Tests
         [Fact]
         public async Task SendReturnsExpectedSentMessage()
         {
-            var expectedMessage = new SentMessage(
+            var expectedMessage = new SendtMelding(
                 Guid.NewGuid(),
                 "msgType",
                 Guid.NewGuid(),
@@ -163,7 +163,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var onReceived = new EventHandler<MessageReceivedArgs>((a, b) => { });
+            var onReceived = new EventHandler<MottattMeldingArgs>((a, b) => { });
 
             sut.NewSubscription(onReceived);
 
@@ -175,7 +175,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var sut = _fixture.CreateSut();
 
-            var onReceived = new EventHandler<MessageReceivedArgs>((a, b) => { });
+            var onReceived = new EventHandler<MottattMeldingArgs>((a, b) => { });
 
             var onCanceled = new EventHandler<ConsumerEventArgs>((a, b) => { });
 

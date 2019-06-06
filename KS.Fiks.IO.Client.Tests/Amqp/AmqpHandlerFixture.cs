@@ -86,7 +86,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 DokumentlagerHandlerMock.Object,
                 CreateConfiguration(),
                 CreateIntegrationConfiguration(),
-                new AccountConfiguration(_accountId, "dummy"),
+                new KontoConfiguration(_accountId, "dummy"),
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
         }
@@ -128,9 +128,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                                   .ReturnsAsync(new MaskinportenToken(_token, 100));
         }
 
-        private IntegrationConfiguration CreateIntegrationConfiguration()
+        private IntegrasjonConfiguration CreateIntegrationConfiguration()
         {
-            return new IntegrationConfiguration(_integrationId, _integrationPassword);
+            return new IntegrasjonConfiguration(_integrationId, _integrationPassword);
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
-using KS.Fiks.IO.Client.FileIO;
 using Moq;
 
 namespace KS.Fiks.IO.Client.Tests.Asic

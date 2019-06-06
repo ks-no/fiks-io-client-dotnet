@@ -2,15 +2,15 @@ using Newtonsoft.Json;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class AccountResponseStatus
+    public class KontoSvarStatus
     {
         [JsonProperty("gyldigAvsender")]
-        public bool ValidSender { get; set; }
+        public bool GyldigAvsender { get; set; }
 
         [JsonProperty("gyldigMottaker")]
-        public bool ValidReceiver { get; set; }
+        public bool GyldigMottaker { get; set; }
 
         [JsonProperty("melding")]
-        public string Message { get; set; }
+        public string Melding { get; set; }
     }
 }

@@ -6,14 +6,14 @@ using KS.Fiks.IO.Client.FileIO;
 
 namespace KS.Fiks.IO.Client.Models
 {
-    public class ReceivedMessage : ReceivedMessageMetadata, IReceivedMessage
+    public class MottattMelding : MottattMeldingMetadata, IMottattMelding
     {
         private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
 
-        internal ReceivedMessage(
-            ReceivedMessageMetadata metadata,
+        internal MottattMelding(
+            MottattMeldingMetadata metadata,
             Func<Task<Stream>> streamProvider,
             IAsicDecrypter decrypter,
             IFileWriter fileWriter)

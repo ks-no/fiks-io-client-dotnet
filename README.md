@@ -17,19 +17,19 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 ### Sending message
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
-var messageRequest = new MessageRequest(
-                            receiverAccountId: receiverId, // Receiver id as Guid
-                            senderAccountId: senderId, // Sender id as Guid
-                            messageType: messageType); // Message type as string
+meldingRequest = new MeldingRequest(
+                            avsenderKontoId: senderId, // Sender id as Guid
+                            mottakerKontoId: receiverId, // Receiver id as Guid
+                            meldingType: messageType); // Message type as string
         
 // Sending a file
-await client.Send(messageRequest, "c:\path\someFile.pdf");
+await client.Send(meldingRequest, "c:\path\someFile.pdf");
 
 // Sending a string
-await client.Send(messageRequest, "String to send", "string.txt");
+await client.Send(meldingRequest, "String to send", "string.txt");
 
 // Sending a stream
-await client.Send(messageRequest, someStream, "stream.jpg");
+await client.Send(meldingRequest, someStream, "stream.jpg");
 ```
 
 ### Receiving message
@@ -39,10 +39,10 @@ await client.Send(messageRequest, someStream, "stream.jpg");
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
+var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
-                    fileArgs.Message.WriteDecryptedZip("c:\path\receivedFile.zip");
-                    fileArgs.ReplySender.Ack() // Ack message if write succeeded to remove it from the queue
+                    fileArgs.Melding.WriteDecryptedZip("c:\path\receivedFile.zip");
+                    fileArgs.SvarSender.Ack() // Ack message if write succeeded to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
@@ -52,13 +52,13 @@ client.NewSubscription(onReceived);
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
+var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
-                    using (var archiveAsStream = fileArgs.Message.DecryptedStream) 
+                    using (var archiveAsStream = fileArgs.Melding.DecryptedStream) 
                     {
                         // Process the stream
                     }
-                    fileArgs.ReplySender.Ack() // Ack message if handling of stream succeeded to remove it from the queue
+                    fileArgs.SvarSender.Ack() // Ack message if handling of stream succeeded to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
@@ -69,12 +69,12 @@ You can reply directly to a message using the ReplySender.
 ```c#
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MessageReceivedArgs>((sender, fileArgs) =>
+var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
                   // Process the message
                   
-                  await fileArgs.ReplySender.Reply(/* message type */, /* message as string, path or stream */);
-                  fileArgs.ReplySender.Ack() // Ack message to remove it from the queue
+                  await fileArgs.SvarSender.Svar(/* message type */, /* message as string, path or stream */);
+                  fileArgs.SvarSender.Ack() // Ack message to remove it from the queue
                 });
 
 client.NewSubscription(onReceived);
@@ -86,27 +86,27 @@ Using lookup, you can find which Fiks IO account to send a message to, given org
 var client = new FiksIOClient(configuration); // See setup of configuration below
 
 var request = new LookupRequest(
-    identifier: "ORG_NO.987654321",
-    messageType: "ExampleMessageType",
-    accessLevel: 4);
+    identifikator: "ORG_NO.987654321",
+    meldingsprotokoll: "no.ks.test.fagsystem.v1",
+    sikkerhetsniva: 4);
 
-var receiverAccount = await sut.Lookup(request); // Id for the account receiving the specified request
+var receiverKontoId = await sut.Lookup(request); 
 ```
 
 ### Configuration
 ```c#
 // Fiks IO account configuration
-var account = new AccountConfiguration(
-                    accountId: /* Fiks IO accountId as Guid */,
-                    privateKey: /* Private key, paired with the public key supplied to Fiks IO account */); 
+var kontoConfig = new KontoConfiguration(
+                    kontoId: /* Fiks IO accountId as Guid */,
+                    privatNokkel: /* Private key, paired with the public key supplied to Fiks IO account */); 
 
 // Id and password for integration associated to the Fiks IO account.
-var integration = new IntegrationConfiguration(
-                        integrationId: /* Integration id as Guid */,
-                        integrationPassword: /* Integration password */);
+var integrasjonConfig = new IntegrasjonConfiguration(
+                        integrasjonId: /* Integration id as Guid */,
+                        integrasjonPassord: /* Integration password */);
 
 // ID-porten machine to machine configuration
-var maskinporten = new MaskinportenClientConfiguration(
+var maskinportenConfig = new MaskinportenClientConfiguration(
     audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/", // ID-porten audience path
     tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
     issuer: @"oidc_ks_test",  // KS issuer name
@@ -114,7 +114,7 @@ var maskinporten = new MaskinportenClientConfiguration(
     certificate: /* X509Certificate2 from ID-Porten */);
 
 // Optional: Use custom api host (i.e. for connecting to test api)
-var api = new ApiConfiguration(
+var apiConfig = new ApiConfiguration(
                 scheme: "https",
                 host: "api.fiks.test.ks.no",
                 port: 443);
@@ -125,5 +125,5 @@ var amqp = new AmqpConfiguration(
                 port: 5671);
 
 // Combine all configurations
-var configuration = new FiksIOConfiguration(account, integration, maskinporten, api, amqp);
+var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, maskinportenConfig, apiConfig, amqpConfig);
 ```

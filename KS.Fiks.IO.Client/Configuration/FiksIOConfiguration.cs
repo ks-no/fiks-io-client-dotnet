@@ -6,21 +6,21 @@ namespace KS.Fiks.IO.Client.Configuration
     public class FiksIOConfiguration
     {
         public FiksIOConfiguration(
-            AccountConfiguration accountConfiguration,
-            IntegrationConfiguration integrationConfiguration,
+            KontoConfiguration kontoConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
             ApiConfiguration apiConfiguration = null,
             AmqpConfiguration amqpConfiguration = null,
-            CatalogConfiguration catalogConfiguration = null,
+            KatalogConfiguration katalogConfiguration = null,
             FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
             DokumentlagerConfiguration dokumentlagerConfiguration = null)
         {
-            AccountConfiguration = accountConfiguration;
-            IntegrationConfiguration = integrationConfiguration;
+            KontoConfiguration = kontoConfiguration;
+            IntegrasjonConfiguration = integrasjonConfiguration;
             MaskinportenConfiguration = maskinportenConfiguration;
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
             AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
-            CatalogConfiguration = catalogConfiguration ?? new CatalogConfiguration(ApiConfiguration);
+            KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
             DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(apiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
                                             null,
@@ -29,15 +29,15 @@ namespace KS.Fiks.IO.Client.Configuration
                                             ApiConfiguration.Port);
         }
 
-        public AccountConfiguration AccountConfiguration { get; }
+        public KontoConfiguration KontoConfiguration { get; }
 
         public AmqpConfiguration AmqpConfiguration { get; }
 
-        public CatalogConfiguration CatalogConfiguration { get; }
+        public KatalogConfiguration KatalogConfiguration { get; }
 
         public ApiConfiguration ApiConfiguration { get; }
 
-        public IntegrationConfiguration IntegrationConfiguration { get; }
+        public IntegrasjonConfiguration IntegrasjonConfiguration { get; }
 
         public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 

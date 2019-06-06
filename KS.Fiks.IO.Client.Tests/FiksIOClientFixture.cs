@@ -18,8 +18,8 @@ namespace KS.Fiks.IO.Client.Tests
     {
         private FiksIOConfiguration _configuration;
 
-        private Account _lookupReturn = null;
-        private SentMessage _sentMessageReturn = null;
+        private Konto _lookupReturn = null;
+        private SendtMelding _sendtMeldingReturn = null;
 
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
@@ -28,7 +28,7 @@ namespace KS.Fiks.IO.Client.Tests
         private string _integrasjonPassword = "default";
         private Guid _integrasjonId = Guid.NewGuid();
         private Guid _accountId = Guid.NewGuid();
-        private CatalogConfiguration _catalogConfiguration;
+        private KatalogConfiguration _katalogConfiguration;
 
         public FiksIOClientFixture()
         {
@@ -46,7 +46,7 @@ namespace KS.Fiks.IO.Client.Tests
 
         public Mock<ISendHandler> SendHandlerMock { get; }
 
-        public MessageRequest DefaultRequest => new MessageRequest(
+        public MeldingRequest DefaultRequest => new MeldingRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
             "defaultType");
@@ -70,9 +70,9 @@ namespace KS.Fiks.IO.Client.Tests
             return this;
         }
 
-        public FiksIOClientFixture WithLookupAccount(Account account)
+        public FiksIOClientFixture WithLookupAccount(Konto konto)
         {
-            _lookupReturn = account;
+            _lookupReturn = konto;
             return this;
         }
 
@@ -100,15 +100,15 @@ namespace KS.Fiks.IO.Client.Tests
             return this;
         }
 
-        public FiksIOClientFixture WithSentMessageReturned(SentMessage message)
+        public FiksIOClientFixture WithSentMessageReturned(SendtMelding message)
         {
-            _sentMessageReturn = message;
+            _sendtMeldingReturn = message;
             return this;
         }
 
-        public FiksIOClientFixture WithCatalogConfiguration(CatalogConfiguration configuration)
+        public FiksIOClientFixture WithCatalogConfiguration(KatalogConfiguration configuration)
         {
-            _catalogConfiguration = configuration;
+            _katalogConfiguration = configuration;
             return this;
         }
 
@@ -121,24 +121,24 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupMocks()
         {
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
-            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MessageRequest>(), It.IsAny<IList<IPayload>>()))
-                           .ReturnsAsync(_sentMessageReturn);
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>()))
+                           .ReturnsAsync(_sendtMeldingReturn);
             AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandler(
-                It.IsAny<EventHandler<MessageReceivedArgs>>(),
+                It.IsAny<EventHandler<MottattMeldingArgs>>(),
                 It.IsAny<EventHandler<ConsumerEventArgs>>()));
         }
 
         private void SetupConfiguration()
         {
             var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
-            var accountConfiguration = new AccountConfiguration(_accountId, "dummyKey");
+            var accountConfiguration = new KontoConfiguration(_accountId, "dummyKey");
 
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,
-                new IntegrationConfiguration(_integrasjonId, _integrasjonPassword),
+                new IntegrasjonConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
                 apiConfiguration: apiConfiguration,
-                catalogConfiguration: _catalogConfiguration);
+                katalogConfiguration: _katalogConfiguration);
         }
     }
 }

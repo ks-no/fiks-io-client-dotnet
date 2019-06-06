@@ -19,7 +19,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
     {
         private DokumentlagerConfiguration _dokumentlagerConfiguration;
 
-        private IntegrationConfiguration _integrationConfiguration;
+        private IntegrasjonConfiguration _integrasjonConfiguration;
 
         private HttpStatusCode _statusCode = HttpStatusCode.OK;
 
@@ -53,7 +53,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
         {
             SetupConfiguration();
             SetupMocks();
-            return new DokumentlagerHandler(_dokumentlagerConfiguration, _integrationConfiguration, MaskinportenClientMock.Object, AuthenticationStrategyMock.Object, new HttpClient(HttpMessageHandleMock.Object));
+            return new DokumentlagerHandler(_dokumentlagerConfiguration, _integrasjonConfiguration, MaskinportenClientMock.Object, AuthenticationStrategyMock.Object, new HttpClient(HttpMessageHandleMock.Object));
         }
 
         public DokumentlagerHandlerFixture WithSchema(string scheme)
@@ -94,7 +94,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
         private void SetupConfiguration()
         {
             _dokumentlagerConfiguration = new DokumentlagerConfiguration(scheme: _scheme, host: _host, port: _port, downloadPath: _downloadPath);
-            _integrationConfiguration = new IntegrationConfiguration(Guid.NewGuid(), "password");
+            _integrasjonConfiguration = new IntegrasjonConfiguration(Guid.NewGuid(), "password");
         }
 
         private void SetupMocks()

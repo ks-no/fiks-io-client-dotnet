@@ -6,6 +6,6 @@ namespace KS.Fiks.IO.Client.Send
 {
     public interface ISendHandler
     {
-        Task<SentMessage> Send(MessageRequest request, IList<IPayload> payload);
+        Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload);
     }
 }
