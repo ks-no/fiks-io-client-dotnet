@@ -111,7 +111,7 @@ var maskinportenConfig = new MaskinportenClientConfiguration(
     tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
     issuer: @"oidc_ks_test",  // KS issuer name
     numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
-    certificate: /* X509Certificate2 from ID-Porten */);
+    certificate: /* virksomhetssertifikat as a X509Certificate2  */);
 
 // Optional: Use custom api host (i.e. for connecting to test api)
 var apiConfig = new ApiConfiguration(
