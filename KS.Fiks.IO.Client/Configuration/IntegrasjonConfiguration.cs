@@ -4,7 +4,7 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class IntegrasjonConfiguration
     {
-        private const string DefaultScope = "ks";
+        private const string DefaultScope = "ks:fiks";
 
         public IntegrasjonConfiguration(Guid integrasjonId, string integrasjonPassord, string scope = null)
         {
