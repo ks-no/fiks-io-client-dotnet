@@ -11,7 +11,7 @@
         <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>FIKS</PackageTags>
-        <VersionPrefix>1.1.4</VersionPrefix>
+        <VersionPrefix>1.1.5</VersionPrefix>
         <PackageIconUrl>https://ks-no.github.io/images/favicon.png</PackageIconUrl>
         <TargetFrameworks>netstandard2.0;netcoreapp2.2</TargetFrameworks>
         <IncludeSymbols>true</IncludeSymbols>
