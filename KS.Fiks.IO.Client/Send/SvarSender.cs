@@ -63,8 +63,8 @@ namespace KS.Fiks.IO.Client.Send
         private MeldingRequest CreateMessageRequest(string messageType)
         {
             return new MeldingRequest(
-                _mottattMelding.AvsenderKontoId,
                 _mottattMelding.MottakerKontoId,
+                _mottattMelding.AvsenderKontoId,
                 messageType,
                 null,
                 _mottattMelding.MeldingId);
