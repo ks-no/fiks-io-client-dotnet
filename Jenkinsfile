@@ -1,3 +1,3 @@
 dotnetLibPipeline{
-    componentTestProject = "fiks-io-client-dotnet-component-test"
+    componentTestProject = "fiks-io-client-dotnet-integration-test"
 }
