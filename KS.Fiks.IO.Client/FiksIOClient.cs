@@ -78,6 +78,11 @@ namespace KS.Fiks.IO.Client
             return await _catalogHandler.Lookup(request).ConfigureAwait(false);
         }
 
+        public async Task<SendtMelding> Send(MeldingRequest request)
+        {
+            return await Send(request, new List<IPayload>()).ConfigureAwait(false);
+        }
+
         public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
         {
             return await _sendHandler.Send(request, payload).ConfigureAwait(false);

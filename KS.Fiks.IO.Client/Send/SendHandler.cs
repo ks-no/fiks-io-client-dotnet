@@ -42,7 +42,6 @@ namespace KS.Fiks.IO.Client.Send
         public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
         {
             var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
-            encryptedPayload.Seek(0, SeekOrigin.Begin);
             var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload)
                                                    .ConfigureAwait(false);
 
@@ -51,8 +50,16 @@ namespace KS.Fiks.IO.Client.Send
 
         private async Task<Stream> GetEncryptedPayload(MeldingRequest request, IList<IPayload> payload)
         {
+            if (payload.Count == 0)
+            {
+                return null;
+            }
+
             var publicKey = await _catalogHandler.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
-            return _asicEncrypter.Encrypt(publicKey, payload);
+            var encryptedPayload = _asicEncrypter.Encrypt(publicKey, payload);
+            encryptedPayload.Seek(0, SeekOrigin.Begin);
+            return encryptedPayload;
+
         }
     }
 }

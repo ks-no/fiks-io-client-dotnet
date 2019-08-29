@@ -79,6 +79,18 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
+        public async Task SendCallsSendHandlerWithEmptyList()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = _fixture.DefaultRequest;
+
+            var result = await sut.Send(request).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(request, It.Is<IList<IPayload>>(x => x.Count == 0)));
+        }
+
+        [Fact]
         public async Task SendCallsSendHandlerAsPayloadList()
         {
             var sut = _fixture.CreateSut();

@@ -63,7 +63,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             var expectedPublicKey = _fixture.CreateTestCertificate();
             var sut = _fixture.WithPublicKey(expectedPublicKey).CreateSut();
             var request = _fixture.DefaultRequest;
-            var payload = Mock.Of<IList<IPayload>>();
+            var payload = new List<IPayload> {Mock.Of<IPayload>() };
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
@@ -75,7 +75,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             var sut = _fixture.CreateSut();
             var request = _fixture.DefaultRequest;
-            var payload = Mock.Of<IList<IPayload>>();
+            var payload = new List<IPayload> {Mock.Of<IPayload>() };
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
