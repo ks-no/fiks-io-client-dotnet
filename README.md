@@ -30,6 +30,9 @@ await client.Send(meldingRequest, "String to send", "string.txt");
 
 // Sending a stream
 await client.Send(meldingRequest, someStream, "stream.jpg");
+
+// Sending message without payload
+await client.Send(meldingRequest);
 ```
 
 ### Receiving message
@@ -41,8 +44,11 @@ var client = new FiksIOClient(configuration); // See setup of configuration belo
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
-                    fileArgs.Melding.WriteDecryptedZip("c:\path\receivedFile.zip");
+                    if(fileArgs.Melding.HasPayload) { // Verify that message has payload
+                        fileArgs.Melding.WriteDecryptedZip("c:\path\receivedFile.zip");
+                    }
                     fileArgs.SvarSender.Ack() // Ack message if write succeeded to remove it from the queue
+                    
                 });
 
 client.NewSubscription(onReceived);
@@ -54,9 +60,11 @@ var client = new FiksIOClient(configuration); // See setup of configuration belo
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
-                    using (var archiveAsStream = fileArgs.Melding.DecryptedStream) 
-                    {
-                        // Process the stream
+                    if(fileArgs.Melding.HasPayload) { // Verify that message has payload
+                        using (var archiveAsStream = fileArgs.Melding.DecryptedStream) 
+                        {
+                            // Process the stream
+                        }
                     }
                     fileArgs.SvarSender.Ack() // Ack message if handling of stream succeeded to remove it from the queue
                 });
