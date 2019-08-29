@@ -23,7 +23,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             var mottakerKonto = Guid.NewGuid();
             var avsenderKonto = Guid.NewGuid();
 
-            var motattMelding = new MottattMelding(new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1)), _fixture.DefaultStreamProvider, _fixture.DefaultDecrypter, _fixture.DefaultFileWriter);
+            var motattMelding = new MottattMelding(true, new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1)), _fixture.DefaultStreamProvider, _fixture.DefaultDecrypter, _fixture.DefaultFileWriter);
 
             var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
 

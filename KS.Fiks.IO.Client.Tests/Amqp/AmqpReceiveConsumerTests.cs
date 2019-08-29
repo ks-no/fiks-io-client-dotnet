@@ -67,6 +67,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var sut = _fixture.CreateSut();
             IMottattMelding actualMelding = new MottattMelding(
+                true,
                 _fixture.DefaultMetadata,
                 () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
                 Mock.Of<IAsicDecrypter>(),
@@ -399,6 +400,138 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ModelMock.Verify(_ => _.BasicAck(It.IsAny<ulong>(), false), Times.Never);
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenGettingEncryptedStreamWithNoData()
+        {
+            var sut = _fixture.CreateSut();
+            var data = Array.Empty<byte>();
+            var correctExceptionThrown = false;
+
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            {
+                try
+                {
+                    var stream = await messageArgs.Melding.EncryptedStream;
+                }
+                catch (FiksIOMissingDataException ex)
+                {
+                    correctExceptionThrown = true;
+                }
+            });
+            var deliveryTag = (ulong) 3423423;
+
+            sut.Received += handler;
+            sut.HandleBasicDeliver(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            correctExceptionThrown.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenGettingDecryptedStreamWithNoData()
+        {
+            var sut = _fixture.CreateSut();
+            var data = Array.Empty<byte>();
+            var correctExceptionThrown = false;
+
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            {
+                try
+                {
+                    var stream = await messageArgs.Melding.DecryptedStream;
+                }
+                catch (FiksIOMissingDataException ex)
+                {
+                    correctExceptionThrown = true;
+                }
+            });
+            var deliveryTag = (ulong) 3423423;
+
+            sut.Received += handler;
+            sut.HandleBasicDeliver(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            correctExceptionThrown.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenWritingDecryptedStreamWithNoData()
+        {
+            var sut = _fixture.CreateSut();
+            var data = Array.Empty<byte>();
+            var correctExceptionThrown = false;
+
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            {
+                try
+                {
+                    await messageArgs.Melding.WriteDecryptedZip("out.zip").ConfigureAwait(false);
+                }
+                catch (FiksIOMissingDataException ex)
+                {
+                    correctExceptionThrown = true;
+                }
+            });
+            var deliveryTag = (ulong) 3423423;
+
+            sut.Received += handler;
+            sut.HandleBasicDeliver(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            correctExceptionThrown.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenWritingEnryptedStreamWithNoData()
+        {
+            var sut = _fixture.CreateSut();
+            var data = Array.Empty<byte>();
+            var correctExceptionThrown = false;
+
+            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            {
+                try
+                {
+                    await messageArgs.Melding.WriteEncryptedZip("out.zip").ConfigureAwait(false);
+                }
+                catch (FiksIOMissingDataException ex)
+                {
+                    correctExceptionThrown = true;
+                }
+            });
+            var deliveryTag = (ulong) 3423423;
+
+            sut.Received += handler;
+            sut.HandleBasicDeliver(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            correctExceptionThrown.Should().BeTrue();
         }
     }
 }

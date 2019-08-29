@@ -13,16 +13,20 @@ namespace KS.Fiks.IO.Client.Models
         private readonly IFileWriter _fileWriter;
 
         internal MottattMelding(
+            bool hasPayload,
             MottattMeldingMetadata metadata,
             Func<Task<Stream>> streamProvider,
             IAsicDecrypter decrypter,
             IFileWriter fileWriter)
             : base(metadata)
         {
+            HasPayload = hasPayload;
             _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
         }
+
+        public bool HasPayload { get; }
 
         public Task<Stream> EncryptedStream => _streamProvider();
 

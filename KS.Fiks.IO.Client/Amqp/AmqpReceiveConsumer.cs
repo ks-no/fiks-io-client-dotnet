@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Dokumentlager;
+using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
@@ -95,19 +96,27 @@ namespace KS.Fiks.IO.Client.Amqp
         private MottattMelding ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new MottattMelding(metadata, GetDataProvider(properties, body), _decrypter, _fileWriter);
+            return new MottattMelding(HasPayload(properties, body), metadata,  GetDataProvider(properties, body), _decrypter, _fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
         {
+            if (!HasPayload(properties, body))
+            {
+                return () => throw new FiksIOMissingDataException("No data in message");
+            }
+
             if (IsDataInDokumentlager(properties))
             {
                 return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
-            else
-            {
-                return async () => await Task.FromResult(new MemoryStream(body));
-            }
+
+            return async () => await Task.FromResult(new MemoryStream(body));
+        }
+
+        private bool HasPayload(IBasicProperties properties, byte[] body)
+        {
+            return IsDataInDokumentlager(properties) || body.Length > 0;
         }
     }
 }

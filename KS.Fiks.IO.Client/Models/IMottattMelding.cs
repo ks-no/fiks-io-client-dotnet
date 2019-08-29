@@ -6,6 +6,8 @@ namespace KS.Fiks.IO.Client.Models
 {
     public interface IMottattMelding : IMelding
     {
+        bool HasPayload { get; }
+
         Guid? SvarPaMelding { get; }
 
         Task<Stream> EncryptedStream { get;  }
@@ -15,5 +17,6 @@ namespace KS.Fiks.IO.Client.Models
         Task WriteEncryptedZip(string outPath);
 
         Task WriteDecryptedZip(string outPath);
+
     }
 }
