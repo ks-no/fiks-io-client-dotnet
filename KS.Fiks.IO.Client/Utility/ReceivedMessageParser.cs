@@ -89,15 +89,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         private static TimeSpan ParseTimeSpan(string longAsString, string headerName)
         {
-            if (long.TryParse(longAsString, NumberStyles.Any, CultureInfo.InvariantCulture, out var timeAsLong))
-            {
-                return TimeSpan.FromMilliseconds(timeAsLong);
-            }
-            else
-            {
-                throw new FiksIOParseException(
-                    $"Unable to convert header ({headerName}) from string ({longAsString}) to long");
-            }
+            return long.TryParse(longAsString, NumberStyles.Any, CultureInfo.InvariantCulture, out var timeAsLong) ? TimeSpan.FromMilliseconds(timeAsLong) : TimeSpan.MaxValue;
         }
     }
 }
