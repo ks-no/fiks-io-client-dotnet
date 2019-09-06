@@ -21,7 +21,7 @@ namespace KS.Fiks.IO.Client.Configuration
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
             AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
             KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
-            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(apiConfiguration);
+            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
                                             null,
                                             ApiConfiguration.Scheme,
