@@ -7,7 +7,7 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         private const string DefaultSslServerName = "io.fiks.ks.no";
 
-        public AmqpConfiguration(string host, int port = 5672, SslOption sslOption = null)
+        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null)
         {
             Host = host;
             Port = port;
