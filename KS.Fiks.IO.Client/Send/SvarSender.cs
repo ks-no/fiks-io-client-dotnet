@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client.Send
@@ -12,13 +13,13 @@ namespace KS.Fiks.IO.Client.Send
 
         private readonly MottattMelding _mottattMelding;
 
-        private readonly Action _ack;
+        private readonly IAmqpAcknowledgeManager _amqpAcknowledgeManager;
 
-        public SvarSender(ISendHandler sendHandler, MottattMelding mottattMelding, Action ack)
+        public SvarSender(ISendHandler sendHandler, MottattMelding mottattMelding, IAmqpAcknowledgeManager amqpAcknowledgeManager)
         {
             _sendHandler = sendHandler;
             _mottattMelding = mottattMelding;
-            _ack = ack;
+            _amqpAcknowledgeManager = amqpAcknowledgeManager;
         }
 
         public async Task<SendtMelding> Svar(string meldingType, IList<IPayload> payloads)
@@ -52,7 +53,17 @@ namespace KS.Fiks.IO.Client.Send
 
         public void Ack()
         {
-            _ack.Invoke();
+            this._amqpAcknowledgeManager.Ack().Invoke();
+        }
+
+        public void Nack()
+        {
+            this._amqpAcknowledgeManager.Nack().Invoke();
+        }
+
+        public void NackWithRequeue()
+        {
+            this._amqpAcknowledgeManager.NackWithRequeue().Invoke();
         }
 
         private async Task<SendtMelding> Reply(string messageType, IPayload payload)
