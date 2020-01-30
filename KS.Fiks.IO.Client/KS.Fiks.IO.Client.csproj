@@ -13,7 +13,7 @@
         <PackageTags>FIKS</PackageTags>
         <VersionPrefix>1.1.7</VersionPrefix>
         <PackageIconUrl>https://ks-no.github.io/images/favicon.png</PackageIconUrl>
-        <TargetFrameworks>netstandard2.0;netcoreapp2.2</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;netcoreapp3.1</TargetFrameworks>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         
