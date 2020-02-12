@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using KS.Fiks.IO.Send.Client.Models;
 
 namespace KS.Fiks.IO.Client.Models
@@ -12,7 +13,8 @@ namespace KS.Fiks.IO.Client.Models
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
-                TimeSpan.FromMilliseconds(sendtMeldingApiModel.Ttl));
+                TimeSpan.FromMilliseconds(sendtMeldingApiModel.Ttl),
+                sendtMeldingApiModel.Headere);
         }
 
         internal SendtMelding(
@@ -20,7 +22,8 @@ namespace KS.Fiks.IO.Client.Models
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
-            TimeSpan ttl)
+            TimeSpan ttl,
+            Dictionary<string, string> headere)
             : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl)
         {
         }

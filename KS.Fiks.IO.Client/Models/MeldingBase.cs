@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -14,6 +16,7 @@ namespace KS.Fiks.IO.Client.Models
             Guid avsenderKontoId,
             Guid mottakerKontoId,
             TimeSpan ttl,
+            Dictionary<string, string> headere = null,
             Guid? svarPaMelding = null)
         {
             MeldingId = meldingId;
@@ -21,6 +24,7 @@ namespace KS.Fiks.IO.Client.Models
             AvsenderKontoId = avsenderKontoId;
             MottakerKontoId = mottakerKontoId;
             Ttl = ttl;
+            Headere = headere ?? new Dictionary<string, string>();
             SvarPaMelding = svarPaMelding;
         }
 
@@ -31,6 +35,7 @@ namespace KS.Fiks.IO.Client.Models
             AvsenderKontoId = melding.AvsenderKontoId;
             MottakerKontoId = melding.MottakerKontoId;
             Ttl = melding.Ttl;
+            Headere = melding.Headere;
         }
 
         public Guid MeldingId { get; protected set; }
@@ -42,6 +47,8 @@ namespace KS.Fiks.IO.Client.Models
         public Guid MottakerKontoId { get; protected set; }
 
         public TimeSpan Ttl { get; protected set; }
+        
+        public Dictionary<string, string> Headere { get; protected set; }
 
         public Guid? SvarPaMelding { get; protected set; }
     }

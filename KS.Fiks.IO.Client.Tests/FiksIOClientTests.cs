@@ -153,11 +153,12 @@ namespace KS.Fiks.IO.Client.Tests
         public async Task SendReturnsExpectedSentMessage()
         {
             var expectedMessage = new SendtMelding(
-                Guid.NewGuid(),
-                "msgType",
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                TimeSpan.FromDays(1));
+                meldingId: Guid.NewGuid(),
+                meldingType: "msgType",
+                avsenderKontoId: Guid.NewGuid(),
+                mottakerKontoId: Guid.NewGuid(),
+                ttl: TimeSpan.FromDays(1),
+                headere: null);
             var sut = _fixture.WithSentMessageReturned(expectedMessage).CreateSut();
 
             var payload = new List<IPayload>();

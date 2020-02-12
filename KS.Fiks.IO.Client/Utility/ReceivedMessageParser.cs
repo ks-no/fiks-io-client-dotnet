@@ -19,6 +19,8 @@ namespace KS.Fiks.IO.Client.Utility
 
         private const string TtlHeaderName = "Ttl";
 
+        private const string EgendefinertHeaderPrefix = "egendefinert-header.";
+
         internal static MottattMeldingMetadata Parse(
             Guid receiverAccountId,
             IBasicProperties properties)
@@ -36,7 +38,13 @@ namespace KS.Fiks.IO.Client.Utility
                 receiverAccountId,
                 RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
                 GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
-                ParseTimeSpan(properties.Expiration, TtlHeaderName));
+                ParseTimeSpan(properties.Expiration, TtlHeaderName),
+                ParseEgendefinerteHeadere(headers));
+        }
+
+        private static Dictionary<string, string> ParseEgendefinerteHeadere(IDictionary<string, object> headers)
+        {
+            throw new NotImplementedException();
         }
 
         internal static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)

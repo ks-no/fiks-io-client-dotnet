@@ -72,7 +72,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IPayload[]>()))
                 .ReturnsAsync(new SendtMelding(Guid.NewGuid(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
-                    TimeSpan.Zero));
+                    TimeSpan.Zero, null));
         }
     }
 }

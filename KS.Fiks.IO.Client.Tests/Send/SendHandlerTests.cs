@@ -38,11 +38,12 @@ namespace KS.Fiks.IO.Client.Tests.Send
             var sut = _fixture.CreateSut();
 
             var request = new MeldingRequest(
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                "Meldingsprotokoll",
-                TimeSpan.FromDays(2),
-                Guid.NewGuid());
+                avsenderKontoId: Guid.NewGuid(),
+                mottakerKontoId: Guid.NewGuid(),
+                meldingType: "Meldingsprotokoll",
+                ttl: TimeSpan.FromDays(2),
+                headere: null,
+                svarPaMelding: Guid.NewGuid());
 
             var payload = new List<IPayload>();
 

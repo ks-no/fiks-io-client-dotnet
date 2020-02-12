@@ -35,7 +35,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                TimeSpan.FromDays(2));
+                TimeSpan.FromDays(2),
+                null);
         }
 
         public Stream DokumentlagerOutStream => new MemoryStream();
