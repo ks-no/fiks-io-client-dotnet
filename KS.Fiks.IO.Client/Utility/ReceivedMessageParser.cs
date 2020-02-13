@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using RabbitMQ.Client;
@@ -18,8 +19,8 @@ namespace KS.Fiks.IO.Client.Utility
         private const string RelatedMessageIdHeaderName = "svar-til";
 
         private const string TtlHeaderName = "Ttl";
-
-        private const string EgendefinertHeaderPrefix = "egendefinert-header.";
+        
+        public const string EgendefinertHeaderPrefix = "egendefinert-header.";
 
         internal static MottattMeldingMetadata Parse(
             Guid receiverAccountId,
@@ -33,18 +34,22 @@ namespace KS.Fiks.IO.Client.Utility
             }
 
             return new MottattMeldingMetadata(
-                RequireGuidFromHeader(headers, MessageIdHeaderName),
-                RequireStringFromHeader(headers, MessageTypeHeaderName),
-                receiverAccountId,
-                RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
-                GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
-                ParseTimeSpan(properties.Expiration, TtlHeaderName),
-                ParseEgendefinerteHeadere(headers));
+                meldingId: RequireGuidFromHeader(headers, MessageIdHeaderName),
+                meldingType: RequireStringFromHeader(headers, MessageTypeHeaderName),
+                mottakerKontoId: receiverAccountId,
+                avsenderKontoId: RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
+                svarPaMelding: GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
+                ttl: ParseTimeSpan(properties.Expiration, TtlHeaderName),
+                headere: ExtractEgendefinerteHeadere(headers));
         }
 
-        private static Dictionary<string, string> ParseEgendefinerteHeadere(IDictionary<string, object> headers)
+        private static Dictionary<string, string> ExtractEgendefinerteHeadere(IDictionary<string, object> headers)
         {
-            throw new NotImplementedException();
+            return headers
+                .Where(h => h.Key.StartsWith(EgendefinertHeaderPrefix))
+                .ToDictionary(
+                    h => h.Key.Substring(EgendefinertHeaderPrefix.Length), 
+                    h => System.Text.Encoding.UTF8.GetString((byte[])h.Value));
         }
 
         internal static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)

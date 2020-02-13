@@ -56,7 +56,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
                 {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
+                {Utility.ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -94,6 +95,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             actualMelding.AvsenderKontoId.Should().Be(expectedMessageMetadata.AvsenderKontoId);
             actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
             actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
+            actualMelding.Headere["test"].ToString().Should().Be("Test");
         }
 
         [Fact]
