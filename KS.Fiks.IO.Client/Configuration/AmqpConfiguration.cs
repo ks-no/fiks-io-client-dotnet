@@ -24,5 +24,15 @@ namespace KS.Fiks.IO.Client.Configuration
         public int Port { get; }
 
         public SslOption SslOption { get; }
+        
+        public static AmqpConfiguration CreateProdConfiguration()
+        {
+            return new AmqpConfiguration("io.fiks.ks.no");
+        }
+        
+        public static AmqpConfiguration CreateTestConfiguration()
+        {
+            return new AmqpConfiguration("io.fiks.test.ks.no");
+        }
     }
 }

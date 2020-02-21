@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 
@@ -44,5 +46,57 @@ namespace KS.Fiks.IO.Client.Configuration
         public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
 
         public DokumentlagerConfiguration DokumentlagerConfiguration { get; }
+
+        public static FiksIOConfiguration CreateProdConfiguration(
+            Guid integrasjonId,
+            string integrasjonPassord,
+            Guid kontoId,
+            string privatNokkel,
+            string issuer,
+            X509Certificate2 certificate)
+        {
+            return new FiksIOConfiguration(
+                amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(),
+                apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
+                integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
+                kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
+                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, certificate));
+        }
+
+        public static FiksIOConfiguration CreateTestConfiguration(
+            Guid integrasjonId,
+            string integrasjonPassord,
+            Guid kontoId,
+            string privatNokkel,
+            string issuer,
+            X509Certificate2 certificate)
+        {
+            return new FiksIOConfiguration(
+                amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(),
+                apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
+                integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
+                kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
+                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, certificate));
+        }
+
+        private static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)
+        {
+            return new MaskinportenClientConfiguration(
+                audience: @"https://oidc.difi.no/idporten-oidc-provider/token",
+                tokenEndpoint: @"https://oidc.difi.no/idporten-oidc-provider/token",
+                issuer: issuer, // KS issuer name
+                numberOfSecondsLeftBeforeExpire: 10,
+                certificate: certificate);
+        }
+
+        private static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate)
+        {
+            return new MaskinportenClientConfiguration(
+                audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/",
+                tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token",
+                issuer: issuer, // KS issuer name
+                numberOfSecondsLeftBeforeExpire: 10,
+                certificate: certificate);
+        }
     }
 }
