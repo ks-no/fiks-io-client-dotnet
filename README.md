@@ -102,6 +102,35 @@ var receiverKontoId = await sut.Lookup(request);
 ```
 
 ### Configuration
+
+Two convenience functions are provided for generating default configurations for *prod* and *test*,
+`CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Only the required configuration parameters must be provided,
+the rest will be set to default values for the given environment.
+
+```c#
+// Prod config
+var config = FiksIOConfiguration.CreateProdConfiguration(
+    integrasjonId: integrationId,
+    integrasjonPassord: integrationPassord,
+    kontoId: kontoId,
+    privatNokkel: privatNokkel,
+    issuer: issuer,
+    certificate: certificat
+);
+
+// Test config
+var config = FiksIOConfiguration.CreateTestConfiguration(
+    integrasjonId: integrationId,
+    integrasjonPassord: integrationPassord,
+    kontoId: kontoId,
+    privatNokkel: privatNokkel,
+    issuer: issuer,
+    certificate: certificat
+);
+```
+
+If necessary, all parameters of configuration can be set in detail.
+
 ```c#
 // Fiks IO account configuration
 var kontoConfig = new KontoConfiguration(

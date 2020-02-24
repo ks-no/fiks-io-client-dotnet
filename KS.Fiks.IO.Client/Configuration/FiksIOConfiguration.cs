@@ -72,11 +72,11 @@ namespace KS.Fiks.IO.Client.Configuration
             X509Certificate2 certificate)
         {
             return new FiksIOConfiguration(
-                amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(),
-                apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
+                amqpConfiguration: AmqpConfiguration.CreateTestConfiguration(),
+                apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, certificate));
+                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, certificate));
         }
 
         private static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)

@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Configuration
         
         public static ApiConfiguration CreateTestConfiguration()
         {
-            return new ApiConfiguration(host: "io.fiks.test.ks.no");
+            return new ApiConfiguration(host: "api.fiks.test.ks.no");
         }
     }
 }
