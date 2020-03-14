@@ -28,18 +28,21 @@ namespace KS.Fiks.IO.Client
 
         private readonly IDokumentlagerHandler _dokumentlagerHandler;
 
+        private readonly IPublicKeyProvider _publicKeyProvider;
+
         public FiksIOClient(FiksIOConfiguration configuration)
-            : this(configuration, null, null, null, null, null)
+            : this(configuration, null, null, null, null, null, null)
         {
         }
 
         internal FiksIOClient(
             FiksIOConfiguration configuration,
-            ICatalogHandler catalogHandler,
-            IMaskinportenClient maskinportenClient,
-            ISendHandler sendHandler,
-            IDokumentlagerHandler dokumentlagerHandler,
-            IAmqpHandler amqpHandler)
+            ICatalogHandler catalogHandler = null,
+            IMaskinportenClient maskinportenClient = null,
+            ISendHandler sendHandler = null,
+            IDokumentlagerHandler dokumentlagerHandler = null,
+            IAmqpHandler amqpHandler = null,
+            IPublicKeyProvider publicKeyProvider = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -50,6 +53,8 @@ namespace KS.Fiks.IO.Client
                                   configuration.IntegrasjonConfiguration,
                                   maskinportenClient);
 
+            _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
+            
             var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
 
             _sendHandler = sendHandler ??
@@ -58,7 +63,8 @@ namespace KS.Fiks.IO.Client
                                maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
                                configuration.IntegrasjonConfiguration,
-                               asicEncrypter);
+                               asicEncrypter,
+                               _publicKeyProvider);
 
             _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(configuration.DokumentlagerConfiguration, configuration.IntegrasjonConfiguration, maskinportenClient);
 

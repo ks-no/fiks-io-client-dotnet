@@ -56,12 +56,12 @@ namespace KS.Fiks.IO.Client.Tests
             SetupConfiguration();
             SetupMocks();
             return new FiksIOClient(
-                _configuration,
-                CatalogHandlerMock.Object,
-                MaskinportenClientMock.Object,
-                SendHandlerMock.Object,
-                DokumentlagerHandlerMock.Object,
-                AmqpHandlerMock.Object);
+                configuration: _configuration,
+                catalogHandler: CatalogHandlerMock.Object,
+                maskinportenClient: MaskinportenClientMock.Object,
+                sendHandler: SendHandlerMock.Object,
+                dokumentlagerHandler: DokumentlagerHandlerMock.Object,
+                amqpHandler: AmqpHandlerMock.Object);
         }
 
         public FiksIOClientFixture WithAccountId(Guid id)

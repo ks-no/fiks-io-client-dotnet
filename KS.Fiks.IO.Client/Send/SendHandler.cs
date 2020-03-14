@@ -19,10 +19,13 @@ namespace KS.Fiks.IO.Client.Send
 
         private readonly ICatalogHandler _catalogHandler;
 
-        public SendHandler(ICatalogHandler catalogHandler, IFiksIOSender sender, IAsicEncrypter asicEncrypter)
+        private readonly IPublicKeyProvider _publicKeyProvider;
+
+        public SendHandler(ICatalogHandler catalogHandler, IFiksIOSender sender, IAsicEncrypter asicEncrypter, IPublicKeyProvider publicKeyProvider)
         {
             _sender = sender;
             _asicEncrypter = asicEncrypter;
+            _publicKeyProvider = publicKeyProvider;
             _catalogHandler = catalogHandler;
         }
 
@@ -31,11 +34,12 @@ namespace KS.Fiks.IO.Client.Send
             IMaskinportenClient maskinportenClient,
             FiksIOSenderConfiguration senderConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
-            IAsicEncrypter asicEncrypter)
+            IAsicEncrypter asicEncrypter,
+            IPublicKeyProvider publicKeyProvider)
             : this(
                 catalogHandler,
                 new FiksIOSender(senderConfiguration, maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord),
-                asicEncrypter)
+                asicEncrypter, publicKeyProvider)
         {
         }
 
@@ -55,7 +59,7 @@ namespace KS.Fiks.IO.Client.Send
                 return null;
             }
 
-            var publicKey = await _catalogHandler.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
+            var publicKey = await _publicKeyProvider.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false); 
             var encryptedPayload = _asicEncrypter.Encrypt(publicKey, payload);
             encryptedPayload.Seek(0, SeekOrigin.Begin);
             return encryptedPayload;

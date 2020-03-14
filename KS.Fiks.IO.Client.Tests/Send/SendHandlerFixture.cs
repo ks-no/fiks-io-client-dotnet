@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         internal SendHandler CreateSut()
         {
             SetupMocks();
-            return new SendHandler(CatalogHandlerMock.Object, FiksIOSenderMock.Object, AsicEncrypterMock.Object);
+            return new SendHandler(CatalogHandlerMock.Object, FiksIOSenderMock.Object, AsicEncrypterMock.Object, new CatalogPublicKeyProvider(CatalogHandlerMock.Object));
         }
 
         private void SetupMocks()
