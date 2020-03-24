@@ -164,3 +164,13 @@ var amqp = new AmqpConfiguration(
 // Combine all configurations
 var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, maskinportenConfig, apiConfig, amqpConfig);
 ```
+
+### Public Key provider
+
+By default when sending a message, the public key of the receiver will be fetched using the Catalog Api. If you instead 
+need to provide the public key by some other means, you can implement the IPublicKeyProvider interface, and inject it 
+when creating your client like this:
+```c#
+var client = new FiksIOClient(configuration, myPublicKeyProvider);
+```
+

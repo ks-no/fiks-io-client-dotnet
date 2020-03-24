@@ -4,7 +4,7 @@ using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Send
 {
-    internal interface IPublicKeyProvider
+    public interface IPublicKeyProvider
     {
         Task<X509Certificate> GetPublicKey(Guid receiverAccountId);
     }
