@@ -17,6 +17,6 @@ namespace KS.Fiks.IO.Client.Models
         
         Dictionary<string, string> Headere { get; }
         
-        public Boolean Resendt { get; }
+        public bool Resendt { get; }
     }
 }

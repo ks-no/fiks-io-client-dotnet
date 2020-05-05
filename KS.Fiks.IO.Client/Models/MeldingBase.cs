@@ -53,7 +53,7 @@ namespace KS.Fiks.IO.Client.Models
         public Dictionary<string, string> Headere { get; protected set; }
 
         public Guid? SvarPaMelding { get; protected set; }
-        
-        public Boolean Resendt { get; protected set; }
+
+        public bool Resendt { get; protected set; }
     }
 }
