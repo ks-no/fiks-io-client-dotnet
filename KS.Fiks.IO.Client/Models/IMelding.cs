@@ -14,9 +14,9 @@ namespace KS.Fiks.IO.Client.Models
         Guid MottakerKontoId { get; }
 
         TimeSpan Ttl { get; }
-        
+
         Dictionary<string, string> Headere { get; }
-        
+
         public bool Resendt { get; }
     }
 }

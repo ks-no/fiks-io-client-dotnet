@@ -10,7 +10,8 @@ namespace KS.Fiks.IO.Client.Models
         {
         }
 
-        protected MeldingBase(Guid meldingId,
+        protected MeldingBase(
+            Guid meldingId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
@@ -49,7 +50,7 @@ namespace KS.Fiks.IO.Client.Models
         public Guid MottakerKontoId { get; protected set; }
 
         public TimeSpan Ttl { get; protected set; }
-        
+
         public Dictionary<string, string> Headere { get; protected set; }
 
         public Guid? SvarPaMelding { get; protected set; }

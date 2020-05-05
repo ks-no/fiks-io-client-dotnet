@@ -10,6 +10,8 @@ namespace KS.Fiks.IO.Client.Utility
 {
     internal static class ReceivedMessageParser
     {
+        public const string EgendefinertHeaderPrefix = "egendefinert-header.";
+
         private const string SenderAccountIdHeaderName = "avsender-id";
 
         private const string MessageIdHeaderName = "melding-id";
@@ -19,8 +21,6 @@ namespace KS.Fiks.IO.Client.Utility
         private const string RelatedMessageIdHeaderName = "svar-til";
 
         private const string TtlHeaderName = "Ttl";
-        
-        public const string EgendefinertHeaderPrefix = "egendefinert-header.";
 
         internal static MottattMeldingMetadata Parse(
             Guid receiverAccountId,
@@ -48,7 +48,7 @@ namespace KS.Fiks.IO.Client.Utility
             return headers
                 .Where(h => h.Key.StartsWith(EgendefinertHeaderPrefix))
                 .ToDictionary(
-                    h => h.Key.Substring(EgendefinertHeaderPrefix.Length), 
+                    h => h.Key.Substring(EgendefinertHeaderPrefix.Length),
                     h => System.Text.Encoding.UTF8.GetString((byte[])h.Value));
         }
 

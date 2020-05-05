@@ -27,12 +27,12 @@ namespace KS.Fiks.IO.Client.Configuration
         public int Port { get; }
 
         public string Scheme { get; }
-        
+
         public static ApiConfiguration CreateProdConfiguration()
         {
             return new ApiConfiguration();
         }
-        
+
         public static ApiConfiguration CreateTestConfiguration()
         {
             return new ApiConfiguration(host: "api.fiks.test.ks.no");

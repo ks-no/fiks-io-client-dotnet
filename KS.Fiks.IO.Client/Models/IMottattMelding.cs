@@ -17,6 +17,5 @@ namespace KS.Fiks.IO.Client.Models
         Task WriteEncryptedZip(string outPath);
 
         Task WriteDecryptedZip(string outPath);
-
     }
 }
