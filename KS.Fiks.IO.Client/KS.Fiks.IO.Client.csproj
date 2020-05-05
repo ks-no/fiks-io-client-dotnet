@@ -19,7 +19,7 @@
         
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.1" />
+        <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.2" />
         <PackageReference Include="KS.Fiks.Crypto" Version="1.0.0" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.5" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.0.0" />
