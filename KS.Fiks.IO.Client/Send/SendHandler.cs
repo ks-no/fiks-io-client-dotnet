@@ -59,11 +59,10 @@ namespace KS.Fiks.IO.Client.Send
                 return null;
             }
 
-            var publicKey = await _publicKeyProvider.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false); 
+            var publicKey = await _publicKeyProvider.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
             var encryptedPayload = _asicEncrypter.Encrypt(publicKey, payload);
             encryptedPayload.Seek(0, SeekOrigin.Begin);
             return encryptedPayload;
-
         }
     }
 }

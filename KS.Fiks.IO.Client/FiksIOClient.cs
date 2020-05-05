@@ -54,7 +54,7 @@ namespace KS.Fiks.IO.Client
                                   maskinportenClient);
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
-            
+
             var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
 
             _sendHandler = sendHandler ??

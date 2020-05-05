@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.Client.Amqp
         Action NackWithRequeue();
     }
 
-    class AmqpAcknowledgeManager: IAmqpAcknowledgeManager
+    class AmqpAcknowledgeManager : IAmqpAcknowledgeManager
     {
         private readonly Action _ackAction;
         private readonly Action _nackAction;

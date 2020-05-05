@@ -16,11 +16,11 @@ namespace KS.Fiks.IO.Client.Models
             Dictionary<string, string> headere = null,
             Guid? svarPaMelding = null)
         : base(
-            meldingId: Guid.Empty, 
-            meldingType: meldingType, 
-            avsenderKontoId: avsenderKontoId, 
-            mottakerKontoId: mottakerKontoId, 
-            ttl: ttl ?? TimeSpan.FromDays(DefaultTtlInDays), 
+            meldingId: Guid.Empty,
+            meldingType: meldingType,
+            avsenderKontoId: avsenderKontoId,
+            mottakerKontoId: mottakerKontoId,
+            ttl: ttl ?? TimeSpan.FromDays(DefaultTtlInDays),
             headere: headere ?? new Dictionary<string, string>(),
             svarPaMelding: svarPaMelding)
         {
