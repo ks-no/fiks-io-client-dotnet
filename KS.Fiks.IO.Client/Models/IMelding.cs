@@ -16,5 +16,7 @@ namespace KS.Fiks.IO.Client.Models
         TimeSpan Ttl { get; }
         
         Dictionary<string, string> Headere { get; }
+        
+        public Boolean Resendt { get; }
     }
 }

@@ -20,6 +20,7 @@ namespace KS.Fiks.IO.Client.Models
             : base(metadata)
         {
             SvarPaMelding = metadata.SvarPaMelding;
+            Resendt = metadata.Resendt;
         }
     }
 }
