@@ -87,9 +87,10 @@ namespace KS.Fiks.IO.Client.Amqp
                     new MottattMeldingArgs(
                         receivedMessage,
                         new SvarSender(
-                            _sendHandler,
+                            this._sendHandler,
                             receivedMessage,
-                            new AmqpAcknowledgeManager(() => Model.BasicAck(deliveryTag, false),
+                            new AmqpAcknowledgeManager(
+                                () => Model.BasicAck(deliveryTag, false),
                                 () => Model.BasicNack(deliveryTag, false, false),
                                 () => Model.BasicNack(deliveryTag, false, true)))));
             }
@@ -103,9 +104,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private MottattMelding ParseMessage(IBasicProperties properties, byte[] body)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new MottattMelding(HasPayload(properties, body), metadata, GetDataProvider(properties, body),
-                _decrypter,
-                _fileWriter);
+            return new MottattMelding(HasPayload(properties, body), metadata, GetDataProvider(properties, body), this._decrypter, this._fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
