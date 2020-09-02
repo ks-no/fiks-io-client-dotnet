@@ -98,7 +98,7 @@ var request = new LookupRequest(
     meldingsprotokoll: "no.ks.test.fagsystem.v1",
     sikkerhetsniva: 4);
 
-var receiverKontoId = await sut.Lookup(request); 
+var receiverKontoId = await client.Lookup(request); 
 ```
 
 ### Configuration
