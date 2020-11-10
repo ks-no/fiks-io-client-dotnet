@@ -14,7 +14,8 @@ namespace KS.Fiks.IO.Client.Models
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
                 TimeSpan.FromMilliseconds(sendtMeldingApiModel.Ttl),
-                sendtMeldingApiModel.Headere);
+                sendtMeldingApiModel.Headere,
+                sendtMeldingApiModel.SvarPaMelding);
         }
 
         internal SendtMelding(
@@ -23,8 +24,9 @@ namespace KS.Fiks.IO.Client.Models
             Guid avsenderKontoId,
             Guid mottakerKontoId,
             TimeSpan ttl,
-            Dictionary<string, string> headere)
-            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl)
+            Dictionary<string, string> headere,
+            Guid? svarPaMelding=null)
+            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding:svarPaMelding)
         {
         }
     }
