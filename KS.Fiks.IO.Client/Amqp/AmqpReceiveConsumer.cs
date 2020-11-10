@@ -16,15 +16,15 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
-        private readonly Guid _accountId;
+        private readonly Guid accountId;
 
-        private readonly IAsicDecrypter _decrypter;
+        private readonly IAsicDecrypter decrypter;
 
-        private readonly IDokumentlagerHandler _dokumentlagerHandler;
+        private readonly IDokumentlagerHandler dokumentlagerHandler;
 
-        private readonly IFileWriter _fileWriter;
+        private readonly IFileWriter fileWriter;
 
-        private readonly ISendHandler _sendHandler;
+        private readonly ISendHandler sendHandler;
 
         public AmqpReceiveConsumer(
             IModel model,
@@ -35,11 +35,11 @@ namespace KS.Fiks.IO.Client.Amqp
             Guid accountId)
             : base(model)
         {
-            this._dokumentlagerHandler = dokumentlagerHandler;
-            this._fileWriter = fileWriter;
-            this._decrypter = decrypter;
-            this._sendHandler = sendHandler;
-            this._accountId = accountId;
+            this.dokumentlagerHandler = dokumentlagerHandler;
+            this.fileWriter = fileWriter;
+            this.decrypter = decrypter;
+            this.sendHandler = sendHandler;
+            this.accountId = accountId;
         }
 
         public event EventHandler<MottattMeldingArgs> Received;
@@ -69,7 +69,7 @@ namespace KS.Fiks.IO.Client.Amqp
                     new MottattMeldingArgs(
                         receivedMessage,
                         new SvarSender(
-                            this._sendHandler,
+                            this.sendHandler,
                             receivedMessage,
                             new AmqpAcknowledgeManager(
                                 () => Model.BasicAck(deliveryTag, false),
@@ -108,13 +108,13 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private MottattMelding ParseMessage(IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            var metadata = ReceivedMessageParser.Parse(this._accountId, properties);
+            var metadata = ReceivedMessageParser.Parse(this.accountId, properties);
             return new MottattMelding(
                 HasPayload(properties, body),
                 metadata,
                 GetDataProvider(properties, body),
-                this._decrypter,
-                this._fileWriter);
+                this.decrypter,
+                this.fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, ReadOnlyMemory<byte> body)
@@ -126,7 +126,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await this._dokumentlagerHandler.Download(GetDokumentlagerId(properties));
+                return async () => await this.dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
 
             return async () => await Task.FromResult(new MemoryStream(body.ToArray()));
