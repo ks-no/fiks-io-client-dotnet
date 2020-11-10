@@ -39,17 +39,8 @@ namespace KS.Fiks.IO.Client.Utility
                 mottakerKontoId: receiverAccountId,
                 avsenderKontoId: RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
                 svarPaMelding: GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
-                ttl: ParseTimeSpan(properties.Expiration, TtlHeaderName),
+                ttl: ParseTimeSpan(properties.Expiration),
                 headere: ExtractEgendefinerteHeadere(headers));
-        }
-
-        private static Dictionary<string, string> ExtractEgendefinerteHeadere(IDictionary<string, object> headers)
-        {
-            return headers
-                .Where(h => h.Key.StartsWith(EgendefinertHeaderPrefix))
-                .ToDictionary(
-                    h => h.Key.Substring(EgendefinertHeaderPrefix.Length),
-                    h => System.Text.Encoding.UTF8.GetString((byte[])h.Value));
         }
 
         internal static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)
@@ -68,6 +59,15 @@ namespace KS.Fiks.IO.Client.Utility
             {
                 return null;
             }
+        }
+
+        private static Dictionary<string, string> ExtractEgendefinerteHeadere(IDictionary<string, object> headers)
+        {
+            return headers
+                .Where(h => h.Key.StartsWith(EgendefinertHeaderPrefix))
+                .ToDictionary(
+                    h => h.Key.Substring(EgendefinertHeaderPrefix.Length),
+                    h => System.Text.Encoding.UTF8.GetString((byte[])h.Value));
         }
 
         private static string RequireStringFromHeader(IDictionary<string, object> header, string headerName)
@@ -100,7 +100,7 @@ namespace KS.Fiks.IO.Client.Utility
             }
         }
 
-        private static TimeSpan ParseTimeSpan(string longAsString, string headerName)
+        private static TimeSpan ParseTimeSpan(string longAsString)
         {
             return long.TryParse(longAsString, NumberStyles.Any, CultureInfo.InvariantCulture, out var timeAsLong) ? TimeSpan.FromMilliseconds(timeAsLong) : TimeSpan.MaxValue;
         }

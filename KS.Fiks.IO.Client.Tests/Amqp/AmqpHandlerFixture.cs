@@ -7,6 +7,7 @@ using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
 {

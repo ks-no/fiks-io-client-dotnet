@@ -16,15 +16,15 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
+        private readonly Guid _accountId;
+
         private readonly IAsicDecrypter _decrypter;
+
+        private readonly IDokumentlagerHandler _dokumentlagerHandler;
 
         private readonly IFileWriter _fileWriter;
 
         private readonly ISendHandler _sendHandler;
-
-        private readonly IDokumentlagerHandler _dokumentlagerHandler;
-
-        private readonly Guid _accountId;
 
         public AmqpReceiveConsumer(
             IModel model,
@@ -35,29 +35,11 @@ namespace KS.Fiks.IO.Client.Amqp
             Guid accountId)
             : base(model)
         {
-            _dokumentlagerHandler = dokumentlagerHandler;
-            _fileWriter = fileWriter;
-            _decrypter = decrypter;
-            _sendHandler = sendHandler;
-            _accountId = accountId;
-        }
-
-        private static bool IsDataInDokumentlager(IBasicProperties properties)
-        {
-            return ReceivedMessageParser.GetGuidFromHeader(properties.Headers, DokumentlagerHeaderName) != null;
-        }
-
-        private static Guid GetDokumentlagerId(IBasicProperties properties)
-        {
-            try
-            {
-                return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
+            this._dokumentlagerHandler = dokumentlagerHandler;
+            this._fileWriter = fileWriter;
+            this._decrypter = decrypter;
+            this._sendHandler = sendHandler;
+            this._accountId = accountId;
         }
 
         public event EventHandler<MottattMeldingArgs> Received;
@@ -69,7 +51,7 @@ namespace KS.Fiks.IO.Client.Amqp
             string exchange,
             string routingKey,
             IBasicProperties properties,
-            byte[] body)
+            ReadOnlyMemory<byte> body)
         {
             base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
 
@@ -101,13 +83,41 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private MottattMelding ParseMessage(IBasicProperties properties, byte[] body)
+        private static bool IsDataInDokumentlager(IBasicProperties properties)
         {
-            var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new MottattMelding(HasPayload(properties, body), metadata, GetDataProvider(properties, body), this._decrypter, this._fileWriter);
+            return ReceivedMessageParser.GetGuidFromHeader(properties.Headers, DokumentlagerHeaderName) != null;
         }
 
-        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
+        private static Guid GetDokumentlagerId(IBasicProperties properties)
+        {
+            try
+            {
+                return ReceivedMessageParser.RequireGuidFromHeader(properties.Headers, DokumentlagerHeaderName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        private static bool HasPayload(IBasicProperties properties, ReadOnlyMemory<byte> body)
+        {
+            return IsDataInDokumentlager(properties) || body.Length > 0;
+        }
+
+        private MottattMelding ParseMessage(IBasicProperties properties, ReadOnlyMemory<byte> body)
+        {
+            var metadata = ReceivedMessageParser.Parse(this._accountId, properties);
+            return new MottattMelding(
+                HasPayload(properties, body),
+                metadata,
+                GetDataProvider(properties, body),
+                this._decrypter,
+                this._fileWriter);
+        }
+
+        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (!HasPayload(properties, body))
             {
@@ -116,15 +126,10 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties));
+                return async () => await this._dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
 
-            return async () => await Task.FromResult(new MemoryStream(body));
-        }
-
-        private bool HasPayload(IBasicProperties properties, byte[] body)
-        {
-            return IsDataInDokumentlager(properties) || body.Length > 0;
+            return async () => await Task.FromResult(new MemoryStream(body.ToArray()));
         }
     }
 }
