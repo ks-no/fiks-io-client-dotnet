@@ -15,19 +15,19 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private readonly IModel _channel;
+        private readonly IModel channel;
 
-        private readonly IAmqpConsumerFactory _amqpConsumerFactory;
+        private readonly IAmqpConsumerFactory amqpConsumerFactory;
 
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnectionFactory connectionFactory;
 
-        private readonly KontoConfiguration _kontoConfiguration;
+        private readonly KontoConfiguration kontoConfiguration;
 
-        private readonly IMaskinportenClient _maskinportenClient;
+        private readonly IMaskinportenClient maskinportenClient;
 
-        private readonly SslOption _sslOption;
+        private readonly SslOption sslOption;
 
-        private IAmqpReceiveConsumer _receiveConsumer;
+        private IAmqpReceiveConsumer receiveConsumer;
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -39,29 +39,29 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            _maskinportenClient = maskinportenClient;
-            _kontoConfiguration = kontoConfiguration;
-            _connectionFactory = connectionFactory ?? new ConnectionFactory();
+            this.sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            this.maskinportenClient = maskinportenClient;
+            this.kontoConfiguration = kontoConfiguration;
+            this.connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrasjonConfiguration);
-            _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
+            this.channel = ConnectToChannel(amqpConfiguration);
+            this.amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, this.kontoConfiguration);
         }
 
         public void AddMessageReceivedHandler(
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
-            if (_receiveConsumer == null)
+            if (this.receiveConsumer == null)
             {
-                _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+                this.receiveConsumer = this.amqpConsumerFactory.CreateReceiveConsumer(this.channel);
             }
 
-            _receiveConsumer.Received += receivedEvent;
+            this.receiveConsumer.Received += receivedEvent;
 
-            _receiveConsumer.ConsumerCancelled += cancelledEvent;
+            this.receiveConsumer.ConsumerCancelled += cancelledEvent;
 
-            _channel.BasicConsume(_receiveConsumer, GetQueueName());
+            this.channel.BasicConsume(this.receiveConsumer, GetQueueName());
         }
 
         public void Dispose()
@@ -74,7 +74,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (disposing)
             {
-                _channel?.Dispose();
+                this.channel?.Dispose();
             }
         }
 
@@ -95,12 +95,12 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, this.sslOption);
+                return this.connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{this.connectionFactory.UserName}; SslOption.Enabled: {this.sslOption?.Enabled};SslOption.ServerName: {this.sslOption?.ServerName}", ex);
             }
         }
 
@@ -108,9 +108,9 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var maskinportenToken = _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
-                _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
-                _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
+                var maskinportenToken = this.maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
+                this.connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
+                this.connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
             catch (AggregateException ex)
             {
@@ -120,7 +120,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
-            return $"{QueuePrefix}{_kontoConfiguration.KontoId}";
+            return $"{QueuePrefix}{this.kontoConfiguration.KontoId}";
         }
     }
 }

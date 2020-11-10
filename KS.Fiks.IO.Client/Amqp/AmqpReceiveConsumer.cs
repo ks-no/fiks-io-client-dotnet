@@ -16,15 +16,15 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
-        private readonly IAsicDecrypter _decrypter;
+        private readonly Guid accountId;
 
-        private readonly IFileWriter _fileWriter;
+        private readonly IAsicDecrypter decrypter;
 
-        private readonly ISendHandler _sendHandler;
+        private readonly IDokumentlagerHandler dokumentlagerHandler;
 
-        private readonly IDokumentlagerHandler _dokumentlagerHandler;
+        private readonly IFileWriter fileWriter;
 
-        private readonly Guid _accountId;
+        private readonly ISendHandler sendHandler;
 
         public AmqpReceiveConsumer(
             IModel model,
@@ -35,11 +35,52 @@ namespace KS.Fiks.IO.Client.Amqp
             Guid accountId)
             : base(model)
         {
-            _dokumentlagerHandler = dokumentlagerHandler;
-            _fileWriter = fileWriter;
-            _decrypter = decrypter;
-            _sendHandler = sendHandler;
-            _accountId = accountId;
+            this.dokumentlagerHandler = dokumentlagerHandler;
+            this.fileWriter = fileWriter;
+            this.decrypter = decrypter;
+            this.sendHandler = sendHandler;
+            this.accountId = accountId;
+        }
+
+        public event EventHandler<MottattMeldingArgs> Received;
+
+        public override void HandleBasicDeliver(
+            string consumerTag,
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties properties,
+            ReadOnlyMemory<byte> body)
+        {
+            base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+
+            if (Received == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var receivedMessage = ParseMessage(properties, body);
+
+                Received?.Invoke(
+                    this,
+                    new MottattMeldingArgs(
+                        receivedMessage,
+                        new SvarSender(
+                            this.sendHandler,
+                            receivedMessage,
+                            new AmqpAcknowledgeManager(
+                                () => Model.BasicAck(deliveryTag, false),
+                                () => Model.BasicNack(deliveryTag, false, false),
+                                () => Model.BasicNack(deliveryTag, false, true)))));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
 
         private static bool IsDataInDokumentlager(IBasicProperties properties)
@@ -60,54 +101,23 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        public event EventHandler<MottattMeldingArgs> Received;
-
-        public override void HandleBasicDeliver(
-            string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties properties,
-            byte[] body)
+        private static bool HasPayload(IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-
-            if (Received == null)
-            {
-                return;
-            }
-
-            try
-            {
-                var receivedMessage = ParseMessage(properties, body);
-
-                Received?.Invoke(
-                    this,
-                    new MottattMeldingArgs(
-                        receivedMessage,
-                        new SvarSender(
-                            this._sendHandler,
-                            receivedMessage,
-                            new AmqpAcknowledgeManager(
-                                () => Model.BasicAck(deliveryTag, false),
-                                () => Model.BasicNack(deliveryTag, false, false),
-                                () => Model.BasicNack(deliveryTag, false, true)))));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
+            return IsDataInDokumentlager(properties) || body.Length > 0;
         }
 
-        private MottattMelding ParseMessage(IBasicProperties properties, byte[] body)
+        private MottattMelding ParseMessage(IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            var metadata = ReceivedMessageParser.Parse(_accountId, properties);
-            return new MottattMelding(HasPayload(properties, body), metadata, GetDataProvider(properties, body), this._decrypter, this._fileWriter);
+            var metadata = ReceivedMessageParser.Parse(this.accountId, properties);
+            return new MottattMelding(
+                HasPayload(properties, body),
+                metadata,
+                GetDataProvider(properties, body),
+                this.decrypter,
+                this.fileWriter);
         }
 
-        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
+        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (!HasPayload(properties, body))
             {
@@ -116,15 +126,10 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties));
+                return async () => await this.dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
 
-            return async () => await Task.FromResult(new MemoryStream(body));
-        }
-
-        private bool HasPayload(IBasicProperties properties, byte[] body)
-        {
-            return IsDataInDokumentlager(properties) || body.Length > 0;
+            return async () => await Task.FromResult(new MemoryStream(body.ToArray()));
         }
     }
 }
