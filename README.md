@@ -114,7 +114,7 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     integrasjonPassord: integrationPassord,
     kontoId: kontoId,
     privatNokkel: privatNokkel,
-    issuer: issuer,
+    issuer: issuer, //klientid for maskinporten
     certificate: certificat
 );
 
@@ -124,7 +124,7 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     integrasjonPassord: integrationPassord,
     kontoId: kontoId,
     privatNokkel: privatNokkel,
-    issuer: issuer,
+    issuer: issuer, //klientid for maskinporten
     certificate: certificat
 );
 ```
@@ -146,7 +146,7 @@ var integrasjonConfig = new IntegrasjonConfiguration(
 var maskinportenConfig = new MaskinportenClientConfiguration(
     audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/", // ID-porten audience path
     tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
-    issuer: @"oidc_ks_test",  // KS issuer name
+    issuer: @"oidc_ks_test",  //klientid for maskinporten
     numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
     certificate: /* virksomhetssertifikat as a X509Certificate2  */);
 
