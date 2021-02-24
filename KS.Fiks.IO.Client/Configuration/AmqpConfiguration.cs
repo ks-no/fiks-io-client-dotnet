@@ -5,8 +5,6 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class AmqpConfiguration
     {
-        private const string DefaultSslServerName = "io.fiks.ks.no";
-
         public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null)
         {
             Host = host;
@@ -14,7 +12,7 @@ namespace KS.Fiks.IO.Client.Configuration
             SslOption = sslOption ?? new SslOption
             {
                 Enabled = true,
-                ServerName = DefaultSslServerName,
+                ServerName = host,
                 CertificateValidationCallback = (sender, certificate, chain, errors) => errors == SslPolicyErrors.None
             };
         }
