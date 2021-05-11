@@ -26,7 +26,7 @@ namespace KS.Fiks.IO.Client.Models
             TimeSpan ttl,
             Dictionary<string, string> headere,
             Guid? svarPaMelding=null)
-            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding:svarPaMelding)
+            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
         {
         }
     }
