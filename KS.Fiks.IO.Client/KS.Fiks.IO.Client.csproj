@@ -13,10 +13,17 @@
         <RepositoryType>git</RepositoryType>
         <PackageTags>FIKS</PackageTags>
         <VersionPrefix>1.1.14</VersionPrefix>
-        <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+        <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
     <ItemGroup>
         <None Include="KS.png">
@@ -24,6 +31,10 @@
             <PackagePath>/</PackagePath>
         </None>
         <None Include="../LICENSE">
+            <Pack>true</Pack>
+            <PackagePath>/</PackagePath>
+        </None>
+        <None Include="../README.md">
             <Pack>true</Pack>
             <PackagePath>/</PackagePath>
         </None>
