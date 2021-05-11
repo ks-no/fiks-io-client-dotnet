@@ -19,12 +19,10 @@
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <SignAssembly>true</SignAssembly>
-        <AssemblyOriginatorKeyFile>fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
-    </PropertyGroup>
     <ItemGroup>
         <None Include="KS.png">
             <Pack>true</Pack>

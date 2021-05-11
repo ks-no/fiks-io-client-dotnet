@@ -4,6 +4,9 @@
         <TargetFramework>net5.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
     <PropertyGroup>
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
