@@ -1,4 +1,4 @@
-namespace KS.Fiks.IO.Client.Models
+namespace KS.Fiks.IO.Client.Models.Feilmelding
 {
     public static class FeilmeldingMeldingTypeV1
     {
