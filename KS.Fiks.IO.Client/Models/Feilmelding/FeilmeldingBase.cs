@@ -12,6 +12,6 @@ namespace KS.Fiks.IO.Client.Models.Feilmelding
         public string Feilmelding { get; set; }
 
         [JsonProperty("correlationId")]
-        public Guid CorrelationId { get; set; }
+        public string CorrelationId { get; set; }
     }
 }
