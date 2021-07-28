@@ -50,18 +50,27 @@ namespace KS.Fiks.IO.Client.Models
 
         private async Task<IEnumerable<IPayload>> ExtractPayloads()
         {
-
             if (_payloads == null)
             {
                 List<StreamPayload> payloads = new List<StreamPayload>();
 
-                AsiceReadModel asiceReader = new AsiceReader()
-                    .Read(await DecryptedStream.ConfigureAwait(false));
-
-                foreach (AsiceReadEntry entry in asiceReader.Entries)
+                using (Stream stream = await DecryptedStream.ConfigureAwait(false))
                 {
-                    StreamPayload payload = new StreamPayload(entry.OpenStream(), entry.FileName);
-                    payloads.Add(payload);
+                    AsiceReadModel asiceReader = new AsiceReader().Read(stream);
+
+                    foreach (AsiceReadEntry entry in asiceReader.Entries)
+                    {
+                        using (Stream entryStream = entry.OpenStream())
+                        {
+                            MemoryStream memoryStream = new MemoryStream();
+
+                            await entryStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+
+                            StreamPayload payload = new StreamPayload(memoryStream, entry.FileName);
+
+                            payloads.Add(payload);
+                        }
+                    }
                 }
 
                 _payloads = payloads;
