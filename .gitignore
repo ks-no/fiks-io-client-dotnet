@@ -2,6 +2,7 @@
 /.idea
 .c9/
 *.sublime-workspace
+.vs/
 
 *.swp
 *.*~

@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.ASiC_E;
+using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
 
@@ -11,6 +14,7 @@ namespace KS.Fiks.IO.Client.Models
         private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
+        private IEnumerable<IPayload> _payloads;
 
         internal MottattMelding(
             bool hasPayload,
@@ -40,6 +44,30 @@ namespace KS.Fiks.IO.Client.Models
         public async Task WriteDecryptedZip(string outPath)
         {
             await _decrypter.WriteDecrypted(_streamProvider(), outPath).ConfigureAwait(false);
+        }
+
+        public Task<IEnumerable<IPayload>> Payloads => ExtractPayloads();
+
+        private async Task<IEnumerable<IPayload>> ExtractPayloads()
+        {
+
+            if (_payloads == null)
+            {
+                List<StreamPayload> payloads = new List<StreamPayload>();
+
+                AsiceReadModel asiceReader = new AsiceReader()
+                    .Read(await DecryptedStream.ConfigureAwait(false));
+
+                foreach (AsiceReadEntry entry in asiceReader.Entries)
+                {
+                    StreamPayload payload = new StreamPayload(entry.OpenStream(), entry.FileName);
+                    payloads.Add(payload);
+                }
+
+                _payloads = payloads;
+            }
+
+            return _payloads;
         }
     }
 }
