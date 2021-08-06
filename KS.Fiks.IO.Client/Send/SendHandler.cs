@@ -41,7 +41,7 @@ namespace KS.Fiks.IO.Client.Send
             : this(
                 catalogHandler,
                 new FiksIOSender(senderConfiguration, maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord, httpClient),
-                asicEncrypter, 
+                asicEncrypter,
                 publicKeyProvider)
         {
         }
