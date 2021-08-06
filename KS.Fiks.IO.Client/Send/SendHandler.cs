@@ -8,6 +8,7 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using System.Net.Http;
 
 namespace KS.Fiks.IO.Client.Send
 {
@@ -34,12 +35,14 @@ namespace KS.Fiks.IO.Client.Send
             IMaskinportenClient maskinportenClient,
             FiksIOSenderConfiguration senderConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
+            HttpClient httpClient,
             IAsicEncrypter asicEncrypter,
             IPublicKeyProvider publicKeyProvider)
             : this(
                 catalogHandler,
-                new FiksIOSender(senderConfiguration, maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord),
-                asicEncrypter, publicKeyProvider)
+                new FiksIOSender(senderConfiguration, maskinportenClient, integrasjonConfiguration.IntegrasjonId, integrasjonConfiguration.IntegrasjonPassord, httpClient),
+                asicEncrypter, 
+                publicKeyProvider)
         {
         }
 
