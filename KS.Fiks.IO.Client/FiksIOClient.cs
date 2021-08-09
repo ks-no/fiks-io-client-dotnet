@@ -54,7 +54,8 @@ namespace KS.Fiks.IO.Client
             _catalogHandler = catalogHandler ?? new CatalogHandler(
                                   configuration.KatalogConfiguration,
                                   configuration.IntegrasjonConfiguration,
-                                  maskinportenClient);
+                                  maskinportenClient,
+                                  httpClient);
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
 
@@ -70,7 +71,11 @@ namespace KS.Fiks.IO.Client
                                asicEncrypter,
                                _publicKeyProvider);
 
-            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(configuration.DokumentlagerConfiguration, configuration.IntegrasjonConfiguration, maskinportenClient);
+            _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(
+                configuration.DokumentlagerConfiguration,
+                configuration.IntegrasjonConfiguration,
+                maskinportenClient,
+                httpClient: httpClient);
 
             _amqpHandler = amqpHandler ?? new AmqpHandler(
                                maskinportenClient,
@@ -141,7 +146,7 @@ namespace KS.Fiks.IO.Client
 
         private async Task<SendtMelding> Send(MeldingRequest request, IPayload payload)
         {
-            return await Send(request, new List<IPayload> {payload}).ConfigureAwait(false);
+            return await Send(request, new List<IPayload> { payload }).ConfigureAwait(false);
         }
     }
 }
