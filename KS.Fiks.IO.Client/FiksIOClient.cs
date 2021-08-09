@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
-            maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration);
+            maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
                                   configuration.KatalogConfiguration,
