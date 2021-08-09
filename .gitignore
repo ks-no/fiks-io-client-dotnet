@@ -2,6 +2,7 @@
 /.idea
 .c9/
 *.sublime-workspace
+.vs/
 
 *.swp
 *.*~
@@ -34,4 +35,3 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
-/.vs/KS.Fiks.IO.Client
