@@ -32,8 +32,8 @@ namespace KS.Fiks.IO.Client
 
         private readonly IPublicKeyProvider _publicKeyProvider;
 
-        public FiksIOClient(FiksIOConfiguration configuration, IPublicKeyProvider publicKeyProvider = null)
-            : this(configuration, null, null, null, null, null, null, publicKeyProvider)
+        public FiksIOClient(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
+            : this(configuration, null, null, null, null, null, httpClient, publicKeyProvider)
         {
         }
 
