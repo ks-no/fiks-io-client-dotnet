@@ -105,7 +105,19 @@ var receiverKontoId = await client.Lookup(request);
 
 Two convenience functions are provided for generating default configurations for *prod* and *test*,
 `CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Only the required configuration parameters must be provided,
-the rest will be set to default values for the given environment.
+the rest will be set to default values for the given environment. 
+
+**privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. A PKCS#1 key can be converted using this command: 
+```powershell
+openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
+```
+Content in file is expected value in `privateNokkel`, i.e.
+```text
+-----BEGIN PRIVATE KEY-----
+... ...
+-----END PRIVATE KEY-----
+
+```
 
 ```c#
 // Prod config
@@ -123,11 +135,12 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     integrasjonId: integrationId,
     integrasjonPassord: integrationPassord,
     kontoId: kontoId,
-    privatNokkel: privatNokkel,
+    privatNokkel: privatNokkel, 
     issuer: issuer, //klientid for maskinporten
     certificate: certificat
 );
 ```
+
 
 If necessary, all parameters of configuration can be set in detail.
 
