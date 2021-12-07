@@ -38,6 +38,20 @@
         </None>
     </ItemGroup>
     <ItemGroup>
+        <None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
+        <None Remove="Schema\no.ks.fiks.kvittering.ugyldigforespørsel.v1.schema.json" />
+        <Content Include="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Pack>true</Pack>
+            <PackageCopyToOutput>true</PackageCopyToOutput>
+        </Content>
+        <Content Include="Schema\no.ks.fiks.kvittering.ugyldigforespørsel.v1.schema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Pack>true</Pack>
+            <PackageCopyToOutput>true</PackageCopyToOutput>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.3" />
         <PackageReference Include="KS.Fiks.Crypto" Version="1.0.4" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.7" />
