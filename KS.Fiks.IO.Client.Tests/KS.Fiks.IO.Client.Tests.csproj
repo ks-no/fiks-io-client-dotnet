@@ -20,7 +20,7 @@
         <PackageReference Include="Moq" Version="4.16.1" />
         <PackageReference Include="Newtonsoft.Json" Version="[11.0.1, 13.0.1]" />
         <PackageReference Include="Newtonsoft.Json.Schema" Version="2.0.13" />
-        <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
+        <PackageReference Include="RabbitMQ.Client" Version="6.2.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
           <PrivateAssets>all</PrivateAssets>
