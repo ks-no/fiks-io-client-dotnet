@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://no.ks.fiks.kvittering/ugyldigforespørsel.v1.schema.json",
+  "$id": "https://no.ks.fiks.kvittering/ugyldigforespoersel.v1.schema.json",
   "title": "ugyldigforespørsel",
   "definitions": {
   },

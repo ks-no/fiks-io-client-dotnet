@@ -45,11 +45,6 @@
             <Pack>true</Pack>
             <PackageCopyToOutput>true</PackageCopyToOutput>
         </Content>
-        <Content Include="Schema\no.ks.fiks.kvittering.ugyldigforespørsel.v1.schema.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <Pack>true</Pack>
-            <PackageCopyToOutput>true</PackageCopyToOutput>
-        </Content>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.3" />
