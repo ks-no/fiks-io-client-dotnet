@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Tests.Schemas
         [Fact]
         public void TestUgyldigforespørselModelValidateWithSchema_Ok()
         {
-            var serverFeil = new Ugyldigforespørsel()
+            var serverFeil = new Ugyldigforespoersel()
             {
                 CorrelationId = "testCorrelationId",
                 ErrorId = "testErrorId",
