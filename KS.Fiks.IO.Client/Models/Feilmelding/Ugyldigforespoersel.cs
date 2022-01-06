@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace KS.Fiks.IO.Client.Models.Feilmelding
 {
-    public class Ugyldigforespørsel : FeilmeldingBase
+    public class Ugyldigforespoersel : FeilmeldingBase
     {
     }
 }
