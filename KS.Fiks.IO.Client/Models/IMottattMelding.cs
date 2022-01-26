@@ -19,6 +19,6 @@ namespace KS.Fiks.IO.Client.Models
 
         Task WriteDecryptedZip(string outPath);
 
-        Task<IEnumerable<IPayload>> Payloads { get; }
+        Task<IEnumerable<IPayload>> DecryptedPayloads { get; }
     }
 }
