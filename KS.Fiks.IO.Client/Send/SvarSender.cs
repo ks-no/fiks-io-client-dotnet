@@ -76,6 +76,7 @@ namespace KS.Fiks.IO.Client.Send
             return new MeldingRequest(
                 avsenderKontoId: _mottattMelding.MottakerKontoId,
                 mottakerKontoId: _mottattMelding.AvsenderKontoId,
+                klientMeldingId: Guid.Empty, //TODO Usikker på om det skal være tilgjengelig å sette denne for svar?
                 meldingType: messageType,
                 ttl: null,
                 headere: null,

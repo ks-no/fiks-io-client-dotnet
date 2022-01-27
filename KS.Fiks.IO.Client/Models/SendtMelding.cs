@@ -10,6 +10,7 @@ namespace KS.Fiks.IO.Client.Models
         {
             return new SendtMelding(
                 sendtMeldingApiModel.MeldingId,
+                sendtMeldingApiModel.KlientMeldingID,
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
@@ -20,13 +21,14 @@ namespace KS.Fiks.IO.Client.Models
 
         internal SendtMelding(
             Guid meldingId,
+            Guid? klientMeldingId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
             TimeSpan ttl,
             Dictionary<string, string> headere,
             Guid? svarPaMelding=null)
-            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
+            : base(meldingId, klientMeldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
         {
         }
     }

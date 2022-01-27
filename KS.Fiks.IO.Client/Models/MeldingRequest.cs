@@ -11,6 +11,7 @@ namespace KS.Fiks.IO.Client.Models
         public MeldingRequest(
             Guid avsenderKontoId,
             Guid mottakerKontoId,
+            Guid klientMeldingId,
             string meldingType,
             TimeSpan? ttl = null,
             Dictionary<string, string> headere = null,
@@ -18,6 +19,7 @@ namespace KS.Fiks.IO.Client.Models
         : base(
             meldingId: Guid.Empty,
             meldingType: meldingType,
+            klientMeldingId: klientMeldingId,
             avsenderKontoId: avsenderKontoId,
             mottakerKontoId: mottakerKontoId,
             ttl: ttl ?? TimeSpan.FromDays(DefaultTtlInDays),

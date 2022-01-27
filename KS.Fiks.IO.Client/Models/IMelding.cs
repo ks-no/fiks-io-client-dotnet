@@ -7,6 +7,8 @@ namespace KS.Fiks.IO.Client.Models
     {
         Guid MeldingId { get; }
 
+        Guid? KlientMeldingId { get; }
+
         string MeldingType { get; }
 
         Guid AvsenderKontoId { get; }

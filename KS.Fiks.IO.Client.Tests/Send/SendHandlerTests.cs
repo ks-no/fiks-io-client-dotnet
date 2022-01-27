@@ -40,6 +40,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             var request = new MeldingRequest(
                 avsenderKontoId: Guid.NewGuid(),
                 mottakerKontoId: Guid.NewGuid(),
+                klientMeldingId: Guid.NewGuid(),
                 meldingType: "Meldingsprotokoll",
                 ttl: TimeSpan.FromDays(2),
                 headere: null,
