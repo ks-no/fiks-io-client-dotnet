@@ -10,7 +10,7 @@ namespace KS.Fiks.IO.Client.Models
         {
             return new SendtMelding(
                 sendtMeldingApiModel.MeldingId,
-                sendtMeldingApiModel.KlientMeldingID,
+                sendtMeldingApiModel.KlientMeldingId,
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
