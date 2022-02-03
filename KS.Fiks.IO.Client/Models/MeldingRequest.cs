@@ -11,7 +11,7 @@ namespace KS.Fiks.IO.Client.Models
         public MeldingRequest(
             Guid avsenderKontoId,
             Guid mottakerKontoId,
-            Guid klientMeldingId,
+            Guid? klientMeldingId,
             string meldingType,
             TimeSpan? ttl = null,
             Dictionary<string, string> headere = null,
@@ -33,6 +33,7 @@ namespace KS.Fiks.IO.Client.Models
             return new MeldingSpesifikasjonApiModel(
                 avsenderKontoId: AvsenderKontoId,
                 mottakerKontoId: MottakerKontoId,
+                klientMeldingId: KlientMeldingId,
                 meldingType: MeldingType,
                 ttl: (long)Ttl.TotalMilliseconds,
                 headere: Headere,
