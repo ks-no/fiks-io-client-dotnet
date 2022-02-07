@@ -49,7 +49,6 @@ namespace KS.Fiks.IO.Client.Tests
         public MeldingRequest DefaultRequest => new MeldingRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            Guid.NewGuid(),
             "defaultType");
 
         public FiksIOClient CreateSut()

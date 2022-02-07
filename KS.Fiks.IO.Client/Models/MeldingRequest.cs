@@ -11,11 +11,11 @@ namespace KS.Fiks.IO.Client.Models
         public MeldingRequest(
             Guid avsenderKontoId,
             Guid mottakerKontoId,
-            Guid? klientMeldingId,
             string meldingType,
             TimeSpan? ttl = null,
             Dictionary<string, string> headere = null,
-            Guid? svarPaMelding = null)
+            Guid? svarPaMelding = null,
+            Guid? klientMeldingId = null)
         : base(
             meldingId: Guid.Empty,
             meldingType: meldingType,

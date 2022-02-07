@@ -55,7 +55,36 @@ namespace KS.Fiks.IO.Client.Tests.Send
                     model => model.Ttl == (long)request.Ttl.TotalMilliseconds &&
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
-                             model.MottakerKontoId == request.MottakerKontoId),
+                             model.MottakerKontoId == request.MottakerKontoId &&
+                             model.KlientMeldingId == request.KlientMeldingId),
+                It.IsAny<Stream>()));
+        }
+
+        [Fact]
+        public async Task CallsSendWithExpectedMessageSpecificationApiModelAndNullKlientMeldingId()
+        {
+            var sut = _fixture.CreateSut();
+
+            var request = new MeldingRequest(
+                avsenderKontoId: Guid.NewGuid(),
+                mottakerKontoId: Guid.NewGuid(),
+                meldingType: "Meldingsprotokoll",
+                ttl: TimeSpan.FromDays(2),
+                headere: null,
+                svarPaMelding: Guid.NewGuid());
+
+            var payload = new List<IPayload>();
+
+            await sut.Send(request, payload).ConfigureAwait(false);
+
+            _fixture.FiksIOSenderMock.Verify(_ => _.Send(
+                It.Is<MeldingSpesifikasjonApiModel>(
+                    model => model.Ttl == (long)request.Ttl.TotalMilliseconds &&
+                             model.SvarPaMelding == request.SvarPaMelding &&
+                             model.AvsenderKontoId == request.AvsenderKontoId &&
+                             model.MottakerKontoId == request.MottakerKontoId &&
+                             model.KlientMeldingId == request.KlientMeldingId &&
+                             model.KlientMeldingId == null),
                 It.IsAny<Stream>()));
         }
 

@@ -27,13 +27,11 @@ namespace KS.Fiks.IO.Client.Tests.Send
         public MeldingRequest DefaultRequest => new MeldingRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            klientMeldingId: Guid.NewGuid(),
             "defaultType");
 
         public MeldingRequest DefaultRequest2 => new MeldingRequest(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            klientMeldingId: Guid.NewGuid(),
             "defaultType", TimeSpan.Zero, new Dictionary<string, string> {});
 
         public SendHandlerFixture WithPublicKey(X509Certificate publicKey)
