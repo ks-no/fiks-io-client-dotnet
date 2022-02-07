@@ -8,13 +8,13 @@ namespace KS.Fiks.IO.Client.Send
 {
     public interface ISvarSender
     {
-        Task<SendtMelding> Svar(string meldingType, IList<IPayload> payloads, Guid? klientMeldingId);
+        Task<SendtMelding> Svar(string meldingType, IList<IPayload> payloads, Guid? klientMeldingId = default);
 
-        Task<SendtMelding> Svar(string meldingType, Stream melding, string filnavn, Guid? klientMeldingId);
+        Task<SendtMelding> Svar(string meldingType, Stream melding, string filnavn, Guid? klientMeldingId = default);
 
-        Task<SendtMelding> Svar(string meldingType, string melding, string filnavn, Guid? klientMeldingId);
+        Task<SendtMelding> Svar(string meldingType, string melding, string filnavn, Guid? klientMeldingId = default);
 
-        Task<SendtMelding> Svar(string meldingType, string filLokasjon, Guid? klientMeldingId);
+        Task<SendtMelding> Svar(string meldingType, string filLokasjon, Guid? klientMeldingId = default);
 
         Task<SendtMelding> Svar(string meldingType, Guid? klientMeldingId);
 
