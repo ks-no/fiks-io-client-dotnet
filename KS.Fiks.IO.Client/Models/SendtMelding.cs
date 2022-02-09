@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client.Models
         public static SendtMelding FromSentMessageApiModel(SendtMeldingApiModel sendtMeldingApiModel)
         {
             Guid? klientMeldingId = null;
-            if (sendtMeldingApiModel.Headere?[headerKlientMeldingId] != null)
+            if (sendtMeldingApiModel.Headere != null && sendtMeldingApiModel.Headere.ContainsKey(headerKlientMeldingId))
             {
                 try
                 {
