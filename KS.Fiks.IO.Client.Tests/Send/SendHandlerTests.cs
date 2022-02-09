@@ -56,7 +56,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
-                             model.Headere["klientMeldingId"] == request.KlientMeldingId.ToString()),
+                             model.Headere[MeldingBase.headerKlientMeldingId] == request.KlientMeldingId.ToString()),
                 It.IsAny<Stream>()));
         }
 
