@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         }
 
         [Fact]
-        public async Task CallsSendWithExpectedMessageSpecificationApiModel()
+        public async Task CallsSendWithExpectedMessageSpecificationApiModelWithKlientMeldingId()
         {
             var sut = _fixture.CreateSut();
 
@@ -56,7 +56,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
-                             model.KlientMeldingId == request.KlientMeldingId),
+                             model.Headere["klientMeldingId"] == request.KlientMeldingId.ToString()),
                 It.IsAny<Stream>()));
         }
 
@@ -83,8 +83,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
-                             model.KlientMeldingId == request.KlientMeldingId &&
-                             model.KlientMeldingId == null),
+                             !model.Headere.ContainsKey("klientMeldingId")),
                 It.IsAny<Stream>()));
         }
 

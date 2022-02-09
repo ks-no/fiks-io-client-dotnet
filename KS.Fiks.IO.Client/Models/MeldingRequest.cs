@@ -30,10 +30,14 @@ namespace KS.Fiks.IO.Client.Models
 
         public MeldingSpesifikasjonApiModel ToApiModel()
         {
+            if (KlientMeldingId != null && KlientMeldingId != Guid.Empty)
+            {
+                Headere.Add(headerKlientMeldingId, KlientMeldingId.ToString());
+            }
+
             return new MeldingSpesifikasjonApiModel(
                 avsenderKontoId: AvsenderKontoId,
                 mottakerKontoId: MottakerKontoId,
-                klientMeldingId: KlientMeldingId,
                 meldingType: MeldingType,
                 ttl: (long)Ttl.TotalMilliseconds,
                 headere: Headere,

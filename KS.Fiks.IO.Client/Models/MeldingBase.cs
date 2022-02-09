@@ -6,6 +6,8 @@ namespace KS.Fiks.IO.Client.Models
 {
     public abstract class MeldingBase : IMelding
     {
+        public const string headerKlientMeldingId = "klientMeldingId";
+
         protected MeldingBase()
         {
         }

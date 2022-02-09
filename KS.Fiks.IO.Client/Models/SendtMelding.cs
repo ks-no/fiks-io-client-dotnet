@@ -8,9 +8,22 @@ namespace KS.Fiks.IO.Client.Models
     {
         public static SendtMelding FromSentMessageApiModel(SendtMeldingApiModel sendtMeldingApiModel)
         {
+            Guid? klientMeldingId = null;
+            if (sendtMeldingApiModel.Headere?[headerKlientMeldingId] != null)
+            {
+                try
+                {
+                    klientMeldingId = Guid.Parse(sendtMeldingApiModel.Headere[headerKlientMeldingId]);
+                }
+                catch (Exception e)
+                {
+                    klientMeldingId = null;
+                }
+            }
+
             return new SendtMelding(
                 sendtMeldingApiModel.MeldingId,
-                sendtMeldingApiModel.KlientMeldingId,
+                klientMeldingId,
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
