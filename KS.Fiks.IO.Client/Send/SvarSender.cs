@@ -73,11 +73,6 @@ namespace KS.Fiks.IO.Client.Send
 
         private MeldingRequest CreateMessageRequest(string messageType, Guid? klientMeldingId)
         {
-            if (klientMeldingId == Guid.Empty)
-            {
-                klientMeldingId = Guid.NewGuid();
-            }
-
             return new MeldingRequest(
                 avsenderKontoId: _mottattMelding.MottakerKontoId,
                 mottakerKontoId: _mottattMelding.AvsenderKontoId,
