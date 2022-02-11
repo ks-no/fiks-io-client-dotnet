@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Send.Client.Models;
+using Serilog;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -17,7 +18,8 @@ namespace KS.Fiks.IO.Client.Models
                 }
                 catch (Exception e)
                 {
-                    klientMeldingId = null;
+                    Log.Error("Kunne ikke parse KlientMeldingId funnet i header til guid. KlientMeldingId: {KlientMeldingId}", sendtMeldingApiModel.Headere[headerKlientMeldingId]);
+                    klientMeldingId = Guid.Empty;
                 }
             }
 

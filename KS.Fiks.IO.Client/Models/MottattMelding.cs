@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
+using Serilog;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -24,6 +25,23 @@ namespace KS.Fiks.IO.Client.Models
             _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
+            ExtractKlientMeldingId();
+        }
+
+        private void ExtractKlientMeldingId()
+        {
+            if (Headere != null && Headere.ContainsKey(headerKlientMeldingId))
+            {
+                try
+                {
+                    KlientMeldingId = Guid.Parse(Headere[headerKlientMeldingId]);
+                }
+                catch (Exception e)
+                {
+                    Log.Error("Kunne ikke parse KlientMeldingId funnet i header til guid. KlientMeldingId: {KlientMeldingId}", Headere[headerKlientMeldingId]);
+                    KlientMeldingId = Guid.Empty;
+                }
+            }
         }
 
         public bool HasPayload { get; }
