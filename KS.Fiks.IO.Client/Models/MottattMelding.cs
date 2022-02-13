@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace KS.Fiks.IO.Client.Models
 {
@@ -12,6 +12,7 @@ namespace KS.Fiks.IO.Client.Models
         private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
+        private static readonly ILogger Logger;
 
         internal MottattMelding(
             bool hasPayload,
@@ -38,7 +39,7 @@ namespace KS.Fiks.IO.Client.Models
                 }
                 catch (Exception e)
                 {
-                    Log.Error("Kunne ikke parse KlientMeldingId funnet i header til guid. KlientMeldingId: {KlientMeldingId}", Headere[headerKlientMeldingId]);
+                    Logger.LogError("Kunne ikke parse KlientMeldingId funnet i header til guid. KlientMeldingId: {KlientMeldingId}", Headere[headerKlientMeldingId]);
                     KlientMeldingId = Guid.Empty;
                 }
             }
