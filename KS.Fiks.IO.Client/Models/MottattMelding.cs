@@ -27,22 +27,25 @@ namespace KS.Fiks.IO.Client.Models
             _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
-            ExtractKlientMeldingId();
+            KlientMeldingId = ExtractKlientMeldingId();
         }
 
-        private void ExtractKlientMeldingId()
+        private Guid ExtractKlientMeldingId()
         {
             if (Headere != null && Headere.ContainsKey(headerKlientMeldingId))
             {
-                try
+                if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
                 {
-                    KlientMeldingId = Guid.Parse(Headere[headerKlientMeldingId]);
+                    return Guid.Empty;
                 }
-                catch (Exception e)
+
+                if (Guid.TryParse(Headere[headerKlientMeldingId], out var id))
                 {
-                    KlientMeldingId = Guid.Empty;
+                    return id;
                 }
             }
+
+            return Guid.Empty;
         }
 
         public bool HasPayload { get; }
