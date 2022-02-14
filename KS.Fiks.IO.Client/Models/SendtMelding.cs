@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using KS.Fiks.IO.Send.Client.Models;
-using Microsoft.Extensions.Logging;
 
 namespace KS.Fiks.IO.Client.Models
 {
     public class SendtMelding : MeldingBase
     {
-        private static readonly ILogger Logger;
-
         public static SendtMelding FromSentMessageApiModel(SendtMeldingApiModel sendtMeldingApiModel)
         {
             Guid? klientMeldingId = null;
@@ -20,7 +17,6 @@ namespace KS.Fiks.IO.Client.Models
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError("Kunne ikke parse KlientMeldingId funnet i header til guid. KlientMeldingId: {KlientMeldingId}", sendtMeldingApiModel.Headere[headerKlientMeldingId]);
                     klientMeldingId = Guid.Empty;
                 }
             }
