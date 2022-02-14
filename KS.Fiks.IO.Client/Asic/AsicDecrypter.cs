@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using KS.Fiks.ASiC_E;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Exceptions;
+using KS.Fiks.IO.Client.Models;
 
 namespace KS.Fiks.IO.Client.Asic
 {
@@ -42,6 +46,33 @@ namespace KS.Fiks.IO.Client.Asic
             {
                 throw new FiksIODecryptionException("Unable to decrypt melding. Is your private key correct?", ex);
             }
+        }
+
+        public async Task<IEnumerable<IPayload>> DecryptAndExtractPayloads(Task<Stream> encryptedZipStream)
+        {
+            var payloads = new List<StreamPayload>();
+
+            using (var stream = await Decrypt(encryptedZipStream).ConfigureAwait(false))
+            {
+                var asiceReader = new AsiceReader().Read(stream);
+
+                foreach (var entry in asiceReader.Entries)
+                {
+                    using (var entryStream = entry.OpenStream())
+                    {
+
+                        var memoryStream = new MemoryStream();
+
+                        await entryStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+
+                        var payload = new StreamPayload(memoryStream, entry.FileName);
+
+                        payloads.Add(payload);
+                    }
+                }
+            }
+
+            return payloads;
         }
     }
 }

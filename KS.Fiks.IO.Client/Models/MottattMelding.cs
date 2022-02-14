@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
@@ -11,6 +12,8 @@ namespace KS.Fiks.IO.Client.Models
         private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
+
+        private IEnumerable<IPayload> _payloads;
 
         internal MottattMelding(
             bool hasPayload,
@@ -57,5 +60,7 @@ namespace KS.Fiks.IO.Client.Models
         {
             await _decrypter.WriteDecrypted(_streamProvider(), outPath).ConfigureAwait(false);
         }
+
+        public Task<IEnumerable<IPayload>> DecryptedPayloads => _decrypter.DecryptAndExtractPayloads(_streamProvider());
     }
 }
