@@ -32,6 +32,7 @@ namespace KS.Fiks.IO.Client.Models
 
         private Guid ExtractKlientMeldingId()
         {
+            var parsed = Guid.Empty;
             if (Headere != null && Headere.ContainsKey(headerKlientMeldingId))
             {
                 if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
@@ -39,13 +40,13 @@ namespace KS.Fiks.IO.Client.Models
                     return Guid.Empty;
                 }
 
-                if (Guid.TryParse(Headere[headerKlientMeldingId], out var id))
+                if (Guid.TryParse(Headere[headerKlientMeldingId], out parsed))
                 {
-                    return id;
+                    return parsed;
                 }
             }
 
-            return Guid.Empty;
+            return parsed;
         }
 
         public bool HasPayload { get; }
