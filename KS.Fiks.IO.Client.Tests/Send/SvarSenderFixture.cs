@@ -64,14 +64,13 @@ namespace KS.Fiks.IO.Client.Tests.Send
         internal SvarSender CreateSut()
         {
             SetupMocks();
-            return new SvarSender(SendHandlerMock.Object, _mottattMelding,
-                new AmqpAcknowledgeManager(_ack, _nack, _nackWithRequeue));
+            return new SvarSender(SendHandlerMock.Object, _mottattMelding, new AmqpAcknowledgeManager(_ack, _nack, _nackWithRequeue));
         }
 
         private void SetupMocks()
         {
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IPayload[]>()))
-                .ReturnsAsync(new SendtMelding(Guid.NewGuid(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
+                .ReturnsAsync(new SendtMelding(Guid.NewGuid(), Guid.NewGuid(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, null));
         }
     }

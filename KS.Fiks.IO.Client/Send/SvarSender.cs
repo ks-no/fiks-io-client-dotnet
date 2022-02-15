@@ -22,32 +22,32 @@ namespace KS.Fiks.IO.Client.Send
             _amqpAcknowledgeManager = amqpAcknowledgeManager;
         }
 
-        public async Task<SendtMelding> Svar(string meldingType, IList<IPayload> payloads)
+        public async Task<SendtMelding> Svar(string meldingType, IList<IPayload> payloads, Guid? klientMeldingId = default)
         {
-            return await _sendHandler.Send(CreateMessageRequest(meldingType), payloads).ConfigureAwait(false);
+            return await _sendHandler.Send(CreateMessageRequest(meldingType, klientMeldingId), payloads).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Svar(string meldingType, Stream melding, string filnavn)
+        public async Task<SendtMelding> Svar(string meldingType, Stream melding, string filnavn, Guid? klientMeldingId = default)
         {
-            return await Reply(meldingType, new StreamPayload(melding, filnavn))
+            return await Reply(meldingType, new StreamPayload(melding, filnavn), klientMeldingId)
                 .ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Svar(string meldingType, string melding, string filnavn)
+        public async Task<SendtMelding> Svar(string meldingType, string melding, string filnavn, Guid? klientMeldingId = default)
         {
-            return await Reply(meldingType, new StringPayload(melding, filnavn))
+            return await Reply(meldingType, new StringPayload(melding, filnavn), klientMeldingId)
                 .ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Svar(string meldingType, string filLokasjon)
+        public async Task<SendtMelding> Svar(string meldingType, string filLokasjon, Guid? klientMeldingId = default)
         {
-            return await Reply(meldingType, new FilePayload(filLokasjon))
+            return await Reply(meldingType, new FilePayload(filLokasjon), klientMeldingId)
                 .ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Svar(string meldingType)
+        public async Task<SendtMelding> Svar(string meldingType, Guid? klientMeldingId = default)
         {
-            return await Svar(meldingType, new List<IPayload>())
+            return await Svar(meldingType, new List<IPayload>(), klientMeldingId)
                 .ConfigureAwait(false);
         }
 
@@ -66,16 +66,17 @@ namespace KS.Fiks.IO.Client.Send
             this._amqpAcknowledgeManager.NackWithRequeue().Invoke();
         }
 
-        private async Task<SendtMelding> Reply(string messageType, IPayload payload)
+        private async Task<SendtMelding> Reply(string messageType, IPayload payload, Guid? klientMeldingId)
         {
-            return await Svar(messageType, new List<IPayload> {payload}).ConfigureAwait(false);
+            return await Svar(messageType, new List<IPayload> {payload}, klientMeldingId).ConfigureAwait(false);
         }
 
-        private MeldingRequest CreateMessageRequest(string messageType)
+        private MeldingRequest CreateMessageRequest(string messageType, Guid? klientMeldingId)
         {
             return new MeldingRequest(
                 avsenderKontoId: _mottattMelding.MottakerKontoId,
                 mottakerKontoId: _mottattMelding.AvsenderKontoId,
+                klientMeldingId: klientMeldingId,
                 meldingType: messageType,
                 ttl: null,
                 headere: null,

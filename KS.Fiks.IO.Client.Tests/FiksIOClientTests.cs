@@ -154,6 +154,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var expectedMessage = new SendtMelding(
                 meldingId: Guid.NewGuid(),
+                Guid.NewGuid(),
                 meldingType: "msgType",
                 avsenderKontoId: Guid.NewGuid(),
                 mottakerKontoId: Guid.NewGuid(),

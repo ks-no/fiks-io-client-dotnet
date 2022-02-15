@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Models
 {
     public abstract class MeldingBase : IMelding
     {
+        public const string headerKlientMeldingId = "klientMeldingId";
+
         protected MeldingBase()
         {
         }
 
         protected MeldingBase(
             Guid meldingId,
+            Guid? klientMeldingId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
@@ -21,6 +23,7 @@ namespace KS.Fiks.IO.Client.Models
             Guid? svarPaMelding = null)
         {
             MeldingId = meldingId;
+            KlientMeldingId = klientMeldingId;
             MeldingType = meldingType;
             AvsenderKontoId = avsenderKontoId;
             MottakerKontoId = mottakerKontoId;
@@ -33,6 +36,7 @@ namespace KS.Fiks.IO.Client.Models
         protected MeldingBase(IMelding melding)
         {
             MeldingId = melding.MeldingId;
+            KlientMeldingId = melding.KlientMeldingId;
             MeldingType = melding.MeldingType;
             AvsenderKontoId = melding.AvsenderKontoId;
             MottakerKontoId = melding.MottakerKontoId;
@@ -42,6 +46,8 @@ namespace KS.Fiks.IO.Client.Models
         }
 
         public Guid MeldingId { get; protected set; }
+
+        public Guid? KlientMeldingId { get; protected set; }
 
         public string MeldingType { get; protected set; }
 

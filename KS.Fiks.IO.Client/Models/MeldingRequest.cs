@@ -14,10 +14,12 @@ namespace KS.Fiks.IO.Client.Models
             string meldingType,
             TimeSpan? ttl = null,
             Dictionary<string, string> headere = null,
-            Guid? svarPaMelding = null)
+            Guid? svarPaMelding = null,
+            Guid? klientMeldingId = null)
         : base(
             meldingId: Guid.Empty,
             meldingType: meldingType,
+            klientMeldingId: klientMeldingId,
             avsenderKontoId: avsenderKontoId,
             mottakerKontoId: mottakerKontoId,
             ttl: ttl ?? TimeSpan.FromDays(DefaultTtlInDays),
@@ -28,6 +30,11 @@ namespace KS.Fiks.IO.Client.Models
 
         public MeldingSpesifikasjonApiModel ToApiModel()
         {
+            if (KlientMeldingId != null && KlientMeldingId != Guid.Empty)
+            {
+                Headere.Add(headerKlientMeldingId, KlientMeldingId.ToString());
+            }
+
             return new MeldingSpesifikasjonApiModel(
                 avsenderKontoId: AvsenderKontoId,
                 mottakerKontoId: MottakerKontoId,

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using KS.Fiks.ASiC_E;
-using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
 
@@ -14,6 +12,7 @@ namespace KS.Fiks.IO.Client.Models
         private readonly Func<Task<Stream>> _streamProvider;
         private readonly IAsicDecrypter _decrypter;
         private readonly IFileWriter _fileWriter;
+
         private IEnumerable<IPayload> _payloads;
 
         internal MottattMelding(
@@ -28,6 +27,23 @@ namespace KS.Fiks.IO.Client.Models
             _streamProvider = streamProvider;
             _decrypter = decrypter;
             _fileWriter = fileWriter;
+            KlientMeldingId = ExtractKlientMeldingId();
+        }
+
+        private Guid? ExtractKlientMeldingId()
+        {
+            if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
+            {
+                return null;
+            }
+
+            var parsed = Guid.Empty;
+            if (Guid.TryParse(Headere[headerKlientMeldingId], out parsed))
+            {
+                return parsed;
+            }
+
+            return parsed;
         }
 
         public bool HasPayload { get; }

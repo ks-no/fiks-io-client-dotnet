@@ -8,8 +8,22 @@ namespace KS.Fiks.IO.Client.Models
     {
         public static SendtMelding FromSentMessageApiModel(SendtMeldingApiModel sendtMeldingApiModel)
         {
+            Guid? klientMeldingId = null;
+            if (sendtMeldingApiModel.Headere != null && sendtMeldingApiModel.Headere.ContainsKey(headerKlientMeldingId))
+            {
+                try
+                {
+                    klientMeldingId = Guid.Parse(sendtMeldingApiModel.Headere[headerKlientMeldingId]);
+                }
+                catch (Exception e)
+                {
+                    klientMeldingId = Guid.Empty;
+                }
+            }
+
             return new SendtMelding(
                 sendtMeldingApiModel.MeldingId,
+                klientMeldingId,
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
@@ -20,13 +34,14 @@ namespace KS.Fiks.IO.Client.Models
 
         internal SendtMelding(
             Guid meldingId,
+            Guid? klientMeldingId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
             TimeSpan ttl,
             Dictionary<string, string> headere,
             Guid? svarPaMelding=null)
-            : base(meldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
+            : base(meldingId, klientMeldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
         {
         }
     }
