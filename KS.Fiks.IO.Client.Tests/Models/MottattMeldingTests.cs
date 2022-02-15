@@ -42,7 +42,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
                 new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, null), null, null, null);
 
-            mottattMelding.KlientMeldingId.Should().Be(Guid.Empty);
+            mottattMelding.KlientMeldingId.Should().BeNull();
         }
     }
 }

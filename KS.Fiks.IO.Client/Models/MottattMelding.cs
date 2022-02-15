@@ -30,20 +30,17 @@ namespace KS.Fiks.IO.Client.Models
             KlientMeldingId = ExtractKlientMeldingId();
         }
 
-        private Guid ExtractKlientMeldingId()
+        private Guid? ExtractKlientMeldingId()
         {
-            var parsed = Guid.Empty;
-            if (Headere != null && Headere.ContainsKey(headerKlientMeldingId))
+            if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
             {
-                if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
-                {
-                    return Guid.Empty;
-                }
+                return null;
+            }
 
-                if (Guid.TryParse(Headere[headerKlientMeldingId], out parsed))
-                {
-                    return parsed;
-                }
+            var parsed = Guid.Empty;
+            if (Guid.TryParse(Headere[headerKlientMeldingId], out parsed))
+            {
+                return parsed;
             }
 
             return parsed;

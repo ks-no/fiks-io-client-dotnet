@@ -29,7 +29,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         }
 
         [Fact]
-        public void FromSentMessageApiModelWithEmptyHeadereDictionary()
+        public void FromSentMessageApiModelWithEmptyHeadereDictionaryKlientMeldingShouldBeNull()
         {
             var result = SendtMelding.FromSentMessageApiModel(
                 new SendtMeldingApiModel()
