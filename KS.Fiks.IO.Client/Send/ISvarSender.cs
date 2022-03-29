@@ -16,7 +16,7 @@ namespace KS.Fiks.IO.Client.Send
 
         Task<SendtMelding> Svar(string meldingType, string filLokasjon, Guid? klientMeldingId = default);
 
-        Task<SendtMelding> Svar(string meldingType, Guid? klientMeldingId);
+        Task<SendtMelding> Svar(string meldingType, Guid? klientMeldingId = default);
 
         /**
          * Acknowledges that the message has been consumed
