@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace KS.Fiks.IO.Client.Models.Feilmelding
 {
-    public class IkkeFunnet : FeilmeldingBase
+    public class Ikkefunnet : FeilmeldingBase
     {
     }
 }
