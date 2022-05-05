@@ -4,5 +4,6 @@ namespace KS.Fiks.IO.Client.Models.Feilmelding
     {
         public const string Ugyldigforespørsel = "no.ks.fiks.kvittering.ugyldigforespoersel.v1";
         public const string Serverfeil = "no.ks.fiks.kvittering.serverfeil.v1";
+        public const string IkkeFunnet = "no.ks.fiks.kvittering.ikke.funnet.v1";
     }
 }
