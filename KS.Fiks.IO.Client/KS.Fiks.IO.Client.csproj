@@ -39,6 +39,11 @@
     </ItemGroup>
     <ItemGroup>
         <None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
+        <Content Include="Schema\no.ks.fiks.kvittering.ikkefunnet.v1.schema.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+          <Pack>true</Pack>
+          <PackageCopyToOutput>true</PackageCopyToOutput>
+        </Content>
         <Content Include="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <Pack>true</Pack>

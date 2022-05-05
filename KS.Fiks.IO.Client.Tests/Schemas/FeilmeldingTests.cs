@@ -45,7 +45,7 @@ namespace KS.Fiks.IO.Client.Tests.Schemas
             };
             Assert.False(JsonValidates(JsonConvert.SerializeObject(serverFeil), $@"./Schema/{FeilmeldingMeldingTypeV1.Serverfeil}.schema.json"));
         }
-        
+
         [Fact]
         public void TestUgyldigforespørselModelValidateWithSchema_Ok()
         {
@@ -79,6 +79,41 @@ namespace KS.Fiks.IO.Client.Tests.Schemas
                 feilmelding = "testFeilmelding"
             };
             Assert.False(JsonValidates(JsonConvert.SerializeObject(serverFeil), $@"./Schema/{FeilmeldingMeldingTypeV1.Ugyldigforespørsel}.schema.json"));
+        }
+
+        [Fact]
+        public void TestIkkefunnetlModelValidateWithSchema_Ok()
+        {
+            var serverFeil = new Ikkefunnet()
+            {
+                CorrelationId = "testCorrelationId",
+                ErrorId = "testErrorId",
+                Feilmelding = "testFeilmelding"
+            };
+            Assert.True(JsonValidates(JsonConvert.SerializeObject(serverFeil), $@"./Schema/{FeilmeldingMeldingTypeV1.Ikkefunnet}.schema.json"));
+        }
+
+        [Fact]
+        public void TestIkkefunnetModelValidateWithSchema_Wrong_Datatype_Fail()
+        {
+            var serverFeil = new
+            {
+                correlationId = "testCorrelationId",
+                errorId = -2,
+                feilmelding = "testFeilmelding"
+            };
+            Assert.False(JsonValidates(JsonConvert.SerializeObject(serverFeil), $@"./Schema/{FeilmeldingMeldingTypeV1.Ikkefunnet}.schema.json"));
+        }
+
+        [Fact]
+        public void TestIkkefunnetModelValidateWithSchema_Missing_Property_Fail()
+        {
+            var serverFeil = new
+            {
+                correlationId = "testCorrelationId",
+                feilmelding = "testFeilmelding"
+            };
+            Assert.False(JsonValidates(JsonConvert.SerializeObject(serverFeil), $@"./Schema/{FeilmeldingMeldingTypeV1.Ikkefunnet}.schema.json"));
         }
 
         private static bool JsonValidates(string jsonString, string pathToSchema)
