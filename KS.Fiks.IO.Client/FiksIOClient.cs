@@ -36,9 +36,8 @@ namespace KS.Fiks.IO.Client
         public FiksIOClient(
             FiksIOConfiguration configuration,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null,
-            IConnectionFactory connectionFactory = null)
-            : this(configuration, null, null, null, null, null, httpClient, publicKeyProvider, connectionFactory)
+            IPublicKeyProvider publicKeyProvider = null)
+            : this(configuration, null, null, null, null, null, httpClient, publicKeyProvider)
         {
         }
 
@@ -50,8 +49,7 @@ namespace KS.Fiks.IO.Client
             IDokumentlagerHandler dokumentlagerHandler = null,
             IAmqpHandler amqpHandler = null,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null,
-            IConnectionFactory connectionFactory = null)
+            IPublicKeyProvider publicKeyProvider = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -89,8 +87,7 @@ namespace KS.Fiks.IO.Client
                                _dokumentlagerHandler,
                                configuration.AmqpConfiguration,
                                configuration.IntegrasjonConfiguration,
-                               configuration.KontoConfiguration,
-                               connectionFactory);
+                               configuration.KontoConfiguration);
         }
 
         public Guid KontoId { get; }
