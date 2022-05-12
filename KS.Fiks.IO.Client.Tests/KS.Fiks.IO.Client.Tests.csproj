@@ -17,7 +17,7 @@
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.3" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.8" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.1" />
-        <PackageReference Include="Moq" Version="4.17.2" />
+        <PackageReference Include="Moq" Version="4.18.0" />
         <PackageReference Include="Newtonsoft.Json" Version="[11.0.1, 13.0.1]" />
         <PackageReference Include="Newtonsoft.Json.Schema" Version="2.0.13" />
         <PackageReference Include="RabbitMQ.Client" Version="6.3.0" />
