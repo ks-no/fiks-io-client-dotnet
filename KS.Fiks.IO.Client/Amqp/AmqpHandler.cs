@@ -15,19 +15,21 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private readonly IModel channel;
+        private readonly IConnection _connection;
 
-        private readonly IAmqpConsumerFactory amqpConsumerFactory;
+        private readonly IModel _channel;
 
-        private readonly IConnectionFactory connectionFactory;
+        private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
-        private readonly KontoConfiguration kontoConfiguration;
+        private readonly IConnectionFactory _connectionFactory;
 
-        private readonly IMaskinportenClient maskinportenClient;
+        private readonly KontoConfiguration _kontoConfiguration;
 
-        private readonly SslOption sslOption;
+        private readonly IMaskinportenClient _maskinportenClient;
 
-        private IAmqpReceiveConsumer receiveConsumer;
+        private readonly SslOption _sslOption;
+
+        private IAmqpReceiveConsumer _receiveConsumer;
 
         internal AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -39,29 +41,30 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            this.sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            this.maskinportenClient = maskinportenClient;
-            this.kontoConfiguration = kontoConfiguration;
-            this.connectionFactory = connectionFactory ?? new ConnectionFactory();
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            _maskinportenClient = maskinportenClient;
+            _kontoConfiguration = kontoConfiguration;
+            _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrasjonConfiguration);
-            this.channel = ConnectToChannel(amqpConfiguration);
-            this.amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, this.kontoConfiguration);
+            _connection = CreateConnection(amqpConfiguration);
+            _channel = ConnectToChannel();
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
         }
 
         public void AddMessageReceivedHandler(
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
-            if (this.receiveConsumer == null)
+            if (_receiveConsumer == null)
             {
-                this.receiveConsumer = this.amqpConsumerFactory.CreateReceiveConsumer(this.channel);
+                _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
             }
 
-            this.receiveConsumer.Received += receivedEvent;
+            _receiveConsumer.Received += receivedEvent;
 
-            this.receiveConsumer.ConsumerCancelled += cancelledEvent;
+            _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
-            this.channel.BasicConsume(this.receiveConsumer, GetQueueName());
+            _channel.BasicConsume(_receiveConsumer, GetQueueName());
         }
 
         public void Dispose()
@@ -74,16 +77,16 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (disposing)
             {
-                this.channel?.Dispose();
+                _channel.Dispose();
+                _connection.Dispose();
             }
         }
 
-        private IModel ConnectToChannel(AmqpConfiguration configuration)
+        private IModel ConnectToChannel()
         {
-            var connection = CreateConnection(configuration);
             try
             {
-                return connection.CreateModel();
+                return _connection.CreateModel();
             }
             catch (Exception ex)
             {
@@ -95,12 +98,12 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, this.sslOption);
-                return this.connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
+                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
             }
             catch (Exception ex)
             {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{this.connectionFactory.UserName}; SslOption.Enabled: {this.sslOption?.Enabled};SslOption.ServerName: {this.sslOption?.ServerName}", ex);
+                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
             }
         }
 
@@ -108,9 +111,9 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                var maskinportenToken = this.maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
-                this.connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
-                this.connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
+                var maskinportenToken = _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
+                _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
+                _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
             catch (AggregateException ex)
             {
@@ -120,7 +123,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private string GetQueueName()
         {
-            return $"{QueuePrefix}{this.kontoConfiguration.KontoId}";
+            return $"{QueuePrefix}{_kontoConfiguration.KontoId}";
         }
     }
 }
