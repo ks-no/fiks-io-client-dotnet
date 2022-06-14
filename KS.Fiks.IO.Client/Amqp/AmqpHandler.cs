@@ -77,8 +77,8 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (disposing)
             {
-                _channel?.Dispose();
-                _connection?.Dispose();
+                _channel.Dispose();
+                _connection.Dispose();
             }
         }
 
