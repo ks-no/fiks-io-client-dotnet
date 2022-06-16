@@ -87,7 +87,7 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var channel = _connection.CreateModel();
-                channel.BasicQos(0, configuration.PrefetchCount, true);
+                channel.BasicQos(0, configuration.PrefetchCount, false);
                 return channel;
             }
             catch (Exception ex)
