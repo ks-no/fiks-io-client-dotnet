@@ -47,7 +47,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             SetupConnectionFactory(integrasjonConfiguration);
             _connection = CreateConnection(amqpConfiguration);
-            _channel = ConnectToChannel();
+            _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
         }
 
@@ -82,12 +82,12 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private IModel ConnectToChannel()
+        private IModel ConnectToChannel(AmqpConfiguration configuration)
         {
             try
             {
                 var channel = _connection.CreateModel();
-                channel.BasicQos(10, 10, true);
+                channel.BasicQos((uint) configuration.PrefetchSize, (ushort) configuration.PrefetchSize, true);
                 return channel;
             }
             catch (Exception ex)
@@ -101,7 +101,7 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint});
+                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint}, configuration.ApplicationName);
             }
             catch (Exception ex)
             {
