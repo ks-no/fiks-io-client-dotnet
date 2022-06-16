@@ -101,12 +101,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             if (_connectionFactoryShouldThrow)
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()))
+                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()))
                                      .Throws<ProtocolViolationException>();
             }
             else
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()))
+                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()))
                                      .Returns(ConnectionMock.Object);
             }
 

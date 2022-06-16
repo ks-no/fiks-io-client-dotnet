@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+        <OutputType>Library</OutputType>
+        <LangVersion>8</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
     <PropertyGroup>
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
@@ -18,14 +20,14 @@
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.8" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.1" />
         <PackageReference Include="Moq" Version="4.17.2" />
+        <PackageReference Include="more.xunit.runner.visualstudio" Version="2.3.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="[11.0.1, 13.0.1]" />
         <PackageReference Include="Newtonsoft.Json.Schema" Version="2.0.13" />
         <PackageReference Include="RabbitMQ.Client" Version="6.3.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
     </ItemGroup>
 

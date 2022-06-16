@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var sut = _fixture.CreateSut();
 
-            _fixture.ConnectionFactoryMock.Verify(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>()), Times.Once);
+            _fixture.ConnectionFactoryMock.Verify(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()), Times.Once);
             _fixture.ConnectionMock.Verify(_ => _.CreateModel(), Times.Once);
         }
 
