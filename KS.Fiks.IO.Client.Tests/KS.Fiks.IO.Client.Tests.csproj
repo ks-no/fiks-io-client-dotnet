@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+        <OutputType>Library</OutputType>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
     <PropertyGroup>
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>

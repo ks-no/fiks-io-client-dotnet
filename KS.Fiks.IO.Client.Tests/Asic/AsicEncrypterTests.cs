@@ -66,8 +66,8 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
             var outStream = sut.Encrypt(null, new List<IPayload> {payload});
 
-            var outStreamBytes = new byte[outStream.Length];
-            outStream.Read(outStreamBytes);
+            using var streamReader = new BinaryReader(outStream);
+            var outStreamBytes = streamReader.ReadBytes((int) outStream.Length);
             var outputAsString = Encoding.UTF8.GetString(outStreamBytes);
 
             outputAsString.Should().Be(expectedOutputString);

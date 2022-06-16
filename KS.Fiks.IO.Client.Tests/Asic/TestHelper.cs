@@ -12,8 +12,8 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
         private static byte[] ReadStream(Stream stream)
         {
-            var outBytes = new byte[stream.Length];
-            stream.Read(outBytes);
+            using var reader = new BinaryReader(stream);
+            var outBytes = reader.ReadBytes((int) stream.Length);
             stream.Seek(0L, SeekOrigin.Begin);
             return outBytes;
         }
