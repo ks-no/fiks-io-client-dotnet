@@ -5,7 +5,7 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class AmqpConfiguration
     {
-        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", int prefetchSize = 10)
+        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10)
         {
             Host = host;
             Port = port;
@@ -16,7 +16,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 CertificateValidationCallback = (sender, certificate, chain, errors) => errors == SslPolicyErrors.None
             };
             ApplicationName = applicationName;
-            PrefetchSize = prefetchSize;
+            PrefetchCount = prefetchCount;
         }
 
         public string Host { get; }
@@ -33,7 +33,7 @@ namespace KS.Fiks.IO.Client.Configuration
         /**
          * Hvor mange meldinger skal buffres i klienten når man lytter på nye meldinger? Tilsvarer AMQP Qos/Prefetch størrelse.
          */
-        public int PrefetchSize { get; }
+        public ushort PrefetchCount { get; }
         
         public static AmqpConfiguration CreateProdConfiguration()
         {
