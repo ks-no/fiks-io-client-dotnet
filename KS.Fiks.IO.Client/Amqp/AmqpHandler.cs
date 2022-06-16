@@ -86,7 +86,9 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                return _connection.CreateModel();
+                var channel = _connection.CreateModel();
+                channel.BasicQos(10, 10, true);
+                return channel;
             }
             catch (Exception ex)
             {
