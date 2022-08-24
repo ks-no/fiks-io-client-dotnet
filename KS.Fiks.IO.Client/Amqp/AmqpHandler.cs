@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
@@ -45,7 +46,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _maskinportenClient = maskinportenClient;
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
-            SetupConnectionFactory(integrasjonConfiguration);
+            SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
@@ -109,11 +110,11 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
+        private async Task SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
         {
             try
             {
-                var maskinportenToken = _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
+                var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope);
                 _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
                 _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
