@@ -118,7 +118,7 @@ namespace KS.Fiks.IO.Client.Amqp
                 _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
                 _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
             }
