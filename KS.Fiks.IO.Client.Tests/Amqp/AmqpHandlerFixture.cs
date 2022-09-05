@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -91,6 +92,23 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                      new KontoConfiguration(_accountId, "dummy"),
                      ConnectionFactoryMock.Object,
                      AmqpConsumerFactoryMock.Object).Result;
+
+            return amqpHandler;
+        }
+
+        internal Task<IAmqpHandler> CreateSutAsync()
+        {
+            SetupMocks();
+            var amqpConfiguration = CreateConfiguration();
+            var amqpHandler = AmqpHandler.CreateAsync(
+                MaskinportenClientMock.Object,
+                SendHandlerMock.Object,
+                DokumentlagerHandlerMock.Object,
+                amqpConfiguration,
+                CreateIntegrationConfiguration(),
+                new KontoConfiguration(_accountId, "dummy"),
+                ConnectionFactoryMock.Object,
+                AmqpConsumerFactoryMock.Object);
 
             return amqpHandler;
         }
