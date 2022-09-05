@@ -12,7 +12,7 @@ namespace ExampleApplication
 {
     class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             // Relative or absolute path to the *.p12-file containing the test certificate used to sign tokens for Maskinporten
             var p12Filename = Environment.GetEnvironmentVariable("P12FILENAME");

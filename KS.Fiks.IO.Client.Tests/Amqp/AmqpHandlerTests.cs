@@ -31,15 +31,17 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         [Fact]
         public void ThrowsExceptionWhenConnectionFactoryThrows()
         {
-            Assert.Throws<FiksIOAmqpConnectionFailedException>(() =>
+            var exception = Assert.Throws<AggregateException>(() =>
                 _fixture.WhereConnectionfactoryThrowsException().CreateSut());
+            Assert.True(exception.InnerException.GetType() == typeof(FiksIOAmqpConnectionFailedException));
         }
 
         [Fact]
         public void ThrowsExceptionWhenConnectionThrows()
         {
-            Assert.Throws<FiksIOAmqpConnectionFailedException>(() =>
+            var exception = Assert.Throws<AggregateException>(() =>
                 _fixture.WhereConnectionThrowsException().CreateSut());
+            Assert.True(exception.InnerException.GetType() == typeof(FiksIOAmqpConnectionFailedException));
         }
 
         [Fact]

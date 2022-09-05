@@ -13,9 +13,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 {
     public class AmqpHandlerFixture
     {
-        private bool _connectionFactoryShouldThrow = false;
-        private bool _connectionShouldThrow = false;
         private readonly Guid _accountId = Guid.NewGuid();
+        private bool _connectionFactoryShouldThrow;
+        private bool _connectionShouldThrow;
         private string _token = "testtoken";
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";
@@ -82,16 +82,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             SetupMocks();
             var amqpConfiguration = CreateConfiguration();
-            // var amqpHandler = new AmqpHandler(
-            //     MaskinportenClientMock.Object,
-            //     SendHandlerMock.Object,
-            //     DokumentlagerHandlerMock.Object,
-            //     amqpConfiguration,
-            //     new KontoConfiguration(_accountId, "dummy"),
-            //     ConnectionFactoryMock.Object,
-            //     AmqpConsumerFactoryMock.Object);
-            //
-            // amqpHandler.SetupConnectionAndConnect(CreateIntegrationConfiguration(), amqpConfiguration);
             var amqpHandler = AmqpHandler.CreateAsync(
                     MaskinportenClientMock.Object,
                      SendHandlerMock.Object,
@@ -101,7 +91,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                      new KontoConfiguration(_accountId, "dummy"),
                      ConnectionFactoryMock.Object,
                      AmqpConsumerFactoryMock.Object).Result;
-                
 
             return amqpHandler;
         }
