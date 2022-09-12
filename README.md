@@ -16,7 +16,7 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 ## Examples
 ### Sending message
 ```c#
-var client = new FiksIOClient(configuration); // See setup of configuration below
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 meldingRequest = new MeldingRequest(
                             avsenderKontoId: senderId, // Sender id as Guid
                             mottakerKontoId: receiverId, // Receiver id as Guid
@@ -40,7 +40,7 @@ await client.Send(meldingRequest);
 #### Write zip to file
 
 ```c#
-var client = new FiksIOClient(configuration); // See setup of configuration below
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
@@ -56,7 +56,7 @@ client.NewSubscription(onReceived);
 
 #### Process archive as stream
 ```c#
-var client = new FiksIOClient(configuration); // See setup of configuration below
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
@@ -75,7 +75,7 @@ client.NewSubscription(onReceived);
 #### Reply to message
 You can reply directly to a message using the ReplySender.
 ```c#
-var client = new FiksIOClient(configuration); // See setup of configuration below
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
                 {
@@ -91,7 +91,7 @@ client.NewSubscription(onReceived);
 Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
 
 ```c#
-var client = new FiksIOClient(configuration); // See setup of configuration below
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var request = new LookupRequest(
     identifikator: "ORG_NO.987654321",
