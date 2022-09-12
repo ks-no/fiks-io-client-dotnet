@@ -93,16 +93,6 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        private  async Task initializeAsync(FiksIOConfiguration configuration)
-        {
-            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
-                _sendHandler,
-                _dokumentlagerHandler,
-                configuration.AmqpConfiguration,
-                configuration.IntegrasjonConfiguration,
-                configuration.KontoConfiguration);
-        } 
-        
         internal static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
@@ -125,6 +115,16 @@ namespace KS.Fiks.IO.Client
             client.initializeAsync(configuration);
 
             return client;
+        }
+
+        private  async Task initializeAsync(FiksIOConfiguration configuration)
+        {
+            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
+                _sendHandler,
+                _dokumentlagerHandler,
+                configuration.AmqpConfiguration,
+                configuration.IntegrasjonConfiguration,
+                configuration.KontoConfiguration);
         }
 
         public Guid KontoId { get; }
