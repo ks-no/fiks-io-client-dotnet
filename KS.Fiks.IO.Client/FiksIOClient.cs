@@ -88,7 +88,7 @@ namespace KS.Fiks.IO.Client
         public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, httpClient, publicKeyProvider);
-            client.initializeAsync(configuration);
+            client.InitializeAsync(configuration);
 
             return client;
         }
@@ -112,12 +112,12 @@ namespace KS.Fiks.IO.Client
                 httpClient, 
                 publicKeyProvider);
 
-            client.initializeAsync(configuration);
+            client.InitializeAsync(configuration);
 
             return client;
         }
 
-        private  async Task initializeAsync(FiksIOConfiguration configuration)
+        private  async Task InitializeAsync(FiksIOConfiguration configuration)
         {
             _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
                 _sendHandler,
