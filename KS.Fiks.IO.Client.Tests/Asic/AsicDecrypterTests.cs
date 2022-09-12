@@ -37,7 +37,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
             var sut = _fixture.WithDecryptedStream(decryptedStream).CreateSut();
             var stream = Task.FromResult((Stream)new MemoryStream());
             var result = await sut.Decrypt(stream).ConfigureAwait(false);
-            result.Should().Be(decryptedStream);
+            result.Should().BeSameAs(decryptedStream);
         }
 
         [Fact]
