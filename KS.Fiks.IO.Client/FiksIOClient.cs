@@ -88,7 +88,7 @@ namespace KS.Fiks.IO.Client
         public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, httpClient, publicKeyProvider);
-            client.InitializeAsync(configuration);
+            await client.InitializeAsync(configuration).ConfigureAwait(false);
 
             return client;
         }
@@ -112,7 +112,7 @@ namespace KS.Fiks.IO.Client
                 httpClient, 
                 publicKeyProvider);
 
-            client.InitializeAsync(configuration);
+            await client.InitializeAsync(configuration).ConfigureAwait(false);
 
             return client;
         }
