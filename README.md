@@ -15,7 +15,7 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 
 ## Examples
 ### Sending message
-```c#
+```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 meldingRequest = new MeldingRequest(
                             avsenderKontoId: senderId, // Sender id as Guid
@@ -39,7 +39,7 @@ await client.Send(meldingRequest);
 
 #### Write zip to file
 
-```c#
+```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
@@ -55,7 +55,7 @@ client.NewSubscription(onReceived);
 ```
 
 #### Process archive as stream
-```c#
+```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
@@ -74,7 +74,7 @@ client.NewSubscription(onReceived);
 
 #### Reply to message
 You can reply directly to a message using the ReplySender.
-```c#
+```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
@@ -90,7 +90,7 @@ client.NewSubscription(onReceived);
 ### Lookup
 Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
 
-```c#
+```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
 var request = new LookupRequest(
@@ -119,7 +119,7 @@ Content in file is expected value in `privateNokkel`, i.e.
 
 ```
 
-```c#
+```csharp
 // Prod config
 var config = FiksIOConfiguration.CreateProdConfiguration(
     integrasjonId: integrationId,
@@ -144,7 +144,7 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
 
 If necessary, all parameters of configuration can be set in detail.
 
-```c#
+```csharp
 // Fiks IO account configuration
 var kontoConfig = new KontoConfiguration(
                     kontoId: /* Fiks IO accountId as Guid */,
@@ -183,7 +183,7 @@ var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, mask
 By default when sending a message, the public key of the receiver will be fetched using the Catalog Api. If you instead 
 need to provide the public key by some other means, you can implement the IPublicKeyProvider interface, and inject it 
 when creating your client like this:
-```c#
+```csharp
 var client = new FiksIOClient(configuration, myPublicKeyProvider);
 ```
 
