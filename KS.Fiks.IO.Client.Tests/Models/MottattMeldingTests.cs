@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
-using KS.Fiks.IO.Send.Client.Models;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Models

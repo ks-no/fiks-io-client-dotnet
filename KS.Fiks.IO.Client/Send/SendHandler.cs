@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
@@ -8,7 +9,6 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
-using System.Net.Http;
 
 namespace KS.Fiks.IO.Client.Send
 {

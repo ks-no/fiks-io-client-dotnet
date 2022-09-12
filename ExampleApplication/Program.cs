@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
@@ -11,7 +12,7 @@ namespace ExampleApplication
 {
     class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             // Relative or absolute path to the *.p12-file containing the test certificate used to sign tokens for Maskinporten
             var p12Filename = Environment.GetEnvironmentVariable("P12FILENAME");
@@ -64,7 +65,7 @@ namespace ExampleApplication
             // Combine all configurations
             var configuration = new FiksIOConfiguration(kontoConfig, integrasjonConfig, maskinportenConfig, apiConfig,
                 amqpConfig);
-            using (var client = new FiksIOClient(configuration))
+            using (var client = await FiksIOClient.CreateAsync(configuration))
             {
                 var lookupTask = client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));
                 lookupTask.Wait(TimeSpan.FromSeconds(30));

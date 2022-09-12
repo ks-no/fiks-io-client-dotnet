@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -13,9 +14,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 {
     public class AmqpHandlerFixture
     {
-        private bool _connectionFactoryShouldThrow = false;
-        private bool _connectionShouldThrow = false;
-        private Guid _accountId = Guid.NewGuid();
+        private readonly Guid _accountId = Guid.NewGuid();
+        private bool _connectionFactoryShouldThrow;
+        private bool _connectionShouldThrow;
         private string _token = "testtoken";
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";
@@ -78,18 +79,38 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<ISendHandler> SendHandlerMock { get; }
 
-        internal AmqpHandler CreateSut()
+        internal IAmqpHandler CreateSut()
         {
             SetupMocks();
-            return new AmqpHandler(
+            var amqpConfiguration = CreateConfiguration();
+            var amqpHandler = AmqpHandler.CreateAsync(
+                    MaskinportenClientMock.Object,
+                     SendHandlerMock.Object,
+                     DokumentlagerHandlerMock.Object,
+                     amqpConfiguration,
+                     CreateIntegrationConfiguration(),
+                     new KontoConfiguration(_accountId, "dummy"),
+                     ConnectionFactoryMock.Object,
+                     AmqpConsumerFactoryMock.Object).Result;
+
+            return amqpHandler;
+        }
+
+        internal Task<IAmqpHandler> CreateSutAsync()
+        {
+            SetupMocks();
+            var amqpConfiguration = CreateConfiguration();
+            var amqpHandler = AmqpHandler.CreateAsync(
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
-                CreateConfiguration(),
+                amqpConfiguration,
                 CreateIntegrationConfiguration(),
                 new KontoConfiguration(_accountId, "dummy"),
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
+
+            return amqpHandler;
         }
 
         private static AmqpConfiguration CreateConfiguration()

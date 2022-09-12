@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
@@ -12,8 +13,6 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
 using RabbitMQ.Client.Events;
-using System.Net.Http;
-using RabbitMQ.Client;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7")]
 
@@ -25,15 +24,17 @@ namespace KS.Fiks.IO.Client
     {
         private readonly ICatalogHandler _catalogHandler;
 
-        private readonly ISendHandler _sendHandler;
+        private ISendHandler _sendHandler;
 
-        private readonly IAmqpHandler _amqpHandler;
+        private IAmqpHandler _amqpHandler;
 
-        private readonly IDokumentlagerHandler _dokumentlagerHandler;
+        private IDokumentlagerHandler _dokumentlagerHandler;
 
         private readonly IPublicKeyProvider _publicKeyProvider;
 
-        public FiksIOClient(
+        private IMaskinportenClient _maskinportenClient;
+
+        private FiksIOClient(
             FiksIOConfiguration configuration,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null)
@@ -41,7 +42,7 @@ namespace KS.Fiks.IO.Client
         {
         }
 
-        internal FiksIOClient(
+        private FiksIOClient(
             FiksIOConfiguration configuration,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
@@ -53,12 +54,12 @@ namespace KS.Fiks.IO.Client
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
-            maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
+            _maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
                                   configuration.KatalogConfiguration,
                                   configuration.IntegrasjonConfiguration,
-                                  maskinportenClient,
+                                  _maskinportenClient,
                                   httpClient);
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
@@ -68,7 +69,7 @@ namespace KS.Fiks.IO.Client
             _sendHandler = sendHandler ??
                            new SendHandler(
                                _catalogHandler,
-                               maskinportenClient,
+                               _maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
                                configuration.IntegrasjonConfiguration,
                                httpClient,
@@ -78,16 +79,52 @@ namespace KS.Fiks.IO.Client
             _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(
                 configuration.DokumentlagerConfiguration,
                 configuration.IntegrasjonConfiguration,
-                maskinportenClient,
+                _maskinportenClient,
                 httpClient: httpClient);
 
-            _amqpHandler = amqpHandler ?? new AmqpHandler(
-                               maskinportenClient,
-                               _sendHandler,
-                               _dokumentlagerHandler,
-                               configuration.AmqpConfiguration,
-                               configuration.IntegrasjonConfiguration,
-                               configuration.KontoConfiguration);
+            _amqpHandler = amqpHandler;
+        }
+
+        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
+        {
+            var client = new FiksIOClient(configuration, httpClient, publicKeyProvider);
+            await client.InitializeAsync(configuration).ConfigureAwait(false);
+
+            return client;
+        }
+
+        internal static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration,
+            ICatalogHandler catalogHandler = null,
+            IMaskinportenClient maskinportenClient = null,
+            ISendHandler sendHandler = null,
+            IDokumentlagerHandler dokumentlagerHandler = null,
+            IAmqpHandler amqpHandler = null,
+            HttpClient httpClient = null,
+            IPublicKeyProvider publicKeyProvider = null)
+        {
+            var client = new FiksIOClient(
+                configuration,
+                catalogHandler, 
+                maskinportenClient, 
+                sendHandler, 
+                dokumentlagerHandler, 
+                amqpHandler,
+                httpClient, 
+                publicKeyProvider);
+
+            await client.InitializeAsync(configuration).ConfigureAwait(false);
+
+            return client;
+        }
+
+        private  async Task InitializeAsync(FiksIOConfiguration configuration)
+        {
+            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
+                _sendHandler,
+                _dokumentlagerHandler,
+                configuration.AmqpConfiguration,
+                configuration.IntegrasjonConfiguration,
+                configuration.KontoConfiguration);
         }
 
         public Guid KontoId { get; }

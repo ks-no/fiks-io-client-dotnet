@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
@@ -15,10 +16,6 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private readonly IConnection _connection;
-
-        private readonly IModel _channel;
-
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
         private readonly IConnectionFactory _connectionFactory;
@@ -29,9 +26,29 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly SslOption _sslOption;
 
+        private IModel _channel;
+
+        private IConnection _connection;
+
         private IAmqpReceiveConsumer _receiveConsumer;
 
-        internal AmqpHandler(
+        private AmqpHandler(
+            IMaskinportenClient maskinportenClient,
+            ISendHandler sendHandler,
+            IDokumentlagerHandler dokumentlagerHandler,
+            AmqpConfiguration amqpConfiguration,
+            KontoConfiguration kontoConfiguration,
+            IConnectionFactory connectionFactory = null,
+            IAmqpConsumerFactory consumerFactory = null)
+        {
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            _maskinportenClient = maskinportenClient;
+            _kontoConfiguration = kontoConfiguration;
+            _connectionFactory = connectionFactory ?? new ConnectionFactory();
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
+        }
+
+        public static async Task<IAmqpHandler> CreateAsync(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
             IDokumentlagerHandler dokumentlagerHandler,
@@ -41,14 +58,10 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            _maskinportenClient = maskinportenClient;
-            _kontoConfiguration = kontoConfiguration;
-            _connectionFactory = connectionFactory ?? new ConnectionFactory();
-            SetupConnectionFactory(integrasjonConfiguration);
-            _connection = CreateConnection(amqpConfiguration);
-            _channel = ConnectToChannel(amqpConfiguration);
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, kontoConfiguration, connectionFactory, consumerFactory);
+
+            await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
+            return amqpHandler;
         }
 
         public void AddMessageReceivedHandler(
@@ -82,6 +95,13 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
+        internal async Task SetupConnectionAndConnect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
+        {
+            await SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
+            _connection = CreateConnection(amqpConfiguration);
+            _channel = ConnectToChannel(amqpConfiguration);
+        }
+
         private IModel ConnectToChannel(AmqpConfiguration configuration)
         {
             try
@@ -109,15 +129,15 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
+        private async Task SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
         {
             try
             {
-                var maskinportenToken = _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).Result;
+                var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).ConfigureAwait(false);
                 _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
                 _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
             }

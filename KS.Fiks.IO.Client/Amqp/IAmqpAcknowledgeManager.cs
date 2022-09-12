@@ -1,6 +1,4 @@
 using System;
-using System.Runtime.ConstrainedExecution;
-using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
