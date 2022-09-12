@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using Xunit;

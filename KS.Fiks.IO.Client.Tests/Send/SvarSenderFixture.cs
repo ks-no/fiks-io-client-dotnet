@@ -1,14 +1,12 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Moq;
-using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Tests.Send
 {
