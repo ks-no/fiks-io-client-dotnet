@@ -111,13 +111,13 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                if (!IsConnected())
+                if (!IsOpen())
                 {
                     var oldConnection = _connection;
                     var oldChannel = _channel;
                     await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration).ConfigureAwait(false);
-                    oldChannel.Dispose();
-                    oldConnection.Dispose();
+                    oldChannel?.Dispose();
+                    oldConnection?.Dispose();
                 }
             }
             catch (Exception)
@@ -126,9 +126,10 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private bool IsConnected()
+        private bool IsOpen()
         {
-            return _channel.IsOpen && _connection.IsOpen;
+            return _channel != null && _channel.IsOpen && 
+                   _connection != null && _connection.IsOpen;
         }
 
         internal async Task SetupConnectionAndConnect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
