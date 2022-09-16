@@ -1,54 +1,54 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>KS FIKS IO Client</Title>
-        <Authors>Ks-Kommunesektorens Organisasjon</Authors>
-        <Copyright>Ks-Kommunesektorens Organisasjon</Copyright>
-        <RootNamespace>KS.Fiks.IO.Client</RootNamespace>
-        <PackageProjectUrl>https://github.com/ks-no/fiks-io-client-dotnet</PackageProjectUrl>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageIcon>KS.png</PackageIcon>
-        <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <PackageTags>FIKS</PackageTags>
-        <VersionPrefix>2.0.1</VersionPrefix>
-        <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <AssemblyVersion>2.0.0.0</AssemblyVersion>
-        <FileVersion>2.0.0.0</FileVersion>
-        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-        <SignAssembly>true</SignAssembly>
-        <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
-    </PropertyGroup>
+	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Title>KS FIKS IO Client</Title>
+		<Authors>Ks-Kommunesektorens Organisasjon</Authors>
+		<Copyright>Ks-Kommunesektorens Organisasjon</Copyright>
+		<RootNamespace>KS.Fiks.IO.Client</RootNamespace>
+		<PackageProjectUrl>https://github.com/ks-no/fiks-io-client-dotnet</PackageProjectUrl>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>KS.png</PackageIcon>
+		<RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>FIKS</PackageTags>
+		<VersionPrefix>2.0.1</VersionPrefix>
+		<TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<FileVersion>2.0.0.0</FileVersion>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-    <ItemGroup>
-        <None Include="KS.png">
-            <Pack>true</Pack>
-            <PackagePath>/</PackagePath>
-        </None>
-        <None Include="../LICENSE">
-            <Pack>true</Pack>
-            <PackagePath>/</PackagePath>
-        </None>
-        <None Include="../README.md">
-            <Pack>true</Pack>
-            <PackagePath>/</PackagePath>
-        </None>
-    </ItemGroup>
+	<ItemGroup>
+		<None Include="KS.png">
+			<Pack>true</Pack>
+			<PackagePath>/</PackagePath>
+		</None>
+		<None Include="../LICENSE">
+			<Pack>true</Pack>
+			<PackagePath>/</PackagePath>
+		</None>
+		<None Include="../README.md">
+			<Pack>true</Pack>
+			<PackagePath>/</PackagePath>
+		</None>
+	</ItemGroup>
 	<ItemGroup>
 		<None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
 	</ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.3" />
-        <PackageReference Include="KS.Fiks.Crypto" Version="1.0.4" />
-        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.8" />
-        <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.2" />
-        <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="[11.0.1, 13.0.1]" />
-        <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-    </ItemGroup>
-  
+	<ItemGroup>
+		<PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.3" />
+		<PackageReference Include="KS.Fiks.Crypto" Version="1.0.4" />
+		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.8" />
+		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.2" />
+		<PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="[11.0.1, 13.0.1]" />
+		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+
 </Project>
