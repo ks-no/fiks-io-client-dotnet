@@ -1,14 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Ks.Fiks.Maskinporten.Client;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
-using Ks.Fiks.Maskinporten.Client;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
@@ -24,6 +25,10 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IMaskinportenClient _maskinportenClient;
 
+        private readonly AmqpConfiguration _amqpConfiguration;
+
+        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+
         private readonly SslOption _sslOption;
 
         private IModel _channel;
@@ -32,20 +37,26 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
+        private Timer _ensureAmqpConnectionIsOpenTimer;
+
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
             IDokumentlagerHandler dokumentlagerHandler,
             AmqpConfiguration amqpConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
+            _amqpConfiguration = amqpConfiguration;
+            _integrasjonConfiguration = integrasjonConfiguration;
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
+            _ensureAmqpConnectionIsOpenTimer = new Timer(async async => await EnsureAmqpConnectionIsOpen(), null, 5 * 60 * 1000, 5 * 60 * 1000);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -58,7 +69,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, kontoConfiguration, connectionFactory, consumerFactory);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory);
 
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
             return amqpHandler;
@@ -92,7 +103,32 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _channel.Dispose();
                 _connection.Dispose();
+                _ensureAmqpConnectionIsOpenTimer.Dispose();
             }
+        }
+
+        private async Task EnsureAmqpConnectionIsOpen()
+        {
+            try
+            {
+                if (!IsConnected())
+                {
+                    var oldConnection = _connection;
+                    var oldChannel = _channel;
+                    await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration).ConfigureAwait(false);
+                    oldChannel.Dispose();
+                    oldConnection.Dispose();
+                }
+            }
+            catch (Exception)
+            {
+                // do not throw unhandled exception in Timer Callback 
+            }
+        }
+
+        private bool IsConnected()
+        {
+            return _channel.IsOpen && _connection.IsOpen;
         }
 
         internal async Task SetupConnectionAndConnect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
@@ -121,7 +157,7 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> {endpoint}, configuration.ApplicationName);
+                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
             }
             catch (Exception ex)
             {
