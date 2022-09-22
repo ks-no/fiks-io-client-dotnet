@@ -172,7 +172,8 @@ var apiConfig = new ApiConfiguration(
 // Optional: Use custom amqp host (i.e. for connection to test queue)
 var amqp = new AmqpConfiguration(
                 host: "io.fiks.test.ks.no",
-                port: 5671);
+                port: 5671,
+                keepAlive: true);
 
 // Combine all configurations
 var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, maskinportenConfig, apiConfig, amqpConfig);

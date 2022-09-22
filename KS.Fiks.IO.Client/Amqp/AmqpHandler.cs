@@ -56,7 +56,11 @@ namespace KS.Fiks.IO.Client.Amqp
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
-            _ensureAmqpConnectionIsOpenTimer = new Timer(async async => await EnsureAmqpConnectionIsOpen(), null, 5 * 60 * 1000, 5 * 60 * 1000);
+            if (amqpConfiguration.KeepAlive)
+            {
+                _ensureAmqpConnectionIsOpenTimer = new Timer(async async => await EnsureAmqpConnectionIsOpen(), null,
+                    5 * 60 * 1000, 5 * 60 * 1000);
+            }
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -103,7 +107,7 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _channel.Dispose();
                 _connection.Dispose();
-                _ensureAmqpConnectionIsOpenTimer.Dispose();
+                _ensureAmqpConnectionIsOpenTimer?.Dispose();
             }
         }
 
