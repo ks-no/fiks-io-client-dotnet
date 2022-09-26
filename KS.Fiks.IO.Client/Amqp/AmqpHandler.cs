@@ -113,20 +113,13 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task EnsureAmqpConnectionIsOpen()
         {
-            try
+            if (!IsOpen())
             {
-                if (!IsOpen())
-                {
-                    var oldConnection = _connection;
-                    var oldChannel = _channel;
-                    await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration).ConfigureAwait(false);
-                    oldChannel?.Dispose();
-                    oldConnection?.Dispose();
-                }
-            }
-            catch (Exception)
-            {
-                // do not throw unhandled exception in Timer Callback 
+                var oldConnection = _connection;
+                var oldChannel = _channel;
+                await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration).ConfigureAwait(false);
+                oldChannel?.Dispose();
+                oldConnection?.Dispose();
             }
         }
 
