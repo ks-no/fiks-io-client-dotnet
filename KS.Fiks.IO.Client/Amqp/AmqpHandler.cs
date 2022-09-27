@@ -123,7 +123,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private bool IsOpen()
+        public bool IsOpen()
         {
             return _channel != null && _channel.IsOpen && 
                    _connection != null && _connection.IsOpen;
