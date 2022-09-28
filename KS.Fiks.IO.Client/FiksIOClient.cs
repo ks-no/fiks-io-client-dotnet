@@ -171,6 +171,11 @@ namespace KS.Fiks.IO.Client
             _amqpHandler.AddMessageReceivedHandler(onMottattMelding, onCanceled);
         }
 
+        public bool IsOpen()
+        {
+            return _amqpHandler.IsOpen();
+        }
+
         public void Dispose()
         {
             Dispose(true);

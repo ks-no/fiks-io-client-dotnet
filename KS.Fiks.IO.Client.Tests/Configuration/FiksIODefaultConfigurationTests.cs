@@ -30,6 +30,34 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
+            config.AmqpConfiguration.KeepAlive.Should().BeFalse();
+            config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
+        }
+
+        [Fact]
+        public void DefaultConfigurationWithKeepAliveForProd()
+        {
+
+            var integrationId = Guid.NewGuid();
+            var integrationPassord = Guid.NewGuid().ToString();
+            var kontoId = Guid.NewGuid();
+            var privatNokkel = Guid.NewGuid().ToString();
+            var issuer = Guid.NewGuid().ToString();
+            var certificat = new X509Certificate2();
+
+            var config = FiksIOConfiguration.CreateProdConfiguration(
+                integrasjonId: integrationId,
+                integrasjonPassord: integrationPassord,
+                kontoId: kontoId,
+                privatNokkel: privatNokkel,
+                issuer: issuer,
+                certificate: certificat,
+                keepAlive: true);
+
+            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
+            config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
+            config.AmqpConfiguration.KeepAlive.Should().BeTrue();
             config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
         }
 
@@ -56,6 +84,35 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
+            config.AmqpConfiguration.KeepAlive.Should().BeFalse();
+            config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
+        }
+
+        [Fact]
+        public void DefaultConfigurationWithKeepAliveForTest()
+        {
+
+            var integrationId = Guid.NewGuid();
+            var integrationPassord = Guid.NewGuid().ToString();
+            var kontoId = Guid.NewGuid();
+            var privatNokkel = Guid.NewGuid().ToString();
+            var issuer = Guid.NewGuid().ToString();
+            var certificat = new X509Certificate2();
+
+            var config = FiksIOConfiguration.CreateTestConfiguration(
+                integrasjonId: integrationId,
+                integrasjonPassord: integrationPassord,
+                kontoId: kontoId,
+                privatNokkel: privatNokkel,
+                issuer: issuer,
+                certificate: certificat,
+                keepAlive: true
+            );
+
+            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
+            config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
+            config.AmqpConfiguration.KeepAlive.Should().BeTrue();
             config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
         }
     }

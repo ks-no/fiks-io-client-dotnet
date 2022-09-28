@@ -9,5 +9,7 @@ namespace KS.Fiks.IO.Client.Amqp
         void AddMessageReceivedHandler(
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent);
+
+        bool IsOpen();
     }
 }

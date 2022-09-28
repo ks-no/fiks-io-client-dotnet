@@ -101,11 +101,16 @@ var request = new LookupRequest(
 var receiverKontoId = await client.Lookup(request); 
 ```
 
+### IsOpen
+This method can be used to check if the amqp connection is open. 
+
 ### Configuration
 
 Two convenience functions are provided for generating default configurations for *prod* and *test*,
 `CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Only the required configuration parameters must be provided,
 the rest will be set to default values for the given environment. 
+
+**keepAlive**: Optional setting. Set the `keepAlive` to true if you want the client to check every 5 minutes if the amqp connection is open and automatically reconnect
 
 **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. A PKCS#1 key can be converted using this command: 
 ```powershell
@@ -127,7 +132,8 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     kontoId: kontoId,
     privatNokkel: privatNokkel,
     issuer: issuer, //klientid for maskinporten
-    certificate: certificat
+    certificate: certificat,
+    keepAlive: false // Optional: use this if you want to use the keepAlive functionality. Default = false
 );
 
 // Test config
@@ -137,7 +143,8 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     kontoId: kontoId,
     privatNokkel: privatNokkel, 
     issuer: issuer, //klientid for maskinporten
-    certificate: certificat
+    certificate: certificat,
+    keepAlive: false // Optional: use this if you want to use the keepAlive functionality. Default = false
 );
 ```
 
@@ -169,10 +176,13 @@ var apiConfig = new ApiConfiguration(
                 host: "api.fiks.test.ks.no",
                 port: 443);
 
-// Optional: Use custom amqp host (i.e. for connection to test queue)
+// Optional: Use custom amqp host (i.e. for connection to test queue). 
+// Optional: Set keepAlive: true if you want the FiksIOClient to check if amqp connection is open every 5 minutes and automatically reconnect. 
+// another option to using keepAlive is to use the isOpen() method on the FiksIOClient and implement a keepalive strategy yourself 
 var amqp = new AmqpConfiguration(
                 host: "io.fiks.test.ks.no",
-                port: 5671);
+                port: 5671,
+                keepAlive: false); 
 
 // Combine all configurations
 var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, maskinportenConfig, apiConfig, amqpConfig);
