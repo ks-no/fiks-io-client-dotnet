@@ -42,5 +42,30 @@ namespace KS.Fiks.IO.Client.Tests.Models
 
             mottattMelding.KlientMeldingId.Should().BeNull();
         }
+
+        [Fact]
+        public void TestResendtIsDefaultFalse()
+        {
+            var klientMeldingId = Guid.NewGuid();
+            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var mottattMelding = new MottattMelding(false,
+                new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+                    TimeSpan.Zero, headere), null, null, null);
+
+            mottattMelding.Resendt.Should().BeFalse();
+        }
+
+        [Fact]
+        public void TestResendtIsTrueWhenSetToTrue()
+        {
+            var resendt = true;
+            var klientMeldingId = Guid.NewGuid();
+            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var mottattMelding = new MottattMelding(false,
+                new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+                    TimeSpan.Zero, headere, resendt), null, null, null);
+
+            mottattMelding.Resendt.Should().BeTrue();
+        }
     }
 }

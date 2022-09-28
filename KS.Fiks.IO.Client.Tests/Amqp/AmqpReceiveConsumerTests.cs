@@ -96,6 +96,60 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
             actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
             actualMelding.Headere["test"].ToString().Should().Be("Test");
+            actualMelding.Resendt.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ReceivesExpectedMessageMetadataWithRedeliveredTrue()
+        {
+            var expectedMessageMetadata = _fixture.DefaultMetadata;
+
+            var headers = new Dictionary<string, object>
+            {
+                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
+                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
+                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
+                {Utility.ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
+            };
+
+            var propertiesMock = new Mock<IBasicProperties>();
+            propertiesMock.Setup(_ => _.Headers).Returns(headers);
+            propertiesMock.Setup(_ => _.Expiration)
+                          .Returns(
+                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+
+            var sut = _fixture.CreateSut();
+            IMottattMelding actualMelding = new MottattMelding(
+                true,
+                _fixture.DefaultMetadata,
+                () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
+                Mock.Of<IAsicDecrypter>(),
+                Mock.Of<IFileWriter>());
+            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            {
+                actualMelding = messageArgs.Melding;
+            });
+
+            sut.Received += handler;
+
+            sut.HandleBasicDeliver(
+                "tag",
+                34,
+                true,
+                "exchange",
+                expectedMessageMetadata.MottakerKontoId.ToString(),
+                propertiesMock.Object,
+                Array.Empty<byte>());
+
+            actualMelding.MeldingId.Should().Be(expectedMessageMetadata.MeldingId);
+            actualMelding.MeldingType.Should().Be(expectedMessageMetadata.MeldingType);
+            actualMelding.MottakerKontoId.Should().Be(expectedMessageMetadata.MottakerKontoId);
+            actualMelding.AvsenderKontoId.Should().Be(expectedMessageMetadata.AvsenderKontoId);
+            actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
+            actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
+            actualMelding.Headere["test"].ToString().Should().Be("Test");
+            actualMelding.Resendt.Should().BeTrue();
         }
 
         [Fact]

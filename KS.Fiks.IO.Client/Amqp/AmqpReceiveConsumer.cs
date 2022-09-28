@@ -62,7 +62,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
             try
             {
-                var receivedMessage = ParseMessage(properties, body);
+                var receivedMessage = ParseMessage(properties, body, redelivered);
 
                 Received?.Invoke(
                     this,
@@ -106,9 +106,9 @@ namespace KS.Fiks.IO.Client.Amqp
             return IsDataInDokumentlager(properties) || body.Length > 0;
         }
 
-        private MottattMelding ParseMessage(IBasicProperties properties, ReadOnlyMemory<byte> body)
+        private MottattMelding ParseMessage(IBasicProperties properties, ReadOnlyMemory<byte> body, bool resendt)
         {
-            var metadata = ReceivedMessageParser.Parse(this.accountId, properties);
+            var metadata = ReceivedMessageParser.Parse(this.accountId, properties, resendt);
             return new MottattMelding(
                 HasPayload(properties, body),
                 metadata,
