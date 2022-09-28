@@ -1,21 +1,23 @@
-using Ks.Fiks.Maskinporten.Client;
-using KS.Fiks.IO.Client.Configuration;
-using KS.Fiks.IO.Client.Dokumentlager;
-using KS.Fiks.IO.Client.Exceptions;
-using KS.Fiks.IO.Client.Models;
-using KS.Fiks.IO.Client.Send;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace KS.Fiks.IO.Client.Amqp
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Configuration;
+    using Dokumentlager;
+    using Exceptions;
+    using Ks.Fiks.Maskinporten.Client;
+    using Models;
+    using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
+    using Send;
+
     internal class AmqpHandler : IAmqpHandler
     {
         private const string QueuePrefix = "fiksio.konto.";
+
+        private const int HealthCheckInterval = 5 * 60 * 1000;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
@@ -31,13 +33,13 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly SslOption _sslOption;
 
+        private readonly Timer _ensureAmqpConnectionIsOpenTimer;
+
         private IModel _channel;
 
         private IConnection _connection;
 
         private IAmqpReceiveConsumer _receiveConsumer;
-
-        private Timer _ensureAmqpConnectionIsOpenTimer;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -58,8 +60,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
             if (amqpConfiguration.KeepAlive)
             {
-                _ensureAmqpConnectionIsOpenTimer = new Timer(async async => await EnsureAmqpConnectionIsOpen(), null,
-                    5 * 60 * 1000, 5 * 60 * 1000);
+                _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
             }
         }
 
@@ -101,6 +102,11 @@ namespace KS.Fiks.IO.Client.Amqp
             GC.SuppressFinalize(this);
         }
 
+        public bool IsOpen()
+        {
+            return _channel != null && _channel.IsOpen && _connection != null && _connection.IsOpen;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -111,29 +117,35 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
+        private async Task SetupConnectionAndConnect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
+        {
+            await SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
+            _connection = CreateConnection(amqpConfiguration);
+            _channel = ConnectToChannel(amqpConfiguration);
+        }
+
+        private async void Callback(object o)
+        {
+            await EnsureAmqpConnectionIsOpen().ConfigureAwait(false);
+        }
+
         private async Task EnsureAmqpConnectionIsOpen()
         {
             if (!IsOpen())
             {
                 var oldConnection = _connection;
                 var oldChannel = _channel;
-                await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration).ConfigureAwait(false);
-                oldChannel?.Dispose();
-                oldConnection?.Dispose();
+                try
+                {
+                    await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    oldChannel?.Dispose();
+                    oldConnection?.Dispose();
+                }
             }
-        }
-
-        public bool IsOpen()
-        {
-            return _channel != null && _channel.IsOpen && 
-                   _connection != null && _connection.IsOpen;
-        }
-
-        internal async Task SetupConnectionAndConnect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
-        {
-            await SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
-            _connection = CreateConnection(amqpConfiguration);
-            _channel = ConnectToChannel(amqpConfiguration);
         }
 
         private IModel ConnectToChannel(AmqpConfiguration configuration)
