@@ -24,7 +24,8 @@ namespace KS.Fiks.IO.Client.Utility
 
         internal static MottattMeldingMetadata Parse(
             Guid receiverAccountId,
-            IBasicProperties properties)
+            IBasicProperties properties,
+            bool resendt)
         {
             var headers = properties?.Headers;
 
@@ -40,7 +41,8 @@ namespace KS.Fiks.IO.Client.Utility
                 avsenderKontoId: RequireGuidFromHeader(headers, SenderAccountIdHeaderName),
                 svarPaMelding: GetGuidFromHeader(headers, RelatedMessageIdHeaderName),
                 ttl: ParseTimeSpan(properties.Expiration),
-                headere: ExtractEgendefinerteHeadere(headers));
+                headere: ExtractEgendefinerteHeadere(headers),
+                resendt);
         }
 
         internal static Guid RequireGuidFromHeader(IDictionary<string, object> header, string headerName)

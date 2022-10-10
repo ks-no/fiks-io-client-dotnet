@@ -5,7 +5,7 @@ namespace KS.Fiks.IO.Client.Models
 {
     public class MottattMeldingMetadata : MeldingBase
     {
-        public MottattMeldingMetadata(Guid meldingId, string meldingType, Guid mottakerKontoId, Guid avsenderKontoId, Guid? svarPaMelding, TimeSpan ttl, Dictionary<string, string> headere)
+        public MottattMeldingMetadata(Guid meldingId, string meldingType, Guid mottakerKontoId, Guid avsenderKontoId, Guid? svarPaMelding, TimeSpan ttl, Dictionary<string, string> headere, bool resendt = false)
         {
             MeldingId = meldingId;
             MeldingType = meldingType;
@@ -14,6 +14,7 @@ namespace KS.Fiks.IO.Client.Models
             SvarPaMelding = svarPaMelding;
             Ttl = ttl;
             Headere = headere;
+            Resendt = resendt;
         }
 
         public MottattMeldingMetadata(MottattMeldingMetadata metadata)
