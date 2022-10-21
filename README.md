@@ -133,7 +133,8 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     privatNokkel: privatNokkel,
     issuer: issuer, //klientid for maskinporten
     certificate: certificat,
-    keepAlive: false // Optional: use this if you want to use the keepAlive functionality. Default = false
+    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
+    applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
 
 // Test config
@@ -144,7 +145,8 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     privatNokkel: privatNokkel, 
     issuer: issuer, //klientid for maskinporten
     certificate: certificat,
-    keepAlive: false // Optional: use this if you want to use the keepAlive functionality. Default = false
+    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
+    applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
 ```
 

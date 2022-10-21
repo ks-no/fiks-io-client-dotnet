@@ -38,14 +38,14 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public bool KeepAlive { get; }
 
-        public static AmqpConfiguration CreateProdConfiguration(bool keepAlive = false)
+        public static AmqpConfiguration CreateProdConfiguration(bool keepAlive = false, string applicationName = null)
         {
-            return new AmqpConfiguration("io.fiks.ks.no", keepAlive: keepAlive);
+            return new AmqpConfiguration("io.fiks.ks.no", keepAlive: keepAlive, applicationName: applicationName);
         }
 
-        public static AmqpConfiguration CreateTestConfiguration(bool keepAlive = false)
+        public static AmqpConfiguration CreateTestConfiguration(bool keepAlive = false, string applicationName = null)
         {
-            return new AmqpConfiguration("io.fiks.test.ks.no", keepAlive: keepAlive);
+            return new AmqpConfiguration("io.fiks.test.ks.no", keepAlive: keepAlive, applicationName: applicationName);
         }
     }
 }
