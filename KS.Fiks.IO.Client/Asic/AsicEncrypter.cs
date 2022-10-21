@@ -27,8 +27,8 @@ namespace KS.Fiks.IO.Client.Asic
             ThrowIfEmpty(payloads);
 
             var zipStream = CreateZipStream(payloads);
-
             var outStream = EncryptStream(zipStream, receiverCertificate);
+            zipStream.Dispose();
 
             return outStream;
         }
@@ -48,19 +48,17 @@ namespace KS.Fiks.IO.Client.Asic
 
         private Stream CreateZipStream(IEnumerable<IPayload> payloads)
         {
-            using (var zipStream = new MemoryStream())
+            var zipStream = new MemoryStream();
+            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
             {
-                using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+                foreach (var payload in payloads)
                 {
-                    foreach (var payload in payloads)
-                    {
-                        payload.Payload.Seek(0, SeekOrigin.Begin);
-                        asiceBuilder.AddFile(payload.Payload, payload.Filename);
-                        asiceBuilder.Build();
-                    }
+                    payload.Payload.Seek(0, SeekOrigin.Begin);
+                    asiceBuilder.AddFile(payload.Payload, payload.Filename);
+                    asiceBuilder.Build();
                 }
-                return zipStream;
             }
+            return zipStream;
         }
 
         private Stream EncryptStream(Stream zipStream, X509Certificate certificate)
