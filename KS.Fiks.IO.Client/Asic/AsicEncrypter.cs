@@ -84,9 +84,12 @@ namespace KS.Fiks.IO.Client.Asic
             }
             catch (Exception e)
             {
+                throw e;
+            }
+            finally
+            {
                 zipStream.Dispose();
                 asiceBuilder.Dispose();
-                throw e;
             }
 
             var outStream = new MemoryStream();
