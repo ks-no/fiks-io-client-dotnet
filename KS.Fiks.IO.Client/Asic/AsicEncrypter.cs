@@ -76,7 +76,7 @@ namespace KS.Fiks.IO.Client.Asic
 
             try
             {
-                using var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256) 
+                using(var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256)) 
                 {
                     foreach (var payload in payloads)
                     {
