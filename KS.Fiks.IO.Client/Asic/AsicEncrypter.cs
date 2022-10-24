@@ -25,12 +25,10 @@ namespace KS.Fiks.IO.Client.Asic
         public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
         {
             ThrowIfEmpty(payloads);
-
-            var zipStream = CreateZipStream(payloads);
-            var outStream = EncryptStream(zipStream, receiverCertificate);
-            zipStream.Dispose();
-
-            return outStream;
+            // var zipStream = CreateZipStream(payloads);
+            // var outStream = EncryptStream(zipStream, receiverCertificate);
+            // zipStream.Dispose();
+            return ZipAndEncrypt(receiverCertificate, payloads);
         }
 
         private void ThrowIfEmpty(IEnumerable<IPayload> payloads)
@@ -67,6 +65,24 @@ namespace KS.Fiks.IO.Client.Asic
             var outStream = new MemoryStream();
             encryptionService.Encrypt(zipStream, outStream);
 
+            return outStream;
+        }
+
+        private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
+        {
+            var zipStream = new MemoryStream();
+            var outStream = new MemoryStream();
+            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+            {
+                foreach (var payload in payloads)
+                {
+                    payload.Payload.Seek(0, SeekOrigin.Begin);
+                    asiceBuilder.AddFile(payload.Payload, payload.Filename);
+                    asiceBuilder.Build();
+                }
+                var encryptionService = _encryptionServiceFactory.Create(certificate);
+                encryptionService.Encrypt(zipStream, outStream);
+            }
             return outStream;
         }
     }
