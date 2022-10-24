@@ -26,9 +26,6 @@ namespace KS.Fiks.IO.Client.Asic
         public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
         {
             ThrowIfEmpty(payloads);
-            // var zipStream = CreateZipStream(payloads);
-            // var outStream = EncryptStream(zipStream, receiverCertificate);
-            // zipStream.Dispose();
             return ZipAndEncrypt(receiverCertificate, payloads);
         }
 
@@ -43,30 +40,6 @@ namespace KS.Fiks.IO.Client.Asic
             {
                 throw new ArgumentException("Payloads cannot be empty");
             }
-        }
-
-        private Stream CreateZipStream(IEnumerable<IPayload> payloads)
-        {
-            var zipStream = new MemoryStream();
-            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
-            {
-                foreach (var payload in payloads)
-                {
-                    payload.Payload.Seek(0, SeekOrigin.Begin);
-                    asiceBuilder.AddFile(payload.Payload, payload.Filename);
-                    asiceBuilder.Build();
-                }
-            }
-            return zipStream;
-        }
-
-        private Stream EncryptStream(Stream zipStream, X509Certificate certificate)
-        {
-            var encryptionService = _encryptionServiceFactory.Create(certificate);
-            var outStream = new MemoryStream();
-            encryptionService.Encrypt(zipStream, outStream);
-
-            return outStream;
         }
 
         private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
@@ -88,7 +61,7 @@ namespace KS.Fiks.IO.Client.Asic
                 //TODO This is hopefully an unnecessary copy to a new stream here? Cannot use zipstream since asiceBuilder needs to get disposed in order to create a manifest and then seems to close the stream too
                 var extraStream = new MemoryStream(zipStream.ToArray());
                 var encryptionService = _encryptionServiceFactory.Create(certificate);
-                
+
                 encryptionService.Encrypt(extraStream, outStream);
             }
             catch (Exception e)
