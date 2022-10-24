@@ -74,14 +74,16 @@ namespace KS.Fiks.IO.Client.Asic
             var zipStream = new MemoryStream();
             var outStream = new MemoryStream();
 
-            var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256);
             try
             {
-                foreach (var payload in payloads)
+                using var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256) 
                 {
-                    payload.Payload.Seek(0, SeekOrigin.Begin);
-                    asiceBuilder.AddFile(payload.Payload, payload.Filename);
-                    asiceBuilder.Build();
+                    foreach (var payload in payloads)
+                    {
+                        payload.Payload.Seek(0, SeekOrigin.Begin);
+                        asiceBuilder.AddFile(payload.Payload, payload.Filename);
+                        asiceBuilder.Build();
+                    }
                 }
                 var encryptionService = _encryptionServiceFactory.Create(certificate);
                 zipStream.Seek(0, SeekOrigin.Begin);
@@ -93,10 +95,7 @@ namespace KS.Fiks.IO.Client.Asic
                 outStream.Dispose();
                 throw e;
             }
-            finally
-            {
-                asiceBuilder.Dispose();
-            }
+
             return outStream;
         }
     }
