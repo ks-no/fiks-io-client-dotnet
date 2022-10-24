@@ -84,17 +84,24 @@ namespace KS.Fiks.IO.Client.Asic
             }
             catch (Exception e)
             {
+                zipStream.Dispose();
                 throw e;
             }
             finally
             {
-                zipStream.Dispose();
                 asiceBuilder.Dispose();
             }
 
             var outStream = new MemoryStream();
-            var encryptionService = _encryptionServiceFactory.Create(certificate);
-            encryptionService.Encrypt(zipStream, outStream);
+            try
+            {
+                var encryptionService = _encryptionServiceFactory.Create(certificate);
+                encryptionService.Encrypt(zipStream, outStream);
+            }
+            finally
+            {
+                zipStream.Dispose();
+            }
 
             return outStream;
         }
