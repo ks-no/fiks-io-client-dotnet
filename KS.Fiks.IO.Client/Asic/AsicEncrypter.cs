@@ -84,6 +84,7 @@ namespace KS.Fiks.IO.Client.Asic
                     asiceBuilder.Build();
                 }
                 var encryptionService = _encryptionServiceFactory.Create(certificate);
+                zipStream.Seek(0, SeekOrigin.Begin);
                 encryptionService.Encrypt(zipStream, outStream);
             }
             catch (Exception e)
