@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KS.Fiks.ASiC_E;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
 using Org.BouncyCastle.X509;
@@ -71,8 +72,8 @@ namespace KS.Fiks.IO.Client.Asic
         private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
         {
             var zipStream = new MemoryStream();
-            var outStream = new MemoryStream();
-            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+            var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256);
+            try
             {
                 foreach (var payload in payloads)
                 {
@@ -81,9 +82,17 @@ namespace KS.Fiks.IO.Client.Asic
                     asiceBuilder.Build();
                 }
             }
+            catch (Exception e)
+            {
+                zipStream.Dispose();
+                asiceBuilder.Dispose();
+                throw e;
+            }
 
+            var outStream = new MemoryStream();
             var encryptionService = _encryptionServiceFactory.Create(certificate);
             encryptionService.Encrypt(zipStream, outStream);
+
             return outStream;
         }
     }
