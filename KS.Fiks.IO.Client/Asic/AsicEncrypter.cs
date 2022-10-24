@@ -80,9 +80,10 @@ namespace KS.Fiks.IO.Client.Asic
                     asiceBuilder.AddFile(payload.Payload, payload.Filename);
                     asiceBuilder.Build();
                 }
-                var encryptionService = _encryptionServiceFactory.Create(certificate);
-                encryptionService.Encrypt(zipStream, outStream);
             }
+
+            var encryptionService = _encryptionServiceFactory.Create(certificate);
+            encryptionService.Encrypt(zipStream, outStream);
             return outStream;
         }
     }
