@@ -5,7 +5,14 @@
 
 .net library compatible with _[.Net Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
 
-Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-platform/tjenester_under_utvikling/fiksio/)
+Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
+
+It is also the underlying messaging system for the Fiks Protokoll messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+
+### Simplifying Fiks-IO
+This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
+For example Fiks-IO requires that certain [headers](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere) are set in the messages. 
+Using this client means that these details are hidden and simpflifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere). 
 
 ## Installation
 Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
@@ -102,7 +109,7 @@ var receiverKontoId = await client.Lookup(request);
 ```
 
 ### IsOpen
-This method can be used to check if the amqp connection is open. 
+This method can be used to check if the amqp connection is open.
 
 ### Configuration
 
