@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KS.Fiks.ASiC_E;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
 using Org.BouncyCastle.X509;
@@ -44,12 +43,16 @@ namespace KS.Fiks.IO.Client.Asic
 
         private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
         {
-            var zipStream = new MemoryStream();
+            // var zipStream = new MemoryStream();
+            // var outStream = new MemoryStream();
+            //
+            // try
+            // {
             var outStream = new MemoryStream();
-
-            try
+            var encryptionService = _encryptionServiceFactory.Create(certificate);
+            using (var zipStream = new MemoryStream())
             {
-                using(var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256)) 
+                using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
                 {
                     foreach (var payload in payloads)
                     {
@@ -57,19 +60,20 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.AddFile(payload.Payload, payload.Filename);
                         asiceBuilder.Build();
                     }
-                }
-                //TODO This is hopefully an unnecessary copy to a new stream here? Cannot use zipstream since asiceBuilder needs to get disposed in order to create a manifest and then seems to close the stream too
-                var extraStream = new MemoryStream(zipStream.ToArray());
-                var encryptionService = _encryptionServiceFactory.Create(certificate);
 
-                encryptionService.Encrypt(extraStream, outStream);
+                    encryptionService.Encrypt(zipStream, outStream);
+                }
             }
-            catch (Exception e)
-            {
-                zipStream.Dispose();
-                outStream.Dispose();
-                throw e;
-            }
+            //TODO This is hopefully an unnecessary copy to a new stream here? Cannot use zipstream since asiceBuilder needs to get disposed in order to create a manifest and then seems to close the stream too
+            //var extraStream = new MemoryStream(zipStream.ToArray());
+            //encryptionService.Encrypt(extraStream, outStream);
+            // }
+            // catch (Exception e)
+            // {
+            //     // zipStream.Dispose();
+            //     outStream.Dispose();
+            //     throw e;
+            // }
 
             return outStream;
         }
