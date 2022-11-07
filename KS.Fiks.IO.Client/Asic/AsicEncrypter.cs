@@ -60,9 +60,9 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.AddFile(payload.Payload, payload.Filename);
                         asiceBuilder.Build();
                     }
-                    zipStream.Seek(0, SeekOrigin.Begin);
-                    encryptionService.Encrypt(zipStream, outStream);
                 }
+                zipStream.Seek(0, SeekOrigin.Begin);
+                encryptionService.Encrypt(zipStream, outStream);
             }
             //TODO This is hopefully an unnecessary copy to a new stream here? Cannot use zipstream since asiceBuilder needs to get disposed in order to create a manifest and then seems to close the stream too
             //var extraStream = new MemoryStream(zipStream.ToArray());
