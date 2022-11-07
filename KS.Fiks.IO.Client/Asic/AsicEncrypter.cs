@@ -60,7 +60,7 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.AddFile(payload.Payload, payload.Filename);
                         asiceBuilder.Build();
                     }
-
+                    zipStream.Seek(0, SeekOrigin.Begin);
                     encryptionService.Encrypt(zipStream, outStream);
                 }
             }
