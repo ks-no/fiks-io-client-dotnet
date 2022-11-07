@@ -43,11 +43,6 @@ namespace KS.Fiks.IO.Client.Asic
 
         private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
         {
-            // var zipStream = new MemoryStream();
-            // var outStream = new MemoryStream();
-            //
-            // try
-            // {
             var outStream = new MemoryStream();
             var encryptionService = _encryptionServiceFactory.Create(certificate);
             using (var zipStream = new MemoryStream())
@@ -61,19 +56,10 @@ namespace KS.Fiks.IO.Client.Asic
                         asiceBuilder.Build();
                     }
                 }
+
                 zipStream.Seek(0, SeekOrigin.Begin);
                 encryptionService.Encrypt(zipStream, outStream);
             }
-            //TODO This is hopefully an unnecessary copy to a new stream here? Cannot use zipstream since asiceBuilder needs to get disposed in order to create a manifest and then seems to close the stream too
-            //var extraStream = new MemoryStream(zipStream.ToArray());
-            //encryptionService.Encrypt(extraStream, outStream);
-            // }
-            // catch (Exception e)
-            // {
-            //     // zipStream.Dispose();
-            //     outStream.Dispose();
-            //     throw e;
-            // }
 
             return outStream;
         }
