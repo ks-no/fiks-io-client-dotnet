@@ -14,7 +14,7 @@
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="6.7.0" />
+        <PackageReference Include="FluentAssertions" Version="6.8.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.4" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.8" />
