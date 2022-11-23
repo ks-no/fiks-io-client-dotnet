@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
 using Org.BouncyCastle.X509;
@@ -14,12 +15,16 @@ namespace KS.Fiks.IO.Client.Asic
 
         private readonly IEncryptionServiceFactory _encryptionServiceFactory;
 
+        private readonly PreloadedCertificateHolder _asiceCertificateHolder;
+
         public AsicEncrypter(
             IAsiceBuilderFactory asiceBuilderFactory,
-            IEncryptionServiceFactory encryptionServiceFactory)
+            IEncryptionServiceFactory encryptionServiceFactory,
+            PreloadedCertificateHolder preloadedCertificateHolder)
         {
             _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
             _encryptionServiceFactory = encryptionServiceFactory;
+            _asiceCertificateHolder = preloadedCertificateHolder;
         }
 
         public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
@@ -41,13 +46,13 @@ namespace KS.Fiks.IO.Client.Asic
             }
         }
 
-        private Stream ZipAndEncrypt(X509Certificate certificate, IEnumerable<IPayload> payloads)
+        private Stream ZipAndEncrypt(X509Certificate receiverCertificate, IEnumerable<IPayload> payloads)
         {
             var outStream = new MemoryStream();
-            var encryptionService = _encryptionServiceFactory.Create(certificate);
+            var encryptionService = _encryptionServiceFactory.Create(receiverCertificate);
             using (var zipStream = new MemoryStream())
             {
-                using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+                using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256, _asiceCertificateHolder))
                 {
                     foreach (var payload in payloads)
                     {

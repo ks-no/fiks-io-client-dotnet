@@ -11,6 +11,7 @@ namespace KS.Fiks.IO.Client.Configuration
             KontoConfiguration kontoConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
+            VirksomhetssertifikatConfiguration  virksomhetssertifikatConfiguration,
             ApiConfiguration apiConfiguration = null,
             AmqpConfiguration amqpConfiguration = null,
             KatalogConfiguration katalogConfiguration = null,
@@ -20,6 +21,7 @@ namespace KS.Fiks.IO.Client.Configuration
             KontoConfiguration = kontoConfiguration;
             IntegrasjonConfiguration = integrasjonConfiguration;
             MaskinportenConfiguration = maskinportenConfiguration;
+            VirksomhetssertifikatConfiguration = virksomhetssertifikatConfiguration;
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
             AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
             KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
@@ -46,41 +48,47 @@ namespace KS.Fiks.IO.Client.Configuration
         public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
 
         public DokumentlagerConfiguration DokumentlagerConfiguration { get; }
+        
+        public VirksomhetssertifikatConfiguration VirksomhetssertifikatConfiguration { get; }
 
         public static FiksIOConfiguration CreateProdConfiguration(
             Guid integrasjonId,
             string integrasjonPassord,
             Guid kontoId,
-            string privatNokkel,
+            string krypteringPrivatNokkel,
             string issuer,
-            X509Certificate2 certificate,
+            X509Certificate2 sertifikat,
+            string sertifikatPrivatNokkel,
             bool keepAlive = false,
             string applicationName = null)
         {
             return new FiksIOConfiguration(
                 amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(keepAlive, applicationName),
                 apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
+                virksomhetssertifikatConfiguration: new VirksomhetssertifikatConfiguration(sertifikat, sertifikatPrivatNokkel),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
-                kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, certificate));
+                kontoConfiguration: new KontoConfiguration(kontoId, krypteringPrivatNokkel),
+                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, sertifikat));
         }
 
         public static FiksIOConfiguration CreateTestConfiguration(
             Guid integrasjonId,
             string integrasjonPassord,
             Guid kontoId,
-            string privatNokkel,
+            string krypteringPrivatNokkel,
             string issuer,
-            X509Certificate2 certificate,
+            X509Certificate2 sertifikat,
+            string sertifikatPrivatNokkel,
             bool keepAlive = false,
             string applicationName = null)
         {
             return new FiksIOConfiguration(
                 amqpConfiguration: AmqpConfiguration.CreateTestConfiguration(keepAlive, applicationName),
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
+                virksomhetssertifikatConfiguration: new VirksomhetssertifikatConfiguration(sertifikatPrivatNokkel),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
-                kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, certificate));
+                kontoConfiguration: new KontoConfiguration(kontoId, krypteringPrivatNokkel),
+                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, sertifikat));
         }
 
         private static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)

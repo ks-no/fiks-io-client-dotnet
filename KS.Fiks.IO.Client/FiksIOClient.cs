@@ -64,7 +64,10 @@ namespace KS.Fiks.IO.Client
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
 
-            var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
+            var certHolder = CertificateHolderFactory.Create(
+                configuration.VirksomhetssertifikatConfiguration.publicCert,
+                configuration.VirksomhetssertifikatConfiguration.privateKey);
+            var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory(), certHolder);
 
             _sendHandler = sendHandler ??
                            new SendHandler(

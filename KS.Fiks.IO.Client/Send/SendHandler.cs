@@ -62,8 +62,8 @@ namespace KS.Fiks.IO.Client.Send
                 return null;
             }
 
-            var publicKey = await _publicKeyProvider.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
-            var encryptedPayload = _asicEncrypter.Encrypt(publicKey, payload);
+            var receiverPublicKey = await _publicKeyProvider.GetPublicKey(request.MottakerKontoId).ConfigureAwait(false);
+            var encryptedPayload = _asicEncrypter.Encrypt(receiverPublicKey, payload);
             encryptedPayload.Seek(0, SeekOrigin.Begin);
             return encryptedPayload;
         }

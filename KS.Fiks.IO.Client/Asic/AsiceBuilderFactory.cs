@@ -1,5 +1,6 @@
 using System.IO;
 using KS.Fiks.ASiC_E;
+using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.ASiC_E.Model;
 
 namespace KS.Fiks.IO.Client.Asic
@@ -8,9 +9,9 @@ namespace KS.Fiks.IO.Client.Asic
     {
         public IAsiceBuilder<AsiceArchive> GetBuilder(
             Stream outStream,
-            MessageDigestAlgorithm messageDigestAlgorithm)
+            MessageDigestAlgorithm messageDigestAlgorithm, ICertificateHolder certificateHolder)
         {
-            return AsiceBuilder.Create(outStream, messageDigestAlgorithm, null);
+            return AsiceBuilder.Create(outStream, messageDigestAlgorithm, certificateHolder);
         }
     }
 }
