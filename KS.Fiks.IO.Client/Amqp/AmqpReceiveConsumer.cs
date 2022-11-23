@@ -112,12 +112,12 @@ namespace KS.Fiks.IO.Client.Amqp
             return new MottattMelding(
                 HasPayload(properties, body),
                 metadata,
-                GetDataProvider(properties, body),
+                GetDataProvider(properties, body.ToArray()),
                 this.decrypter,
                 this.fileWriter);
         }
 
-        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, ReadOnlyMemory<byte> body)
+        private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)
         {
             if (!HasPayload(properties, body))
             {
@@ -129,7 +129,7 @@ namespace KS.Fiks.IO.Client.Amqp
                 return async () => await this.dokumentlagerHandler.Download(GetDokumentlagerId(properties));
             }
 
-            return async () => await Task.FromResult(new MemoryStream(body.ToArray()));
+            return async () => await Task.FromResult(new MemoryStream(body));
         }
     }
 }
