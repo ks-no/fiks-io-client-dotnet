@@ -113,23 +113,39 @@ This method can be used to check if the amqp connection is open.
 
 ### Configuration
 
-Two convenience functions are provided for generating default configurations for *prod* and *test*,
-`CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Only the required configuration parameters must be provided,
-the rest will be set to default values for the given environment. 
+The fluent configuration builder FiksIOConfigurationBuilder can be used for creating the FiksIOConfiguration, where you build either for *test* or *prod*.  
+Only the required configuration parameters must be provided when you use these two and the rest will be set to default values for the given environment.
 
-**keepAlive**: Optional setting. Set the `keepAlive` to true if you want the client to check every 5 minutes if the amqp connection is open and automatically reconnect
+You can also create the configuration yourself where also two convenience functions are provided for generating default configurations for *prod* and *test*,
+`CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Also here will only the required configuration parameters are needed.
 
-**privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. A PKCS#1 key can be converted using this command: 
-```powershell
-openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
+#### Create with builder example:
+
+```csharp
+// Prod config
+var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("fiks-io-klient-prod-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
+                .WithMaskinportenConfiguration(certificate, issuer)
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(kontoId, privatNokkel)
+                .WithAsiceSigningConfiguration(asiceCertFilepath, asiceCertPrivateKeyPath) // Optional: use if you want to sign the asice packages
+                .BuildProdConfiguration();
+
+// Test config
+var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("fiks-io-klient-test-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
+                .WithMaskinportenConfiguration(certificate, issuer)
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(kontoId, privatNokkel)
+                .WithAsiceSigningConfiguration(asiceCertFilepath, asiceCertPrivateKeyPath) // Optional: use if you want to sign the asice packages
+                .BuildTestConfiguration();
+);
 ```
-Content in file is expected value in `privateNokkel`, i.e.
-```text
------BEGIN PRIVATE KEY-----
-... ...
------END PRIVATE KEY-----
 
-```
+#### Create without builder example:
+Here are examples using the two convenience methods.
 
 ```csharp
 // Prod config
@@ -156,8 +172,6 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
 ```
-
-
 If necessary, all parameters of configuration can be set in detail.
 
 ```csharp
@@ -191,10 +205,44 @@ var apiConfig = new ApiConfiguration(
 var amqp = new AmqpConfiguration(
                 host: "io.fiks.test.ks.no",
                 port: 5671,
+                applicationName: "my-application",
                 keepAlive: false); 
 
+// Optional: Adding this configuration is optional. Use if you want to sign the asice package
+var asiceSigning = new AsiceSigningConfiguration(
+                publicCertPath: "/path/to/file",
+                privateKeyPath: "/path/to/file"); 
+
 // Combine all configurations
-var configuration = new FiksIOConfiguration(kontoConfig, integrationConfig, maskinportenConfig, apiConfig, amqpConfig);
+var configuration = new FiksIOConfiguration(
+                        kontoConfiguration: kontoConfig, 
+                        integrasjonConfiguration: integrationConfig, 
+                        maskinportenConfiguration: maskinportenConfig, 
+                        apiConfiguration: apiConfig,  // Optional
+                        amqpConfiguration: amqpConfig, // Optional
+                        asiceSigningConfiguration: asiceSigning); // Optional
+```
+
+#### Configuration setting details:
+
+##### Ampq:
+- **keepAlive**: Optional setting. Set the `keepAlive` to true if you want the client to check every 5 minutes if the amqp connection is open and automatically reconnect
+- **applicationName**: Optional but recomended. Gives the Fiks-IO queue a name that you provide. Makes it easier to identify which queue is yours from a logging and management perspective.
+
+#### Fiks-IO Konto: 
+- **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. 
+
+ 
+A PKCS#1 key can be converted using this command:
+```powershell
+openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
+```
+Content in file is expected value in `privateNokkel`, i.e.
+```text
+-----BEGIN PRIVATE KEY-----
+... ...
+-----END PRIVATE KEY-----
+
 ```
 
 ### Public Key provider
