@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
@@ -64,10 +65,20 @@ namespace KS.Fiks.IO.Client
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
 
-            var certHolder = CertificateHolderFactory.Create(
-                configuration.VirksomhetssertifikatConfiguration.publicCert,
-                configuration.VirksomhetssertifikatConfiguration.privateKey);
-            var asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory(), certHolder);
+            AsicEncrypter asicEncrypter;
+            if (configuration.AsiceSigningConfiguration != null)
+            {
+                 asicEncrypter = new AsicEncrypter(
+                     new AsiceBuilderFactory(), 
+                     new EncryptionServiceFactory(), 
+                     CertificateHolderFactory.Create(
+                        configuration.AsiceSigningConfiguration.publicCertPath,
+                        configuration.AsiceSigningConfiguration.privateKeyPath));
+            }
+            else
+            {
+                asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
+            }
 
             _sendHandler = sendHandler ??
                            new SendHandler(

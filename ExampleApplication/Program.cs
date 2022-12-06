@@ -63,8 +63,7 @@ namespace ExampleApplication
                 port: 5671);
 
             // Combine all configurations
-            var configuration = new FiksIOConfiguration(kontoConfig, integrasjonConfig, maskinportenConfig, apiConfig,
-                amqpConfig);
+            var configuration = new FiksIOConfiguration(kontoConfig, integrasjonConfig, maskinportenConfig, apiConfig, amqpConfig);
             using (var client = await FiksIOClient.CreateAsync(configuration))
             {
                 var lookupTask = client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));

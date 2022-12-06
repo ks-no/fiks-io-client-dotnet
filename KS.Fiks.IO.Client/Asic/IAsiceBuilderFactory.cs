@@ -9,6 +9,10 @@ namespace KS.Fiks.IO.Client.Asic
     {
         IAsiceBuilder<AsiceArchive> GetBuilder(
             Stream outStream,
+            MessageDigestAlgorithm messageDigestAlgorithm);
+
+        IAsiceBuilder<AsiceArchive> GetBuilder(
+            Stream outStream,
             MessageDigestAlgorithm messageDigestAlgorithm,
             ICertificateHolder certificateHolder);
     }

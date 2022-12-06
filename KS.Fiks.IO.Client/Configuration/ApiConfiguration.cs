@@ -2,16 +2,16 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class ApiConfiguration
     {
+        public const string ProdHost = "api.fiks.ks.no";
+        public const string TestHost = "api.fiks.test.ks.no";
         private const string DefaultScheme = "https";
-
-        private const string DefaultHost = "api.fiks.ks.no";
 
         private const int DefaultPort = 443;
 
         public ApiConfiguration(string scheme = null, string host = null, int? port = null)
         {
             Scheme = scheme ?? DefaultScheme;
-            Host = host ?? DefaultHost;
+            Host = host ?? ProdHost;
             Port = port ?? DefaultPort;
         }
 
@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public static ApiConfiguration CreateTestConfiguration()
         {
-            return new ApiConfiguration(host: "api.fiks.test.ks.no");
+            return new ApiConfiguration(host: TestHost);
         }
     }
 }

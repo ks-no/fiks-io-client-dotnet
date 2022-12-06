@@ -73,12 +73,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var certificat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
-                integrasjonId: integrationId,
-                integrasjonPassord: integrationPassord,
-                kontoId: kontoId,
+                fiksIntegrasjonId: integrationId,
+                fiksIntegrasjonPassord: integrationPassord,
+                fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat
+                sertifikat: certificat
             );
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
@@ -100,12 +100,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var certificat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
-                integrasjonId: integrationId,
-                integrasjonPassord: integrationPassord,
-                kontoId: kontoId,
+                fiksIntegrasjonId: integrationId,
+                fiksIntegrasjonPassord: integrationPassord,
+                fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat,
+                sertifikat: certificat,
                 keepAlive: true
             );
 

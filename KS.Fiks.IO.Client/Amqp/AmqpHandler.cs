@@ -1,18 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Client.Dokumentlager;
+using KS.Fiks.IO.Client.Exceptions;
+using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
+using Ks.Fiks.Maskinporten.Client;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
 namespace KS.Fiks.IO.Client.Amqp
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Configuration;
-    using Dokumentlager;
-    using Exceptions;
-    using Ks.Fiks.Maskinporten.Client;
-    using Models;
-    using RabbitMQ.Client;
-    using RabbitMQ.Client.Events;
-    using Send;
-
     internal class AmqpHandler : IAmqpHandler
     {
         private const string QueuePrefix = "fiksio.konto.";

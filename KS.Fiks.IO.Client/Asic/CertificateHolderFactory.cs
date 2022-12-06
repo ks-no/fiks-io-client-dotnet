@@ -1,20 +1,24 @@
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.ASiC_E.Crypto;
-using Org.BouncyCastle.Crypto;
 
 namespace KS.Fiks.IO.Client.Asic
 {
     public class CertificateHolderFactory
     {
-
-        /*
-         *  pemPublicCertificateFilePath er avsenders offentlige sertifikat og CA kjede, og privateKeyFilePath er matchende private nøkkel
-         */
-        public static PreloadedCertificateHolder Create(X509Certificate2 publicCert, string privateKeyFilePath)
+        public static PreloadedCertificateHolder Create(string publicCertPath, string privateKeyPath)
         {
-            AsymmetricKeyParameter privatNokkel = new
-            return PreloadedCertificateHolder.Create(publicCert.GetRawCertData(), privateKeyBufferStream.ToArray());
+            using (var publicKeyStream = new FileStream(publicCertPath, FileMode.Open))
+            using (var privateKeyStream = new FileStream(privateKeyPath, FileMode.Open))
+            {
+                using (var publicKeyBufferStream = new MemoryStream())
+                using (var privateKeyBufferStream = new MemoryStream())
+                {
+                    publicKeyStream.CopyTo(publicKeyBufferStream);
+                    privateKeyStream.CopyTo(privateKeyBufferStream);
+                    return PreloadedCertificateHolder.Create(publicKeyBufferStream.ToArray(),
+                        privateKeyBufferStream.ToArray());
+                }
+            }
         }
     }
 }

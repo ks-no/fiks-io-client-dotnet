@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KS.Fiks.ASiC_E;
 using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
@@ -12,19 +13,26 @@ namespace KS.Fiks.IO.Client.Asic
     internal class AsicEncrypter : IAsicEncrypter
     {
         private readonly IAsiceBuilderFactory _asiceBuilderFactory;
-
         private readonly IEncryptionServiceFactory _encryptionServiceFactory;
-
-        private readonly PreloadedCertificateHolder _asiceCertificateHolder;
+        private readonly ICertificateHolder _asiceSigningCertificateHolder;
 
         public AsicEncrypter(
             IAsiceBuilderFactory asiceBuilderFactory,
             IEncryptionServiceFactory encryptionServiceFactory,
-            PreloadedCertificateHolder preloadedCertificateHolder)
+            ICertificateHolder signingCertificateHolder)
         {
             _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
             _encryptionServiceFactory = encryptionServiceFactory;
-            _asiceCertificateHolder = preloadedCertificateHolder;
+            _asiceSigningCertificateHolder = signingCertificateHolder;
+        }
+
+        public AsicEncrypter(
+            IAsiceBuilderFactory asiceBuilderFactory,
+            IEncryptionServiceFactory encryptionServiceFactory)
+        {
+            _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
+            _encryptionServiceFactory = encryptionServiceFactory;
+            _asiceSigningCertificateHolder = null;
         }
 
         public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
@@ -52,14 +60,13 @@ namespace KS.Fiks.IO.Client.Asic
             var encryptionService = _encryptionServiceFactory.Create(receiverCertificate);
             using (var zipStream = new MemoryStream())
             {
-                using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256, _asiceCertificateHolder))
+                if (_asiceSigningCertificateHolder == null)
                 {
-                    foreach (var payload in payloads)
-                    {
-                        payload.Payload.Seek(0, SeekOrigin.Begin);
-                        asiceBuilder.AddFile(payload.Payload, payload.Filename);
-                        asiceBuilder.Build();
-                    }
+                    BuildAsiceWithoutSigning(payloads, zipStream);
+                }
+                else
+                {
+                    BuildAsiceWithSigning(payloads, zipStream);
                 }
 
                 zipStream.Seek(0, SeekOrigin.Begin);
@@ -67,6 +74,32 @@ namespace KS.Fiks.IO.Client.Asic
             }
 
             return outStream;
+        }
+
+        private void BuildAsiceWithoutSigning(IEnumerable<IPayload> payloads, MemoryStream zipStream)
+        {
+            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256))
+            {
+                BuildAsice(payloads, asiceBuilder);
+            }
+        }
+
+        private void BuildAsiceWithSigning(IEnumerable<IPayload> payloads, MemoryStream zipStream)
+        {
+            using (var asiceBuilder = _asiceBuilderFactory.GetBuilder(zipStream, MessageDigestAlgorithm.SHA256, _asiceSigningCertificateHolder))
+            {
+               BuildAsice(payloads, asiceBuilder);
+            }
+        }
+
+        private static void BuildAsice(IEnumerable<IPayload> payloads, IAsiceBuilder<AsiceArchive> asiceBuilder)
+        {
+            foreach (var payload in payloads)
+            {
+                payload.Payload.Seek(0, SeekOrigin.Begin);
+                asiceBuilder.AddFile(payload.Payload, payload.Filename);
+                asiceBuilder.Build();
+            }
         }
     }
 }

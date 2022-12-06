@@ -5,6 +5,9 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class AmqpConfiguration
     {
+        public const string ProdHost = "io.fiks.ks.no";
+        public const string TestHost = "io.fiks.test.ks.no";
+        
         public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10, bool keepAlive = false)
         {
             Host = host;
@@ -40,12 +43,12 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public static AmqpConfiguration CreateProdConfiguration(bool keepAlive = false, string applicationName = null)
         {
-            return new AmqpConfiguration("io.fiks.ks.no", keepAlive: keepAlive, applicationName: applicationName);
+            return new AmqpConfiguration(ProdHost, keepAlive: keepAlive, applicationName: applicationName);
         }
 
         public static AmqpConfiguration CreateTestConfiguration(bool keepAlive = false, string applicationName = null)
         {
-            return new AmqpConfiguration("io.fiks.test.ks.no", keepAlive: keepAlive, applicationName: applicationName);
+            return new AmqpConfiguration(TestHost, keepAlive: keepAlive, applicationName: applicationName);
         }
     }
 }
