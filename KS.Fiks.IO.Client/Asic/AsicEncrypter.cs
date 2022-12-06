@@ -19,26 +19,17 @@ namespace KS.Fiks.IO.Client.Asic
         public AsicEncrypter(
             IAsiceBuilderFactory asiceBuilderFactory,
             IEncryptionServiceFactory encryptionServiceFactory,
-            ICertificateHolder signingCertificateHolder)
+            ICertificateHolder signingCertificateHolder = null)
         {
             _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
             _encryptionServiceFactory = encryptionServiceFactory;
             _asiceSigningCertificateHolder = signingCertificateHolder;
         }
 
-        public AsicEncrypter(
-            IAsiceBuilderFactory asiceBuilderFactory,
-            IEncryptionServiceFactory encryptionServiceFactory)
-        {
-            _asiceBuilderFactory = asiceBuilderFactory ?? new AsiceBuilderFactory();
-            _encryptionServiceFactory = encryptionServiceFactory;
-            _asiceSigningCertificateHolder = null;
-        }
-
-        public Stream Encrypt(X509Certificate receiverCertificate, IList<IPayload> payloads)
+        public Stream Encrypt(X509Certificate publicKey, IList<IPayload> payloads)
         {
             ThrowIfEmpty(payloads);
-            return ZipAndEncrypt(receiverCertificate, payloads);
+            return ZipAndEncrypt(publicKey, payloads);
         }
 
         private void ThrowIfEmpty(IEnumerable<IPayload> payloads)
@@ -54,10 +45,10 @@ namespace KS.Fiks.IO.Client.Asic
             }
         }
 
-        private Stream ZipAndEncrypt(X509Certificate receiverCertificate, IEnumerable<IPayload> payloads)
+        private Stream ZipAndEncrypt(X509Certificate publicKey, IEnumerable<IPayload> payloads)
         {
             var outStream = new MemoryStream();
-            var encryptionService = _encryptionServiceFactory.Create(receiverCertificate);
+            var encryptionService = _encryptionServiceFactory.Create(publicKey);
             using (var zipStream = new MemoryStream())
             {
                 if (_asiceSigningCertificateHolder == null)

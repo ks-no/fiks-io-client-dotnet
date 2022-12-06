@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Configuration;
@@ -45,10 +46,8 @@ namespace ExampleApplication
 
             using (var client = await FiksIOClient.CreateAsync(configuration))
             {
-                var lookupTask = client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));
-                lookupTask.Wait(TimeSpan.FromSeconds(30));
-
-                var konto = lookupTask.Result;
+                var konto = await client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));
+                Console.Out.WriteLineAsync($"Konto hentet! Kontonavn: {konto.KontoNavn}");
             }
             
         }

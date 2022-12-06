@@ -71,7 +71,7 @@ namespace KS.Fiks.IO.Client
                  asicEncrypter = new AsicEncrypter(
                      new AsiceBuilderFactory(), 
                      new EncryptionServiceFactory(), 
-                     CertificateHolderFactory.Create(
+                     AsicSigningCertificateHolderFactory.Create(
                         configuration.AsiceSigningConfiguration.publicCertPath,
                         configuration.AsiceSigningConfiguration.privateKeyPath));
             }

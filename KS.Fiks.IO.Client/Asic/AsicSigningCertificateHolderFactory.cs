@@ -3,11 +3,11 @@ using KS.Fiks.ASiC_E.Crypto;
 
 namespace KS.Fiks.IO.Client.Asic
 {
-    public class CertificateHolderFactory
+    public class AsicSigningCertificateHolderFactory
     {
-        public static PreloadedCertificateHolder Create(string publicCertPath, string privateKeyPath)
+        public static PreloadedCertificateHolder Create(string publicKeyPath, string privateKeyPath)
         {
-            using (var publicKeyStream = new FileStream(publicCertPath, FileMode.Open))
+            using (var publicKeyStream = new FileStream(publicKeyPath, FileMode.Open))
             using (var privateKeyStream = new FileStream(privateKeyPath, FileMode.Open))
             {
                 using (var publicKeyBufferStream = new MemoryStream())
