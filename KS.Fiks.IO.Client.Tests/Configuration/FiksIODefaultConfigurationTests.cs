@@ -25,7 +25,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 kontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat);
+                sertifikat: certificat);
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
@@ -51,7 +51,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 kontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat,
+                sertifikat: certificat,
                 keepAlive: true);
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
@@ -73,12 +73,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var certificat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
-                integrasjonId: integrationId,
-                integrasjonPassord: integrationPassord,
-                kontoId: kontoId,
+                fiksIntegrasjonId: integrationId,
+                fiksIntegrasjonPassord: integrationPassord,
+                fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat
+                sertifikat: certificat
             );
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
@@ -100,12 +100,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var certificat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
-                integrasjonId: integrationId,
-                integrasjonPassord: integrationPassord,
-                kontoId: kontoId,
+                fiksIntegrasjonId: integrationId,
+                fiksIntegrasjonPassord: integrationPassord,
+                fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                certificate: certificat,
+                sertifikat: certificat,
                 keepAlive: true
             );
 

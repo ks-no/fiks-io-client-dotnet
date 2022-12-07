@@ -7,29 +7,11 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class FiksIOConfiguration
     {
-        public FiksIOConfiguration(
-            KontoConfiguration kontoConfiguration,
-            IntegrasjonConfiguration integrasjonConfiguration,
-            MaskinportenClientConfiguration maskinportenConfiguration,
-            ApiConfiguration apiConfiguration = null,
-            AmqpConfiguration amqpConfiguration = null,
-            KatalogConfiguration katalogConfiguration = null,
-            FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
-            DokumentlagerConfiguration dokumentlagerConfiguration = null)
-        {
-            KontoConfiguration = kontoConfiguration;
-            IntegrasjonConfiguration = integrasjonConfiguration;
-            MaskinportenConfiguration = maskinportenConfiguration;
-            ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
-            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
-            KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
-            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
-            FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
-                                            null,
-                                            ApiConfiguration.Scheme,
-                                            ApiConfiguration.Host,
-                                            ApiConfiguration.Port);
-        }
+        public const string maskinportenProdAudience = @"https://oidc.difi.no/idporten-oidc-provider/token";
+        public const string maskinportenProdTokenEndpoint = @"https://oidc.difi.no/idporten-oidc-provider/token";
+        public const string maskinportenTestAudience = @"https://oidc-ver2.difi.no/idporten-oidc-provider/";
+        public const string maskinportenTestTokenEndpoint = @"https://oidc-ver2.difi.no/idporten-oidc-provider/token";
+        public const int maskinportenDefaultNumberOfSecondsLeftBeforeExpire = 10;
 
         public KontoConfiguration KontoConfiguration { get; }
 
@@ -41,11 +23,39 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public IntegrasjonConfiguration IntegrasjonConfiguration { get; }
 
+        public FiksIOConfiguration(
+            KontoConfiguration kontoConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
+            MaskinportenClientConfiguration maskinportenConfiguration,
+            ApiConfiguration apiConfiguration = null,
+            AmqpConfiguration amqpConfiguration = null,
+            KatalogConfiguration katalogConfiguration = null,
+            FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
+            DokumentlagerConfiguration dokumentlagerConfiguration = null,
+            AsiceSigningConfiguration asiceSigningConfiguration = null)
+        {
+            KontoConfiguration = kontoConfiguration;
+            IntegrasjonConfiguration = integrasjonConfiguration;
+            MaskinportenConfiguration = maskinportenConfiguration;
+            AsiceSigningConfiguration = asiceSigningConfiguration;
+            ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
+            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
+            KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
+            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
+            FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
+                null,
+                ApiConfiguration.Scheme,
+                ApiConfiguration.Host,
+                ApiConfiguration.Port);
+        }
+
         public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 
         public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
 
         public DokumentlagerConfiguration DokumentlagerConfiguration { get; }
+
+        public AsiceSigningConfiguration AsiceSigningConfiguration { get; }
 
         public static FiksIOConfiguration CreateProdConfiguration(
             Guid integrasjonId,
@@ -53,7 +63,7 @@ namespace KS.Fiks.IO.Client.Configuration
             Guid kontoId,
             string privatNokkel,
             string issuer,
-            X509Certificate2 certificate,
+            X509Certificate2 sertifikat,
             bool keepAlive = false,
             string applicationName = null)
         {
@@ -62,42 +72,42 @@ namespace KS.Fiks.IO.Client.Configuration
                 apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, certificate));
+                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, sertifikat));
         }
 
         public static FiksIOConfiguration CreateTestConfiguration(
-            Guid integrasjonId,
-            string integrasjonPassord,
-            Guid kontoId,
+            Guid fiksIntegrasjonId,
+            string fiksIntegrasjonPassord,
+            Guid fiksKontoId,
             string privatNokkel,
             string issuer,
-            X509Certificate2 certificate,
+            X509Certificate2 sertifikat,
             bool keepAlive = false,
             string applicationName = null)
         {
             return new FiksIOConfiguration(
                 amqpConfiguration: AmqpConfiguration.CreateTestConfiguration(keepAlive, applicationName),
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
-                integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
-                kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, certificate));
+                integrasjonConfiguration: new IntegrasjonConfiguration(fiksIntegrasjonId, fiksIntegrasjonPassord),
+                kontoConfiguration: new KontoConfiguration(fiksKontoId, privatNokkel),
+                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, sertifikat));
         }
 
-        private static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)
+        public static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)
         {
             return new MaskinportenClientConfiguration(
-                audience: @"https://oidc.difi.no/idporten-oidc-provider/token",
-                tokenEndpoint: @"https://oidc.difi.no/idporten-oidc-provider/token",
+                audience: maskinportenProdAudience,
+                tokenEndpoint: maskinportenProdTokenEndpoint,
                 issuer: issuer, // KS issuer name
                 numberOfSecondsLeftBeforeExpire: 10,
                 certificate: certificate);
         }
 
-        private static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate)
+        public static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate)
         {
             return new MaskinportenClientConfiguration(
-                audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/",
-                tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token",
+                audience: maskinportenTestAudience,
+                tokenEndpoint: maskinportenTestTokenEndpoint,
                 issuer: issuer, // KS issuer name
                 numberOfSecondsLeftBeforeExpire: 10,
                 certificate: certificate);

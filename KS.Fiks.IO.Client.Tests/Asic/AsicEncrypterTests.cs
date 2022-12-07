@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using FluentAssertions;
+using KS.Fiks.ASiC_E.Crypto;
+using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using Xunit;
@@ -74,7 +76,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         }
 
         [Fact]
-        public void CallsEncrypt()
+        public void CallsEncryptWithoutSigning()
         {
             var expectedOutputString = "myStringToSend";
             var expectedZipStream = new MemoryStream(Encoding.UTF8.GetBytes(expectedOutputString));
@@ -89,6 +91,34 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                 _ => _.Encrypt(
                 It.IsAny<Stream>(),
                 It.IsAny<Stream>()));
+
+            _fixture.AsiceBuilderFactoryMock.Verify(
+                _ => _.GetBuilder(It.IsAny<Stream>(),
+                    It.IsAny<MessageDigestAlgorithm>()));
+        }
+
+        [Fact]
+        public void CallsEncryptWithSigning()
+        {
+            var expectedOutputString = "myStringToSend";
+            var expectedZipStream = new MemoryStream(Encoding.UTF8.GetBytes(expectedOutputString));
+
+            var sut = _fixture.WithContentAsZipStreamed(expectedZipStream).CreateSutWithAsicSigning();
+
+            var payload = new StreamPayload(_fixture.RandomStream, "filename.file");
+
+            var outStream = sut.Encrypt(null, new List<IPayload> {payload});
+
+            _fixture.EncryptionServiceMock.Verify(
+                _ => _.Encrypt(
+                    It.IsAny<Stream>(),
+                    It.IsAny<Stream>()));
+
+            _fixture.AsiceBuilderFactoryMock.Verify(
+                _ => _.GetBuilder(It.IsAny<Stream>(),
+                    It.IsAny<MessageDigestAlgorithm>(),
+                    It.IsAny<ICertificateHolder>()));
+
         }
 
         [Fact]

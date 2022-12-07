@@ -1,28 +1,33 @@
 using System;
 using System.IO;
 using KS.Fiks.ASiC_E;
+using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.ASiC_E.Model;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Asic;
 using Moq;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client.Tests.Asic
 {
     internal class AsicEncrypterFixture : IDisposable
     {
-        private readonly Mock<IAsiceBuilderFactory> _asiceBuilderFactoryMock;
         private readonly Mock<IEncryptionServiceFactory> _encryptionServiceFactoryMock;
+        private readonly CertHolderMock _certificateHolder;
         private Stream _outZipStream;
         private Stream _outEncryptedZipStream;
 
         public AsicEncrypterFixture()
         {
-            _asiceBuilderFactoryMock = new Mock<IAsiceBuilderFactory>();
+            AsiceBuilderFactoryMock = new Mock<IAsiceBuilderFactory>();
             _encryptionServiceFactoryMock = new Mock<IEncryptionServiceFactory>();
             AsiceBuilderMock = new Mock<IAsiceBuilder<AsiceArchive>>();
             EncryptionServiceMock = new Mock<IEncryptionService>();
+            _certificateHolder = new CertHolderMock(null, null);
         }
+
+        public Mock<IAsiceBuilderFactory> AsiceBuilderFactoryMock { get; }
 
         public Mock<IAsiceBuilder<AsiceArchive>> AsiceBuilderMock { get; }
 
@@ -50,7 +55,14 @@ namespace KS.Fiks.IO.Client.Tests.Asic
         {
             SetDefaults();
             SetupMocks();
-            return new AsicEncrypter(_asiceBuilderFactoryMock.Object, _encryptionServiceFactoryMock.Object);
+            return new AsicEncrypter(AsiceBuilderFactoryMock.Object, _encryptionServiceFactoryMock.Object);
+        }
+
+        internal AsicEncrypter CreateSutWithAsicSigning()
+        {
+            SetDefaults();
+            SetupMocksWithAsiceSigning();
+            return new AsicEncrypter(AsiceBuilderFactoryMock.Object, _encryptionServiceFactoryMock.Object, _certificateHolder);
         }
 
         internal MemoryStream RandomStream
@@ -79,7 +91,7 @@ namespace KS.Fiks.IO.Client.Tests.Asic
 
         private void SetupMocks()
         {
-            _asiceBuilderFactoryMock.Setup(_ =>
+            AsiceBuilderFactoryMock.Setup(_ =>
                                         _.GetBuilder(
                                             It.IsAny<Stream>(),
                                             It.IsAny<MessageDigestAlgorithm>()))
@@ -104,6 +116,58 @@ namespace KS.Fiks.IO.Client.Tests.Asic
                                          _outEncryptedZipStream.CopyTo(outStream);
                                          outStream.Seek(0L, SeekOrigin.Begin);
                                      });
+        }
+
+        private void SetupMocksWithAsiceSigning()
+        {
+            AsiceBuilderFactoryMock.Setup(_ =>
+                    _.GetBuilder(
+                        It.IsAny<Stream>(),
+                        It.IsAny<MessageDigestAlgorithm>(),
+                        It.IsAny<ICertificateHolder>()))
+                .Callback<Stream, MessageDigestAlgorithm, ICertificateHolder>((outStream, a, i) =>
+                {
+                    _outZipStream.CopyTo(outStream);
+                    outStream.Seek(0L, SeekOrigin.Begin);
+                })
+                .Returns(AsiceBuilderMock.Object);
+            _encryptionServiceFactoryMock.Setup(_ => _.Create(It.IsAny<X509Certificate>()))
+                .Returns(EncryptionServiceMock.Object);
+
+            AsiceBuilderMock.Setup(_ => _.AddFile(It.IsAny<Stream>(), It.IsAny<string>()))
+                .Returns(AsiceBuilderMock.Object);
+
+            AsiceBuilderMock.Setup(_ => _.Dispose());
+
+            EncryptionServiceMock.Setup(_ => _.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>()))
+                .Callback<Stream, Stream>(
+                    (inStream, outStream) =>
+                    {
+                        _outEncryptedZipStream.CopyTo(outStream);
+                        outStream.Seek(0L, SeekOrigin.Begin);
+                    });
+        }
+
+        public class CertHolderMock : ICertificateHolder
+        {
+            private AsymmetricKeyParameter _asymmetricKeyParameter;
+            private X509Certificate _certificate;
+
+            public CertHolderMock(X509Certificate certificate, AsymmetricKeyParameter asymmetricKeyParameter)
+            {
+                _asymmetricKeyParameter = asymmetricKeyParameter;
+                _certificate = certificate;
+            }
+
+            public AsymmetricKeyParameter GetPrivateKey()
+            {
+                return _asymmetricKeyParameter;
+            }
+
+            public X509Certificate GetPublicCertificate()
+            {
+                return _certificate;
+            }
         }
     }
 }
