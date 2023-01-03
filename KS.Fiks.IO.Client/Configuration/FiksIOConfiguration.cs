@@ -27,12 +27,13 @@ namespace KS.Fiks.IO.Client.Configuration
             KontoConfiguration kontoConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             MaskinportenClientConfiguration maskinportenConfiguration,
+            AsiceSigningConfiguration asiceSigningConfiguration,
             ApiConfiguration apiConfiguration = null,
             AmqpConfiguration amqpConfiguration = null,
             KatalogConfiguration katalogConfiguration = null,
             FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
-            DokumentlagerConfiguration dokumentlagerConfiguration = null,
-            AsiceSigningConfiguration asiceSigningConfiguration = null)
+            DokumentlagerConfiguration dokumentlagerConfiguration = null
+            )
         {
             KontoConfiguration = kontoConfiguration;
             IntegrasjonConfiguration = integrasjonConfiguration;
@@ -63,7 +64,8 @@ namespace KS.Fiks.IO.Client.Configuration
             Guid kontoId,
             string privatNokkel,
             string issuer,
-            X509Certificate2 sertifikat,
+            X509Certificate2 maskinportenSertifikat,
+            X509Certificate2 asiceSertifikat,
             bool keepAlive = false,
             string applicationName = null)
         {
@@ -72,7 +74,8 @@ namespace KS.Fiks.IO.Client.Configuration
                 apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, sertifikat));
+                maskinportenConfiguration: CreateMaskinportenProdConfig(issuer, maskinportenSertifikat),
+                asiceSigningConfiguration: new AsiceSigningConfiguration(asiceSertifikat));
         }
 
         public static FiksIOConfiguration CreateTestConfiguration(
@@ -81,7 +84,8 @@ namespace KS.Fiks.IO.Client.Configuration
             Guid fiksKontoId,
             string privatNokkel,
             string issuer,
-            X509Certificate2 sertifikat,
+            X509Certificate2 maskinportenSertifikat,
+            X509Certificate2 asiceSertifikat,
             bool keepAlive = false,
             string applicationName = null)
         {
@@ -90,7 +94,8 @@ namespace KS.Fiks.IO.Client.Configuration
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(fiksIntegrasjonId, fiksIntegrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(fiksKontoId, privatNokkel),
-                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, sertifikat));
+                maskinportenConfiguration: CreateMaskinportenTestConfig(issuer, maskinportenSertifikat),
+                asiceSigningConfiguration: new AsiceSigningConfiguration(asiceSertifikat));
         }
 
         public static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)

@@ -91,6 +91,8 @@ namespace ExampleApplication
                 Guid.Parse(integrasjonId) /* Integration id as Guid */,
                 integrasjonPassword /* Integration password */);
 
+            var asiceSigningConfig = new AsiceSigningConfiguration(new X509Certificate2(p12Filename, p12Password));
+
 
             // Optional: Use custom api host (i.e. for connecting to test api)
             var apiConfig = new ApiConfiguration(
@@ -104,8 +106,7 @@ namespace ExampleApplication
                 port: 5671);
 
             // Combine all configurations
-            var configuration = new FiksIOConfiguration(kontoConfig, integrasjonConfig, maskinportenConfig, apiConfig,
-                amqpConfig);
+            var configuration = new FiksIOConfiguration(kontoConfig, integrasjonConfig, maskinportenConfig, asiceSigningConfig, apiConfig, amqpConfig);
         }
 
         private static string ReadFromFile(string path)

@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client.Configuration
         private AmqpConfiguration _amqpConfiguration;
         private IntegrasjonConfiguration _integrasjonConfiguration;
         private KontoConfiguration _kontoConfiguration;
-        private AsiceSigningConfiguration _asiceSigningConfiguration = null;
+        private AsiceSigningConfiguration _asiceSigningConfiguration;
         private bool ampqKeepAlive = false;
         private string amqpApplicationName = string.Empty;
         private ushort amqpPrefetchCount = 10;
@@ -57,6 +57,12 @@ namespace KS.Fiks.IO.Client.Configuration
         public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(string certificatePath, string certificatePrivateKeyPath)
         {
             _asiceSigningConfiguration = new AsiceSigningConfiguration(certificatePath, certificatePrivateKeyPath);
+            return this;
+        }
+        
+        public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(X509Certificate2 x509Certificate2)
+        {
+            _asiceSigningConfiguration = new AsiceSigningConfiguration(x509Certificate2);
             return this;
         }
 

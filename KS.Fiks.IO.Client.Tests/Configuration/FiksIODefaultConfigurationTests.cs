@@ -17,7 +17,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var kontoId = Guid.NewGuid();
             var privatNokkel = Guid.NewGuid().ToString();
             var issuer = Guid.NewGuid().ToString();
-            var certificat = new X509Certificate2();
+            var maskinportenSertifikat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateProdConfiguration(
                 integrasjonId: integrationId,
@@ -25,7 +25,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 kontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                sertifikat: certificat);
+                maskinportenSertifikat: maskinportenSertifikat,
+                asiceSertifikat: maskinportenSertifikat);
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
@@ -43,7 +44,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var kontoId = Guid.NewGuid();
             var privatNokkel = Guid.NewGuid().ToString();
             var issuer = Guid.NewGuid().ToString();
-            var certificat = new X509Certificate2();
+            var maskinportenSertifikat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateProdConfiguration(
                 integrasjonId: integrationId,
@@ -51,7 +52,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 kontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                sertifikat: certificat,
+                maskinportenSertifikat: maskinportenSertifikat,
+                asiceSertifikat: maskinportenSertifikat,
                 keepAlive: true);
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
@@ -70,7 +72,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var kontoId = Guid.NewGuid();
             var privatNokkel = Guid.NewGuid().ToString();
             var issuer = Guid.NewGuid().ToString();
-            var certificat = new X509Certificate2();
+            var maskinportenSertifikat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
                 fiksIntegrasjonId: integrationId,
@@ -78,7 +80,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                sertifikat: certificat
+                maskinportenSertifikat: maskinportenSertifikat,
+                asiceSertifikat: maskinportenSertifikat
             );
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
@@ -97,7 +100,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             var kontoId = Guid.NewGuid();
             var privatNokkel = Guid.NewGuid().ToString();
             var issuer = Guid.NewGuid().ToString();
-            var certificat = new X509Certificate2();
+            var maskinportenSertifikat = new X509Certificate2();
 
             var config = FiksIOConfiguration.CreateTestConfiguration(
                 fiksIntegrasjonId: integrationId,
@@ -105,7 +108,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 fiksKontoId: kontoId,
                 privatNokkel: privatNokkel,
                 issuer: issuer,
-                sertifikat: certificat,
+                maskinportenSertifikat: maskinportenSertifikat,
+                asiceSertifikat: maskinportenSertifikat,
                 keepAlive: true
             );
 

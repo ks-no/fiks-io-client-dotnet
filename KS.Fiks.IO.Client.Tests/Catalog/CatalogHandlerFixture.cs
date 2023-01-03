@@ -206,6 +206,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 accountConfiguration,
                 new IntegrasjonConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
+                new AsiceSigningConfiguration(new X509Certificate2()),
                 apiConfiguration: apiConfiguration,
                 katalogConfiguration: catalogConfiguration);
         }
