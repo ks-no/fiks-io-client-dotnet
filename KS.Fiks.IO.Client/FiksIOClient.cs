@@ -51,7 +51,8 @@ namespace KS.Fiks.IO.Client
             IDokumentlagerHandler dokumentlagerHandler = null,
             IAmqpHandler amqpHandler = null,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null)
+            IPublicKeyProvider publicKeyProvider = null,
+            IAsicEncrypter asicEncrypter = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -65,20 +66,10 @@ namespace KS.Fiks.IO.Client
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
 
-            AsicEncrypter asicEncrypter;
-            if (configuration.AsiceSigningConfiguration != null)
-            {
-                 asicEncrypter = new AsicEncrypter(
+            var _asicEncrypter = asicEncrypter ?? new AsicEncrypter(
                      new AsiceBuilderFactory(), 
                      new EncryptionServiceFactory(), 
-                     AsicSigningCertificateHolderFactory.Create(
-                        configuration.AsiceSigningConfiguration.publicCertPath,
-                        configuration.AsiceSigningConfiguration.privateKeyPath));
-            }
-            else
-            {
-                asicEncrypter = new AsicEncrypter(new AsiceBuilderFactory(), new EncryptionServiceFactory());
-            }
+                     AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
 
             _sendHandler = sendHandler ??
                            new SendHandler(
@@ -87,7 +78,7 @@ namespace KS.Fiks.IO.Client
                                configuration.FiksIOSenderConfiguration,
                                configuration.IntegrasjonConfiguration,
                                httpClient,
-                               asicEncrypter,
+                               _asicEncrypter,
                                _publicKeyProvider);
 
             _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(
@@ -114,7 +105,8 @@ namespace KS.Fiks.IO.Client
             IDokumentlagerHandler dokumentlagerHandler = null,
             IAmqpHandler amqpHandler = null,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null)
+            IPublicKeyProvider publicKeyProvider = null,
+            IAsicEncrypter asicEncrypter = null)
         {
             var client = new FiksIOClient(
                 configuration,
@@ -124,7 +116,8 @@ namespace KS.Fiks.IO.Client
                 dokumentlagerHandler, 
                 amqpHandler,
                 httpClient, 
-                publicKeyProvider);
+                publicKeyProvider,
+                asicEncrypter);
 
             await client.InitializeAsync(configuration).ConfigureAwait(false);
 

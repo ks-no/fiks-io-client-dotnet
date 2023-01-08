@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -38,6 +39,7 @@ namespace KS.Fiks.IO.Client.Tests
             SendHandlerMock = new Mock<ISendHandler>();
             DokumentlagerHandlerMock = new Mock<IDokumentlagerHandler>();
             AmqpHandlerMock = new Mock<IAmqpHandler>();
+            AsicEncrypterMock = new Mock<IAsicEncrypter>();
         }
 
         public Mock<IMaskinportenClient> MaskinportenClientMock { get; }
@@ -45,6 +47,8 @@ namespace KS.Fiks.IO.Client.Tests
         public Mock<IFiksIOSender> FiksIOSenderMock { get; }
 
         public Mock<ISendHandler> SendHandlerMock { get; }
+
+        public Mock<IAsicEncrypter> AsicEncrypterMock { get; }
 
         public MeldingRequest DefaultRequest => new MeldingRequest(
             Guid.NewGuid(),
@@ -61,7 +65,8 @@ namespace KS.Fiks.IO.Client.Tests
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
-                AmqpHandlerMock.Object).Result;
+                AmqpHandlerMock.Object,
+                asicEncrypter: AsicEncrypterMock.Object).Result;
         }
 
         public FiksIOClientFixture WithAccountId(Guid id)
@@ -132,11 +137,11 @@ namespace KS.Fiks.IO.Client.Tests
         {
             var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
             var accountConfiguration = new KontoConfiguration(_accountId, "dummyKey");
-
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,
                 new IntegrasjonConfiguration(_integrasjonId, _integrasjonPassword),
                 new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
+                new AsiceSigningConfiguration("",""),
                 apiConfiguration: apiConfiguration,
                 katalogConfiguration: _katalogConfiguration);
         }
