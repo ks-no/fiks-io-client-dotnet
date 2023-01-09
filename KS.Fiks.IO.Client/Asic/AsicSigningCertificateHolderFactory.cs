@@ -14,8 +14,8 @@ namespace KS.Fiks.IO.Client.Asic
 
         private static PreloadedCertificateHolder Create(string publicKeyPath, string privateKeyPath)
         {
-            using (var publicKeyStream = new FileStream(publicKeyPath, FileMode.Open))
-            using (var privateKeyStream = new FileStream(privateKeyPath, FileMode.Open))
+            using (var publicKeyStream = new FileStream(publicKeyPath, FileMode.Open, FileAccess.Read))
+            using (var privateKeyStream = new FileStream(privateKeyPath, FileMode.Open, FileAccess.Read))
             {
                 using (var publicKeyBufferStream = new MemoryStream())
                 using (var privateKeyBufferStream = new MemoryStream())
