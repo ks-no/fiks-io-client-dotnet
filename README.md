@@ -233,12 +233,14 @@ var configuration = new FiksIOConfiguration(
 - **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. 
 
 #### Asice signering:
-Asice signering er nå påkrevd siden versjon 3.0.0 av denne klienten.
-Det er 2 måter å gjøre det på, enten ved et public/private key par eller et x509Certificate2 som holder på en private key.
+Asice signing is required since version 3.0.0 of this client.
+There are two ways of setting this up, either with a public/private key pair or a x509Certificate2 that also holds the private key.
+If you are reusing the x509Certificate2 from the `maskinporten` configuration you might have to inject the corresponding private key.
 
-Et x509Certificate2 som har en privatekey: `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
+Examples:
+A x509Certificate2 with a private key: `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
 
-Eller path til public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
+Or path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
 
 A PKCS#1 key can be converted using this command:
 ```powershell
