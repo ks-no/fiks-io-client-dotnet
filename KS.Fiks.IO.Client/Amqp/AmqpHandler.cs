@@ -8,6 +8,7 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -41,6 +42,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
+        private readonly ILogger _logger;
+
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
@@ -49,7 +52,8 @@ namespace KS.Fiks.IO.Client.Amqp
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            ILoggerFactory loggerFactory = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
@@ -62,6 +66,11 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
             }
+
+            if (loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger("FiksIOClientAmqpHandler");
+            }
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -72,9 +81,10 @@ namespace KS.Fiks.IO.Client.Amqp
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            ILoggerFactory loggerFactory = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory, loggerFactory);
 
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
             return amqpHandler;
@@ -133,12 +143,19 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (!IsOpen())
             {
+                _logger?.LogDebug("Connection according to IsOpen is not open and EnsureAmqpConnectionIsOpen will try to reconnect");
+
                 var oldConnection = _connection;
                 var oldChannel = _channel;
                 try
                 {
                     await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration)
                         .ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger?.LogError($"Something went wrong trying to reconnect in EnsureAmqpConnectionIsOpen. Errormessage: {e.Message}", e);
+
                 }
                 finally
                 {

@@ -46,6 +46,7 @@
 		<PackageReference Include="KS.Fiks.Crypto" Version="1.0.4" />
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.9" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.5" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
