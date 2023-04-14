@@ -39,8 +39,7 @@ namespace KS.Fiks.IO.Client
         private FiksIOClient(
             FiksIOConfiguration configuration,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null,
-            ILoggerFactory loggerFactory = null)
+            IPublicKeyProvider publicKeyProvider = null)
             : this(configuration, null, null, null, null, null, httpClient, publicKeyProvider)
         {
         }
@@ -92,10 +91,10 @@ namespace KS.Fiks.IO.Client
             _amqpHandler = amqpHandler;
         }
 
-        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null, ILoggerFactory loggerFactory = null)
+        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null, ILogger logger = null)
         {
-            var client = new FiksIOClient(configuration, httpClient, publicKeyProvider, loggerFactory);
-            await client.InitializeAsync(configuration, loggerFactory).ConfigureAwait(false);
+            var client = new FiksIOClient(configuration, httpClient, publicKeyProvider);
+            await client.InitializeAsync(configuration, logger).ConfigureAwait(false);
 
             return client;
         }
@@ -109,7 +108,7 @@ namespace KS.Fiks.IO.Client
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null,
-            ILoggerFactory loggerFactory = null)
+            ILogger logger = null)
         {
             var client = new FiksIOClient(
                 configuration,
@@ -122,12 +121,12 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter);
 
-            await client.InitializeAsync(configuration, loggerFactory).ConfigureAwait(false);
+            await client.InitializeAsync(configuration, logger).ConfigureAwait(false);
 
             return client;
         }
 
-        private async Task InitializeAsync(FiksIOConfiguration configuration, ILoggerFactory loggerFactory = null)
+        private async Task InitializeAsync(FiksIOConfiguration configuration, ILogger logger= null)
         {
             _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
                 _sendHandler,
@@ -137,7 +136,7 @@ namespace KS.Fiks.IO.Client
                 configuration.KontoConfiguration,
                 null,
                 null,
-                loggerFactory);
+                logger);
         }
 
         public Guid KontoId { get; }

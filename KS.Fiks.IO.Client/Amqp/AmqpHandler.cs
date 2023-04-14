@@ -53,7 +53,7 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null,
-            ILoggerFactory loggerFactory = null)
+            ILogger logger = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
@@ -67,9 +67,9 @@ namespace KS.Fiks.IO.Client.Amqp
                 _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
             }
 
-            if (loggerFactory != null)
+            if (logger != null)
             {
-                _logger = loggerFactory.CreateLogger("FiksIOClientAmqpHandler");
+                _logger = logger;
             }
         }
 
@@ -82,9 +82,9 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null,
-            ILoggerFactory loggerFactory = null)
+            ILogger logger = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory, loggerFactory);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory, logger);
 
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
             return amqpHandler;
