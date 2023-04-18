@@ -10,6 +10,7 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client.Events;
 
@@ -61,6 +62,7 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
+                new LoggerFactory(),
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,

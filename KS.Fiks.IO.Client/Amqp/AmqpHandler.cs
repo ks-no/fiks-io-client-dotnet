@@ -42,7 +42,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
-        private readonly ILogger _logger;
+        private readonly ILogger<AmqpHandler> _logger;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -51,9 +51,10 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
+            ILoggerFactory logger,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null,
-            ILogger logger = null)
+            IAmqpConsumerFactory consumerFactory = null
+            )
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
@@ -66,11 +67,7 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
             }
-
-            if (logger != null)
-            {
-                _logger = logger;
-            }
+            _logger = logger.CreateLogger<AmqpHandler>();
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -80,11 +77,11 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
+            LoggerFactory loggerFactory,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null,
-            ILogger logger = null)
+            IAmqpConsumerFactory consumerFactory = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory, logger);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
 
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
             return amqpHandler;

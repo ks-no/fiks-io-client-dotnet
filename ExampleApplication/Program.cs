@@ -8,6 +8,7 @@ using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 
 namespace ExampleApplication
 {
@@ -44,7 +45,9 @@ namespace ExampleApplication
             // Or create the configuration manually 
             //var configuration = CreateConfig(issuer, p12Filename, p12Password, fiksIoAccountId, fiksIoPrivateKeyPath, integrasjonId, integrasjonPassword);
 
-            using (var client = await FiksIOClient.CreateAsync(configuration))
+            var loggerFactory = new LoggerFactory();
+
+            using (var client = await FiksIOClient.CreateAsync(configuration, loggerFactory))
             {
                 var konto = await client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));
                 Console.Out.WriteLineAsync($"Konto hentet! Kontonavn: {konto.KontoNavn}");
