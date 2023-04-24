@@ -98,7 +98,8 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        internal static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration,
+        internal static async Task<FiksIOClient> CreateAsync(
+            FiksIOConfiguration configuration,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
             ISendHandler sendHandler = null,
@@ -131,7 +132,7 @@ namespace KS.Fiks.IO.Client
                 _dokumentlagerHandler,
                 configuration.AmqpConfiguration,
                 configuration.IntegrasjonConfiguration,
-                configuration.KontoConfiguration);
+                configuration.KontoConfiguration).ConfigureAwait(false);
         }
 
         public Guid KontoId { get; }

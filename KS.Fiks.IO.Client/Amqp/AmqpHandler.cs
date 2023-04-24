@@ -167,7 +167,9 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                var connection = (IAutorecoveringConnection)_connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                return connection;
             }
             catch (Exception ex)
             {
@@ -175,10 +177,28 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
+        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs connectionRecoveryErrorEventArgs)
+        {
+            try
+            {
+                var maskinportenToken = _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
+                _connection.UpdateSecret(
+                    $"{_integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}",
+                    "Update with cached or new token from maskinporten client");
+            }
+            catch (Exception e)
+            {
+                //TODO add logging here when the other issue with adding logging to this component is fixed
+            }
+        }
+
         private async Task SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
         {
             try
             {
+                // Here it sets the Password as a static password + token, and not refreshing token from Maskinporten.
+                // The HandleConnectionRecoveryError event handler updates with a new token when necessary. This is not an ideal solution off course.
+                // But it must remain like this until the .NET version of the the RabbitMQ client gets the CredentialsProvider feature like the Java-client
                 var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).ConfigureAwait(false);
                 _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
                 _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
