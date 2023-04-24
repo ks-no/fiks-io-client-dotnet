@@ -25,11 +25,11 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly KontoConfiguration _kontoConfiguration;
 
-        private readonly IMaskinportenClient _maskinportenClient;
+        private static IMaskinportenClient _maskinportenClient;
 
         private readonly AmqpConfiguration _amqpConfiguration;
 
-        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+        private static IntegrasjonConfiguration _integrasjonConfiguration;
 
         private readonly SslOption _sslOption;
 
@@ -37,7 +37,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private IModel _channel;
 
-        private IConnection _connection;
+        private static IConnection _connection;
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
@@ -78,6 +78,21 @@ namespace KS.Fiks.IO.Client.Amqp
 
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
             return amqpHandler;
+        }
+
+        private static void HandleConnectionShutdown(object sender, ShutdownEventArgs shutdownEventArgs)
+        {
+            try
+            {
+                var maskinportenToken = _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
+                _connection.UpdateSecret(
+                    $"{_integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}",
+                    "Update with cached or new token from maskinporten client");
+            }
+            catch (Exception e)
+            {
+                //TODO add logging here when the other issue with adding logging to this component is fixed
+            }
         }
 
         public void AddMessageReceivedHandler(
@@ -177,27 +192,12 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void HandleConnectionShutdown(object sender, ShutdownEventArgs shutdownEventArgs)
-        {
-            try
-            {
-                var maskinportenToken = _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
-                _connection.UpdateSecret(
-                    $"{_integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}",
-                    "Update with cached or new token from maskinporten client");
-            }
-            catch (Exception e)
-            {
-                //TODO add logging here when the other issue with adding logging to this component is fixed
-            }
-        }
-
         private async Task SetupConnectionFactory(IntegrasjonConfiguration integrasjonConfiguration)
         {
             try
             {
                 // Here it sets the Password as a static password + token, and not refreshing token from Maskinporten.
-                // The HandleConnectionRecoveryError event handler updates with a new token when necessary. This is not an ideal solution off course.
+                // The HandleConnectionShutdown event handler updates with a new token when necessary. This is not an ideal solution off course.
                 // But it must remain like this until the .NET version of the the RabbitMQ client gets the CredentialsProvider feature like the Java-client
                 var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).ConfigureAwait(false);
                 _connectionFactory.UserName = integrasjonConfiguration.IntegrasjonId.ToString();
