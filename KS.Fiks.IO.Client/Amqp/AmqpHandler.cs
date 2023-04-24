@@ -167,8 +167,8 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                var connection = (IAutorecoveringConnection)_connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
-                connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                var connection = _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                connection.ConnectionShutdown += HandleConnectionShutdown;
                 return connection;
             }
             catch (Exception ex)
@@ -177,7 +177,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs connectionRecoveryErrorEventArgs)
+        private void HandleConnectionShutdown(object sender, ShutdownEventArgs shutdownEventArgs)
         {
             try
             {
