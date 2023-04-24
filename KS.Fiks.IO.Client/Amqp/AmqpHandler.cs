@@ -36,13 +36,13 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly Timer _ensureAmqpConnectionIsOpenTimer;
 
+        private readonly ILogger<AmqpHandler> _logger;
+
         private IModel _channel;
 
         private IConnection _connection;
 
         private IAmqpReceiveConsumer _receiveConsumer;
-
-        private readonly ILogger<AmqpHandler> _logger;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -51,10 +51,9 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
-            ILoggerFactory logger,
+            ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null
-            )
+            IAmqpConsumerFactory consumerFactory = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
@@ -67,7 +66,11 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
             }
-            _logger = logger.CreateLogger<AmqpHandler>();
+
+            if (loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger<AmqpHandler>();
+            }
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -77,13 +80,13 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
-            LoggerFactory loggerFactory,
+            ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
-
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
+
             return amqpHandler;
         }
 
@@ -152,7 +155,6 @@ namespace KS.Fiks.IO.Client.Amqp
                 catch (Exception e)
                 {
                     _logger?.LogError($"Something went wrong trying to reconnect in EnsureAmqpConnectionIsOpen. Errormessage: {e.Message}", e);
-
                 }
                 finally
                 {

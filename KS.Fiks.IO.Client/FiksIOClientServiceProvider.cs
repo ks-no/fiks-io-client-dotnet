@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using KS.Fiks.IO.Client.Amqp;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KS.Fiks.IO.Client
@@ -8,6 +8,7 @@ namespace KS.Fiks.IO.Client
         public static IServiceCollection AddServiceForFiksIOClient(this IServiceCollection provider)
         {
             provider.AddScoped<IFiksIOClient, FiksIOClient>();
+            provider.AddScoped<IAmqpHandler, AmqpHandler>();
             return provider;
         }
     }

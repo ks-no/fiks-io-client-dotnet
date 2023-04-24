@@ -62,7 +62,7 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
-                new LoggerFactory(),
+                null,
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,

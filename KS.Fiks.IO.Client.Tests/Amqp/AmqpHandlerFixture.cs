@@ -91,7 +91,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                      amqpConfiguration,
                      CreateIntegrationConfiguration(),
                      new KontoConfiguration(_accountId, "dummy"),
-                     new LoggerFactory(),
+                     null,
                      ConnectionFactoryMock.Object,
                      AmqpConsumerFactoryMock.Object).Result;
 
@@ -109,7 +109,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 amqpConfiguration,
                 CreateIntegrationConfiguration(),
                 new KontoConfiguration(_accountId, "dummy"),
-                new LoggerFactory(),
+                null,
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object);
 

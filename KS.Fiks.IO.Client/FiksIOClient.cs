@@ -4,7 +4,6 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using KS.Fiks.ASiC_E.Crypto;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Catalog;
@@ -36,15 +35,15 @@ namespace KS.Fiks.IO.Client
 
         private IMaskinportenClient _maskinportenClient;
 
+        private readonly ILoggerFactory _loggerFactory;
+
         private readonly ILogger<FiksIOClient> _logger;
 
         public Task Initialization { get; }
 
-        private bool _initialized;
-
         public FiksIOClient(
             FiksIOConfiguration configuration,
-            ILoggerFactory loggerFactory,
+            ILoggerFactory loggerFactory = null,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null)
             : this(configuration, loggerFactory, null, null, null, null, null, httpClient, publicKeyProvider)
@@ -53,7 +52,7 @@ namespace KS.Fiks.IO.Client
 
         private FiksIOClient(
             FiksIOConfiguration configuration,
-            ILoggerFactory loggerFactory,
+            ILoggerFactory loggerFactory = null,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
             ISendHandler sendHandler = null,
@@ -75,10 +74,14 @@ namespace KS.Fiks.IO.Client
 
             _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
 
-            var _asicEncrypter = asicEncrypter ?? new AsicEncrypter(
-                     new AsiceBuilderFactory(),
-                     new EncryptionServiceFactory(),
-                     AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
+            if (asicEncrypter == null)
+            {
+                asicEncrypter = new AsicEncrypter(
+                    new AsiceBuilderFactory(),
+                    new EncryptionServiceFactory(),
+                    AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
+
+            }
 
             _sendHandler = sendHandler ??
                            new SendHandler(
@@ -87,7 +90,7 @@ namespace KS.Fiks.IO.Client
                                configuration.FiksIOSenderConfiguration,
                                configuration.IntegrasjonConfiguration,
                                httpClient,
-                               _asicEncrypter,
+                               asicEncrypter,
                                _publicKeyProvider);
 
             _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(
@@ -98,12 +101,16 @@ namespace KS.Fiks.IO.Client
 
             _amqpHandler = amqpHandler;
 
-            _logger = loggerFactory.CreateLogger<FiksIOClient>();
+            _loggerFactory = loggerFactory;
+            if (_loggerFactory != null)
+            {
+                _logger = _loggerFactory.CreateLogger<FiksIOClient>();
+            }
+
             Initialization = InitializeAsync(configuration);
         }
 
-        
-        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, ILoggerFactory loggerFactory, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null, ILogger<FiksIOClient> logger = null)
+        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, ILoggerFactory loggerFactory = null, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
             await client.InitializeAsync(configuration).ConfigureAwait(false);
@@ -111,8 +118,9 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        internal static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration,
-            LoggerFactory loggerFactory,
+        internal static async Task<FiksIOClient> CreateAsync(
+            FiksIOConfiguration configuration,
+            LoggerFactory loggerFactory = null,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
             ISendHandler sendHandler = null,
@@ -122,15 +130,16 @@ namespace KS.Fiks.IO.Client
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null)
         {
+
             var client = new FiksIOClient(
                 configuration,
                 loggerFactory,
-                catalogHandler, 
-                maskinportenClient, 
-                sendHandler, 
-                dokumentlagerHandler, 
+                catalogHandler,
+                maskinportenClient,
+                sendHandler,
+                dokumentlagerHandler,
                 amqpHandler,
-                httpClient, 
+                httpClient,
                 publicKeyProvider,
                 asicEncrypter);
 
@@ -141,13 +150,14 @@ namespace KS.Fiks.IO.Client
 
         private async Task InitializeAsync(FiksIOConfiguration configuration)
         {
-            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(_maskinportenClient,
+            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
+                _maskinportenClient,
                 _sendHandler,
                 _dokumentlagerHandler,
                 configuration.AmqpConfiguration,
                 configuration.IntegrasjonConfiguration,
                 configuration.KontoConfiguration,
-                null,
+                _loggerFactory,
                 null).ConfigureAwait(false);
         }
 
