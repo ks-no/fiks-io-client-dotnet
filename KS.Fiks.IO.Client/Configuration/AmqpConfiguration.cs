@@ -7,7 +7,7 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         public const string ProdHost = "io.fiks.ks.no";
         public const string TestHost = "io.fiks.test.ks.no";
-        
+
         public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10, bool keepAlive = false)
         {
             Host = host;

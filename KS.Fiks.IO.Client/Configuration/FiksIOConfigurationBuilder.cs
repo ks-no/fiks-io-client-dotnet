@@ -21,6 +21,19 @@ namespace KS.Fiks.IO.Client.Configuration
             return new FiksIOConfigurationBuilder();
         }
 
+        public FiksIOConfiguration BuildConfiguration(string host, int port = 5671)
+        {
+            ValidateConfigurations();
+
+            return new FiksIOConfiguration(
+                amqpConfiguration: new AmqpConfiguration(host, port, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
+                apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
+                asiceSigningConfiguration: _asiceSigningConfiguration,
+                integrasjonConfiguration: _integrasjonConfiguration,
+                kontoConfiguration: _kontoConfiguration,
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
+        }
+
         public FiksIOConfiguration BuildTestConfiguration()
         {
             ValidateConfigurations();
@@ -59,7 +72,7 @@ namespace KS.Fiks.IO.Client.Configuration
             _asiceSigningConfiguration = new AsiceSigningConfiguration(certificatePath, certificatePrivateKeyPath);
             return this;
         }
-        
+
         public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(X509Certificate2 x509Certificate2)
         {
             _asiceSigningConfiguration = new AsiceSigningConfiguration(x509Certificate2);

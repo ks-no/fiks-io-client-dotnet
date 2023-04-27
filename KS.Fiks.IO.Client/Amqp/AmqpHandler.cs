@@ -18,31 +18,33 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private const int HealthCheckInterval = 5 * 60 * 1000;
+        private const int HealthCheckInterval = 2 * 1000;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
-        private readonly IConnectionFactory _connectionFactory;
+        private static IConnectionFactory _connectionFactory;
 
         private readonly KontoConfiguration _kontoConfiguration;
 
-        private readonly IMaskinportenClient _maskinportenClient;
+        private static IMaskinportenClient _maskinportenClient;
 
         private readonly AmqpConfiguration _amqpConfiguration;
 
-        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+        private static IntegrasjonConfiguration _integrasjonConfiguration;
 
         private readonly SslOption _sslOption;
 
         private readonly Timer _ensureAmqpConnectionIsOpenTimer;
 
-        private readonly ILogger<AmqpHandler> _logger;
+        private static ILogger<AmqpHandler> _logger;
 
         private IModel _channel;
 
-        private IConnection _connection;
+        private static IConnection _connection;
 
         private IAmqpReceiveConsumer _receiveConsumer;
+
+        public Task Initialization { get; }
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -87,6 +89,7 @@ namespace KS.Fiks.IO.Client.Amqp
             var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
 
+            _logger.LogDebug("AmqpHandler CreateAsync done");
             return amqpHandler;
         }
 
@@ -132,7 +135,28 @@ namespace KS.Fiks.IO.Client.Amqp
             await SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
+
+            // Handle events for debugging
+            _connection.ConnectionShutdown += HandleConnectionShutdown;
+            _connection.ConnectionBlocked += HandleConnectionBlocked;
+            _connection.ConnectionUnblocked += HandleConnectionUnblocked;
         }
+
+        private void HandleConnectionBlocked(object sender, EventArgs e)
+        {
+            _logger.LogDebug("RabbitMQ Connection ConnectionBlocked event has been triggered");
+        }
+
+        private void HandleConnectionUnblocked(object sender, EventArgs e)
+        {
+            _logger.LogDebug("RabbitMQ Connection ConnectionUnblocked event has been triggered");
+        }
+
+        private  void HandleConnectionShutdown(object sender, EventArgs shutdownEventArgs)
+        {
+            _logger.LogDebug($"RabbitMQ Connection ConnectionShutdown event has been triggered");
+        }
+
 
         private async void Callback(object o)
         {
@@ -143,7 +167,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (!IsOpen())
             {
-                _logger?.LogDebug("Connection according to IsOpen is not open and EnsureAmqpConnectionIsOpen will try to reconnect");
+                _logger.LogDebug("Connection according to IsOpen is not open and EnsureAmqpConnectionIsOpen will try to reconnect");
 
                 var oldConnection = _connection;
                 var oldChannel = _channel;
@@ -154,7 +178,7 @@ namespace KS.Fiks.IO.Client.Amqp
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError($"Something went wrong trying to reconnect in EnsureAmqpConnectionIsOpen. Errormessage: {e.Message}", e);
+                    _logger.LogWarning($"Something went wrong trying to reconnect in EnsureAmqpConnectionIsOpen. Error message: {e.Message}", e);
                 }
                 finally
                 {
@@ -183,7 +207,8 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                var connection = _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                return connection;
             }
             catch (Exception ex)
             {
@@ -201,6 +226,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
+                _logger.LogError("Unable to setup connection factory");
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
             }
         }

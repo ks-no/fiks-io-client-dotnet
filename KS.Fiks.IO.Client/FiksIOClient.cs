@@ -39,7 +39,7 @@ namespace KS.Fiks.IO.Client
 
         private readonly ILogger<FiksIOClient> _logger;
 
-        public Task Initialization { get; }
+        private Task Initialization;
 
         public FiksIOClient(
             FiksIOConfiguration configuration,
@@ -102,6 +102,7 @@ namespace KS.Fiks.IO.Client
             _amqpHandler = amqpHandler;
 
             _loggerFactory = loggerFactory;
+
             if (_loggerFactory != null)
             {
                 _logger = _loggerFactory.CreateLogger<FiksIOClient>();
@@ -110,11 +111,14 @@ namespace KS.Fiks.IO.Client
             Initialization = InitializeAsync(configuration);
         }
 
+        public Task GetInitialization()
+        {
+            return Initialization;
+        }
+
         public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, ILoggerFactory loggerFactory = null, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
-            await client.InitializeAsync(configuration).ConfigureAwait(false);
-
             return client;
         }
 
@@ -143,14 +147,12 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter);
 
-            await client.InitializeAsync(configuration).ConfigureAwait(false);
-
             return client;
         }
 
         private async Task InitializeAsync(FiksIOConfiguration configuration)
         {
-            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
+            _amqpHandler = await AmqpHandler.CreateAsync(
                 _maskinportenClient,
                 _sendHandler,
                 _dokumentlagerHandler,

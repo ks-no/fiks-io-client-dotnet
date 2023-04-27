@@ -2,13 +2,17 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 
 namespace ExampleApplication
 {
@@ -16,12 +20,53 @@ namespace ExampleApplication
     {
         public static async Task Main(string[] args)
         {
+            var loggerFactory = InitSerilogConfiguration();
+            await new HostBuilder()
+                .ConfigureHostConfiguration((configHost) =>
+                {
+                    configHost.AddEnvironmentVariables("DOTNET_");
+                })
+                .ConfigureAppConfiguration((hostBuilder, config) =>
+                {
+                    config.SetBasePath(Directory.GetCurrentDirectory());
+                    config.AddJsonFile("appsettings.json", optional: true);
+                    config.AddJsonFile($"appsettings.Development.json", optional: true);
+                })
+                .ConfigureServices((hostContext, services) =>
+                {
+                    var appSettings = AppSettingsBuilder.CreateAppSettings(hostContext.Configuration);
+                    services.AddSingleton(appSettings);
+                    services.AddSingleton(loggerFactory);
+                    services.AddServiceForFiksIOClient(FiksIOClientBuilder.CreateConfiguration(appSettings));
+                    services.AddHostedService<FiksIOSubscriber>();
+                })
+                .RunConsoleAsync();
+        }
+        
+        private static ILoggerFactory InitSerilogConfiguration()
+        {
+            var loggerConfiguration = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Localization", LogEventLevel.Error)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level}] [{RequestId}] [{requestid}] - {Message} {NewLine} {Exception}");
+
+            var logger = loggerConfiguration.CreateLogger();
+            Log.Logger = logger;
+
+            Log.Information("Starting host with env variables:");
+            return LoggerFactory.Create(logging => logging.AddSerilog(logger));
+        }
+
+        private static async Task TestClientLookup()
+        {
             // Relative or absolute path to the *.p12-file containing the test certificate used to sign tokens for Maskinporten
             var p12Filename = Environment.GetEnvironmentVariable("P12FILENAME");
-            
+
             // Password required to use the certificate
             var p12Password = Environment.GetEnvironmentVariable("P12PWD");
-            
+
             // The issuer as defined in Maskinporten
             var issuer = Environment.GetEnvironmentVariable("MASKINPORTEN_ISSUER");
 
@@ -33,24 +78,24 @@ namespace ExampleApplication
             // Values generated in Fiks Forvaltning when creating the "Integrasjon"
             var integrasjonId = Environment.GetEnvironmentVariable("INTEGRASJON_ID");
             var integrasjonPassword = Environment.GetEnvironmentVariable("INTEGRASJON_PWD");
-            
+
             // Relative or absolute path to the public cert you want to use with the signing of the asice packages
             var asiceCertFilepath = Environment.GetEnvironmentVariable("ASICE_CERT_FILENAME");
             // Relative or absolute path to the privatekey (that is created from the cert above) that you want to use with the signing of the asice packages
             var asiceCertPrivateKeyPath = Environment.GetEnvironmentVariable("ASICE_CERT_PRIVATEKEY");
-            
+
             // Create configuration easy with the fluent configuration builder
-            var configuration = CreateConfigurationWithFluentBuilder(p12Filename, p12Password, issuer, integrasjonId, integrasjonPassword, fiksIoAccountId, fiksIoPrivateKeyPath, asiceCertFilepath, asiceCertPrivateKeyPath);
-            
+            var configuration = CreateConfigurationWithFluentBuilder(p12Filename, p12Password, issuer, integrasjonId,
+                integrasjonPassword, fiksIoAccountId, fiksIoPrivateKeyPath, asiceCertFilepath, asiceCertPrivateKeyPath);
+
             // Or create the configuration manually 
             //var configuration = CreateConfig(issuer, p12Filename, p12Password, fiksIoAccountId, fiksIoPrivateKeyPath, integrasjonId, integrasjonPassword);
 
             using (var client = await FiksIOClient.CreateAsync(configuration))
             {
                 var konto = await client.Lookup(new LookupRequest("999999999", "no.ks.fiks.melding", 2));
-                Console.Out.WriteLineAsync($"Konto hentet! Kontonavn: {konto.KontoNavn}");
+                await Console.Out.WriteLineAsync($"Konto hentet! Kontonavn: {konto.KontoNavn}");
             }
-            
         }
 
         // Creates a FiksIOConfiguration using the fluent builder

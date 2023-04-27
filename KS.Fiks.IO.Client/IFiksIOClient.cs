@@ -28,5 +28,7 @@ namespace KS.Fiks.IO.Client
         void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding, EventHandler<ConsumerEventArgs> onCanceled);
 
         bool IsOpen();
+
+        Task GetInitialization();
     }
 }

@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.IO.Client", "KS.Fik
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KS.Fiks.IO.Client.Tests", "KS.Fiks.IO.Client.Tests\KS.Fiks.IO.Client.Tests.csproj", "{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleApplication", "ExampleApplication\ExampleApplication.csproj", "{7F12F632-DAB0-481B-9E7B-B10D461FDF03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleApplication", "ExampleApplication\ExampleApplication.csproj", "{49E2D85B-14FB-45CD-BFFC-2D81C9B90BCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,10 +20,10 @@ Global
 		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B45963D-3333-4CAF-98BC-102C6A3CCE8A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F12F632-DAB0-481B-9E7B-B10D461FDF03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F12F632-DAB0-481B-9E7B-B10D461FDF03}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F12F632-DAB0-481B-9E7B-B10D461FDF03}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F12F632-DAB0-481B-9E7B-B10D461FDF03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49E2D85B-14FB-45CD-BFFC-2D81C9B90BCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49E2D85B-14FB-45CD-BFFC-2D81C9B90BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49E2D85B-14FB-45CD-BFFC-2D81C9B90BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49E2D85B-14FB-45CD-BFFC-2D81C9B90BCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
