@@ -7,8 +7,9 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         public const string ProdHost = "io.fiks.ks.no";
         public const string TestHost = "io.fiks.test.ks.no";
+        public const int DefaultKeepAliveHealthCheckInterval = 1 * 60 * 1000;
 
-        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10, bool keepAlive = false)
+        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10, bool keepAlive = true, int keepAliveCheckInterval = DefaultKeepAliveHealthCheckInterval)
         {
             Host = host;
             Port = port;
@@ -21,6 +22,7 @@ namespace KS.Fiks.IO.Client.Configuration
             ApplicationName = applicationName;
             PrefetchCount = prefetchCount;
             KeepAlive = keepAlive;
+            KeepAliveHealthCheckInterval = keepAliveCheckInterval;
         }
 
         public string Host { get; }
@@ -40,6 +42,8 @@ namespace KS.Fiks.IO.Client.Configuration
         public ushort PrefetchCount { get; }
 
         public bool KeepAlive { get; }
+
+        public int KeepAliveHealthCheckInterval { get; }
 
         public static AmqpConfiguration CreateProdConfiguration(bool keepAlive = false, string applicationName = null)
         {

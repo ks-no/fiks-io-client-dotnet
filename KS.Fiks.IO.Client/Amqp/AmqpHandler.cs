@@ -18,8 +18,6 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private const int HealthCheckInterval = 2 * 1000;
-
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
         private static IConnectionFactory _connectionFactory;
@@ -66,7 +64,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
             if (amqpConfiguration.KeepAlive)
             {
-                _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
+                _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, amqpConfiguration.KeepAliveHealthCheckInterval, amqpConfiguration.KeepAliveHealthCheckInterval);
             }
 
             if (loggerFactory != null)
@@ -160,30 +158,24 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async void Callback(object o)
         {
-            await EnsureAmqpConnectionIsOpen().ConfigureAwait(false);
+            await RefreshTokenIfNotOpen().ConfigureAwait(false);
         }
 
-        private async Task EnsureAmqpConnectionIsOpen()
+        private async Task RefreshTokenIfNotOpen()
         {
+            _logger.LogDebug("AmqpHandler RefreshTokenIfNotOpen start");
             if (!IsOpen())
             {
-                _logger.LogDebug("Connection according to IsOpen is not open and EnsureAmqpConnectionIsOpen will try to reconnect");
+                _logger.LogDebug("AmqpHandler RefreshTokenIfNotOpen - Connection according to IsOpen is not open and will try to fetch and update with new token");
 
-                var oldConnection = _connection;
-                var oldChannel = _channel;
                 try
                 {
-                    await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration)
-                        .ConfigureAwait(false);
+                    await RefreshMaskinportenToken(_integrasjonConfiguration).ConfigureAwait(false);
+                    _logger.LogDebug("AmqpHandler EnsureAmqpConnectionIsOpen - Connection reconnected");
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning($"Something went wrong trying to reconnect in EnsureAmqpConnectionIsOpen. Error message: {e.Message}", e);
-                }
-                finally
-                {
-                    oldChannel?.Dispose();
-                    oldConnection?.Dispose();
+                    _logger.LogWarning($"AmqpHandler RefreshTokenIfNotOpen - Something went wrong trying to refresh token. Error message: {e.Message}", e);
                 }
             }
         }
@@ -226,8 +218,22 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unable to setup connection factory");
+                _logger.LogError("AmqpHandler - Unable to setup connection factory");
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
+            }
+        }
+
+        private async Task RefreshMaskinportenToken(IntegrasjonConfiguration integrasjonConfiguration)
+        {
+            try
+            {
+                var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).ConfigureAwait(false);
+                _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("AmqpHandler - Unable to refresh with latest maskinporten token");
+                throw new FiksIOAmqpSetupFailedException("Unable to refresh with latest maskinporten token.", ex);
             }
         }
 

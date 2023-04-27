@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,42 +19,14 @@ namespace ExampleApplication
         private static readonly ILogger Log = Serilog.Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
         private Timer _FiksIOClientStatusCheckTimer { get; set; }
         private readonly IServiceScopeFactory _scopeFactory;
-
-        
         private const int HealthCheckInterval = 15 * 1000;
 
-        public FiksIOSubscriber(IFiksIOClient fiksIoClient, AppSettings appSettings, ILoggerFactory loggerFactory)
+        public FiksIOSubscriber(IFiksIOClient fiksIoClient, AppSettings appSettings)
         {
             _fiksIoClient = fiksIoClient;
             _appSettings = appSettings;
             
         }
-        
-        /*public FiksIOSubscriber(AppSettings appSettings, ILoggerFactory loggerFactory)
-        {
-            _loggerFactory = loggerFactory;
-            _appSettings = appSettings;
-            Log.Information("Initialize FiksIOClient");
-            Initialization = InitializeAsync();
-            _FiksIOClientStatusCheckTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
-        }*/
-        
-        /*
-        public Task Initialization { get; private set; }
-        
-        private async Task InitializeAsync()
-        {
-            try
-            {
-                _fiksIoClient = await FiksIOClientBuilder.CreateFiksIoClient(_appSettings, _loggerFactory);
-                await _fiksIoClient.Initialization;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Startup failed to create FiksIO Client: {e.Message}", e);
-                throw;
-            }
-        }*/
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -65,7 +36,7 @@ namespace ExampleApplication
             Log.Information("Application is starting subscribe");
             SubscribeToFiksIOClient();
             
-            Log.Information("Application is starting simple health check");
+            Log.Information($"FiksIOSubscriber is starting timer for simple health checks with interval of {HealthCheckInterval} ms");
 
             _FiksIOClientStatusCheckTimer = new Timer(WriteStatusToLog, null, HealthCheckInterval, HealthCheckInterval);
 
@@ -74,13 +45,13 @@ namespace ExampleApplication
         
         private void WriteStatusToLog(object o)
         {
-            Log.Information($"Status check - FiksIOClient connection IsOpen status: {_fiksIoClient.IsOpen()}");
-            Log.Information($"Status check - Maskinporten reachable : {CheckMaskinportenIsReachable()}");
+            Log.Information($"FiksIOSubscriber status check - FiksIOClient connection IsOpen status: {_fiksIoClient.IsOpen()}");
+            Log.Information($"FiksIOSubscriber status check - Maskinporten reachable : {CheckMaskinportenIsReachable()}");
         }
 
         private bool CheckMaskinportenIsReachable()
         {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(_appSettings.FiksIOConfig.MaskinPortenAudienceUrl);
+            var request = (HttpWebRequest) WebRequest.Create(_appSettings.FiksIOConfig.MaskinPortenAudienceUrl);
             request.Timeout = 5 * 1000;
             request.Method = "HEAD";
             try

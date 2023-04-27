@@ -10,7 +10,8 @@ namespace KS.Fiks.IO.Client.Configuration
         private IntegrasjonConfiguration _integrasjonConfiguration;
         private KontoConfiguration _kontoConfiguration;
         private AsiceSigningConfiguration _asiceSigningConfiguration;
-        private bool ampqKeepAlive = false;
+        private bool ampqKeepAlive = true;
+        private int ampqKeepAliveHealthCheckInterval = AmqpConfiguration.DefaultKeepAliveHealthCheckInterval;
         private string amqpApplicationName = string.Empty;
         private ushort amqpPrefetchCount = 10;
         private string maskinportenIssuer = string.Empty;
@@ -39,7 +40,7 @@ namespace KS.Fiks.IO.Client.Configuration
             ValidateConfigurations();
 
             return new FiksIOConfiguration(
-                amqpConfiguration: new AmqpConfiguration(AmqpConfiguration.TestHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
+                amqpConfiguration: new AmqpConfiguration(AmqpConfiguration.TestHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive, keepAliveCheckInterval: ampqKeepAliveHealthCheckInterval),
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
@@ -91,7 +92,7 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
-        public FiksIOConfigurationBuilder WithAmqpConfiguration(string applicationName, ushort prefetchCount, bool keepAlive = false)
+        public FiksIOConfigurationBuilder WithAmqpConfiguration(string applicationName, ushort prefetchCount, bool keepAlive = true, int keepAliveHealthCheckInterval = AmqpConfiguration.DefaultKeepAliveHealthCheckInterval)
         {
             ampqKeepAlive = keepAlive;
             amqpApplicationName = applicationName;
