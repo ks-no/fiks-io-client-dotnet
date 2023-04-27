@@ -6,8 +6,7 @@ using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using ILogger = Serilog.ILogger;
+using Serilog;
 
 namespace ExampleApplication
 {
@@ -15,10 +14,8 @@ namespace ExampleApplication
     {
         private IFiksIOClient _fiksIoClient;
         private readonly AppSettings _appSettings;
-        private readonly ILoggerFactory _loggerFactory;
         private static readonly ILogger Log = Serilog.Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
-        private Timer _FiksIOClientStatusCheckTimer { get; set; }
-        private readonly IServiceScopeFactory _scopeFactory;
+        private Timer FiksIoClientStatusCheckTimer { get; set; }
         private const int HealthCheckInterval = 15 * 1000;
 
         public FiksIOSubscriber(IFiksIOClient fiksIoClient, AppSettings appSettings)
@@ -38,7 +35,7 @@ namespace ExampleApplication
             
             Log.Information($"FiksIOSubscriber is starting timer for simple health checks with interval of {HealthCheckInterval} ms");
 
-            _FiksIOClientStatusCheckTimer = new Timer(WriteStatusToLog, null, HealthCheckInterval, HealthCheckInterval);
+            FiksIoClientStatusCheckTimer = new Timer(WriteStatusToLog, null, HealthCheckInterval, HealthCheckInterval);
 
             await Task.CompletedTask;
         }

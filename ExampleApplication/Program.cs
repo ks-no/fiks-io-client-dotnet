@@ -21,24 +21,26 @@ namespace ExampleApplication
     {
         public static async Task Main(string[] args)
         {
+            var configurationRoot = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.Development.json", optional: true).Build();
+            
             var loggerFactory = InitSerilogConfiguration();
+            var appSettings = AppSettingsBuilder.CreateAppSettings(configurationRoot);
+            var configuration = FiksIoConfigurationBuilder.CreateConfiguration(appSettings);
+            var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
+            
             await new HostBuilder()
                 .ConfigureHostConfiguration((configHost) =>
                 {
                     configHost.AddEnvironmentVariables("DOTNET_");
                 })
-                .ConfigureAppConfiguration((hostBuilder, config) =>
-                {
-                    config.SetBasePath(Directory.GetCurrentDirectory());
-                    config.AddJsonFile("appsettings.json", optional: true);
-                    config.AddJsonFile($"appsettings.Development.json", optional: true);
-                })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var appSettings = AppSettingsBuilder.CreateAppSettings(hostContext.Configuration);
                     services.AddSingleton(appSettings);
                     services.AddSingleton(loggerFactory);
-                    services.AddServiceForFiksIOClient(FiksIoConfigurationBuilder.CreateConfiguration(appSettings));
+                    services.AddSingleton<IFiksIOClient>(fiksIoClient);
                     services.AddHostedService<FiksIOSubscriber>();
                 })
                 .RunConsoleAsync();
