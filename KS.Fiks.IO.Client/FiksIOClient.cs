@@ -23,25 +23,19 @@ namespace KS.Fiks.IO.Client
 {
     public class FiksIOClient : IFiksIOClient
     {
+        private static ISendHandler _sendHandler;
+
+        private static ILoggerFactory _loggerFactory;
+
+        private static IAmqpHandler _amqpHandler;
+
+        private static IDokumentlagerHandler _dokumentlagerHandler;
+
+        private static IMaskinportenClient _maskinportenClient;
+
         private readonly ICatalogHandler _catalogHandler;
 
-        private ISendHandler _sendHandler;
-
-        private IAmqpHandler _amqpHandler;
-
-        private IDokumentlagerHandler _dokumentlagerHandler;
-
-        private readonly IPublicKeyProvider _publicKeyProvider;
-
-        private IMaskinportenClient _maskinportenClient;
-
-        private readonly ILoggerFactory _loggerFactory;
-
-        private readonly ILogger<FiksIOClient> _logger;
-
-        private Task Initialization;
-
-        public FiksIOClient(
+        private FiksIOClient(
             FiksIOConfiguration configuration,
             ILoggerFactory loggerFactory = null,
             HttpClient httpClient = null,
@@ -72,15 +66,12 @@ namespace KS.Fiks.IO.Client
                                   _maskinportenClient,
                                   httpClient);
 
-            _publicKeyProvider = publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler);
-
             if (asicEncrypter == null)
             {
                 asicEncrypter = new AsicEncrypter(
                     new AsiceBuilderFactory(),
                     new EncryptionServiceFactory(),
                     AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
-
             }
 
             _sendHandler = sendHandler ??
@@ -91,7 +82,7 @@ namespace KS.Fiks.IO.Client
                                configuration.IntegrasjonConfiguration,
                                httpClient,
                                asicEncrypter,
-                               _publicKeyProvider);
+                               publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler));
 
             _dokumentlagerHandler = dokumentlagerHandler ?? new DokumentlagerHandler(
                 configuration.DokumentlagerConfiguration,
@@ -102,23 +93,16 @@ namespace KS.Fiks.IO.Client
             _amqpHandler = amqpHandler;
 
             _loggerFactory = loggerFactory;
-
-            if (_loggerFactory != null)
-            {
-                _logger = _loggerFactory.CreateLogger<FiksIOClient>();
-            }
-
-            Initialization = InitializeAsync(configuration);
         }
 
-        public Task GetInitialization()
-        {
-            return Initialization;
-        }
-
-        public static async Task<FiksIOClient> CreateAsync(FiksIOConfiguration configuration, ILoggerFactory loggerFactory = null, HttpClient httpClient = null, IPublicKeyProvider publicKeyProvider = null)
+        public static async Task<FiksIOClient> CreateAsync(
+            FiksIOConfiguration configuration,
+            ILoggerFactory loggerFactory = null,
+            HttpClient httpClient = null,
+            IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
+            await InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
             return client;
         }
 
@@ -147,12 +131,13 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter);
 
+            await InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
             return client;
         }
 
-        private async Task InitializeAsync(FiksIOConfiguration configuration)
+        private static async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration)
         {
-            _amqpHandler = await AmqpHandler.CreateAsync(
+            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
                 _maskinportenClient,
                 _sendHandler,
                 _dokumentlagerHandler,
@@ -160,7 +145,7 @@ namespace KS.Fiks.IO.Client
                 configuration.IntegrasjonConfiguration,
                 configuration.KontoConfiguration,
                 _loggerFactory,
-                null).ConfigureAwait(false);
+                connectionFactory: null).ConfigureAwait(false);
         }
 
         public Guid KontoId { get; }

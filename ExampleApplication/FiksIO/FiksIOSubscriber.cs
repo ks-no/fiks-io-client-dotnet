@@ -28,7 +28,7 @@ namespace ExampleApplication
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // await FiksIOClient initialization
-            await _fiksIoClient.GetInitialization();
+            //await _fiksIoClient.GetInitialization();
             
             Log.Information("Application is starting subscribe");
             SubscribeToFiksIOClient();
