@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -27,9 +26,6 @@ namespace ExampleApplication
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // await FiksIOClient initialization
-            //await _fiksIoClient.GetInitialization();
-            
             Log.Information("Application is starting subscribe");
             SubscribeToFiksIOClient();
             
