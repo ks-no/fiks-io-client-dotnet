@@ -14,8 +14,8 @@
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="6.9.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+        <PackageReference Include="FluentAssertions" Version="6.10.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
         <PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.5" />
         <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.9" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.5" />
@@ -26,7 +26,7 @@
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
-        <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+        <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
     </ItemGroup>
