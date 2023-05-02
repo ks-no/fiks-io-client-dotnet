@@ -8,6 +8,7 @@ using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -17,27 +18,25 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private const string QueuePrefix = "fiksio.konto.";
 
-        private const int HealthCheckInterval = 5 * 60 * 1000;
+        private static IConnectionFactory _connectionFactory;
+
+        private static IMaskinportenClient _maskinportenClient;
+
+        private static IntegrasjonConfiguration _integrasjonConfiguration;
+
+        private static IConnection _connection;
+
+        private static ILogger<AmqpHandler> _logger;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
-        private readonly IConnectionFactory _connectionFactory;
-
         private readonly KontoConfiguration _kontoConfiguration;
-
-        private readonly IMaskinportenClient _maskinportenClient;
-
-        private readonly AmqpConfiguration _amqpConfiguration;
-
-        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
 
         private readonly SslOption _sslOption;
 
         private readonly Timer _ensureAmqpConnectionIsOpenTimer;
 
         private IModel _channel;
-
-        private IConnection _connection;
 
         private IAmqpReceiveConsumer _receiveConsumer;
 
@@ -48,19 +47,25 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
+            ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
-            _amqpConfiguration = amqpConfiguration;
             _integrasjonConfiguration = integrasjonConfiguration;
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory();
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
+
             if (amqpConfiguration.KeepAlive)
             {
-                _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, HealthCheckInterval, HealthCheckInterval);
+                _ensureAmqpConnectionIsOpenTimer = new Timer(Callback, null, amqpConfiguration.KeepAliveHealthCheckInterval, amqpConfiguration.KeepAliveHealthCheckInterval);
+            }
+
+            if (loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger<AmqpHandler>();
             }
         }
 
@@ -71,12 +76,14 @@ namespace KS.Fiks.IO.Client.Amqp
             AmqpConfiguration amqpConfiguration,
             IntegrasjonConfiguration integrasjonConfiguration,
             KontoConfiguration kontoConfiguration,
+            ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, connectionFactory, consumerFactory);
-
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
             await amqpHandler.SetupConnectionAndConnect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
+
+             _logger?.LogDebug("AmqpHandler CreateAsync done");
             return amqpHandler;
         }
 
@@ -122,28 +129,48 @@ namespace KS.Fiks.IO.Client.Amqp
             await SetupConnectionFactory(integrasjonConfiguration).ConfigureAwait(false);
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
+
+            // Handle events for debugging
+            _connection.ConnectionShutdown += HandleConnectionShutdown;
+            _connection.ConnectionBlocked += HandleConnectionBlocked;
+            _connection.ConnectionUnblocked += HandleConnectionUnblocked;
+        }
+
+        private void HandleConnectionBlocked(object sender, EventArgs e)
+        {
+            _logger?.LogDebug("RabbitMQ Connection ConnectionBlocked event has been triggered");
+        }
+
+        private void HandleConnectionUnblocked(object sender, EventArgs e)
+        {
+            _logger?.LogDebug("RabbitMQ Connection ConnectionUnblocked event has been triggered");
+        }
+
+        private void HandleConnectionShutdown(object sender, EventArgs shutdownEventArgs)
+        {
+            _logger?.LogDebug($"RabbitMQ Connection ConnectionShutdown event has been triggered");
         }
 
         private async void Callback(object o)
         {
-            await EnsureAmqpConnectionIsOpen().ConfigureAwait(false);
+            await RefreshTokenIfNotOpen().ConfigureAwait(false);
         }
 
-        private async Task EnsureAmqpConnectionIsOpen()
+        private async Task RefreshTokenIfNotOpen()
         {
+            _logger?.LogDebug("AmqpHandler RefreshTokenIfNotOpen start");
             if (!IsOpen())
             {
-                var oldConnection = _connection;
-                var oldChannel = _channel;
+                _logger?.LogDebug("AmqpHandler RefreshTokenIfNotOpen - Connection according to IsOpen is not open and will try to fetch and update with new token");
+
                 try
                 {
-                    await SetupConnectionAndConnect(_integrasjonConfiguration, _amqpConfiguration)
-                        .ConfigureAwait(false);
+                    await RefreshMaskinportenToken(_integrasjonConfiguration).ConfigureAwait(false);
+                    _logger?.LogDebug("AmqpHandler EnsureAmqpConnectionIsOpen - Connection reconnected");
                 }
-                finally
+                catch (Exception e)
                 {
-                    oldChannel?.Dispose();
-                    oldConnection?.Dispose();
+                    _logger?.LogWarning($"AmqpHandler RefreshTokenIfNotOpen - Something went wrong trying to refresh token. Error message: {e.Message}", e);
                 }
             }
         }
@@ -167,7 +194,8 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                var connection = _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                return connection;
             }
             catch (Exception ex)
             {
@@ -185,7 +213,22 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
+                _logger?.LogError("AmqpHandler - Unable to setup connection factory");
                 throw new FiksIOAmqpSetupFailedException("Unable to setup connection factory.", ex);
+            }
+        }
+
+        private async Task RefreshMaskinportenToken(IntegrasjonConfiguration integrasjonConfiguration)
+        {
+            try
+            {
+                var maskinportenToken = await _maskinportenClient.GetAccessToken(integrasjonConfiguration.Scope).ConfigureAwait(false);
+                _connectionFactory.Password = $"{integrasjonConfiguration.IntegrasjonPassord} {maskinportenToken.Token}";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError("AmqpHandler - Unable to refresh with latest maskinporten token");
+                throw new FiksIOAmqpSetupFailedException("Unable to refresh with latest maskinporten token.", ex);
             }
         }
 
