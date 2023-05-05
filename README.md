@@ -12,7 +12,11 @@ It is also the underlying messaging system for the Fiks Protokoll messages. Read
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
 For example Fiks-IO requires that certain [headers](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere) are set in the messages. 
-Using this client means that these details are hidden and simpflifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere). 
+Using this client means that these details are hidden and simpflifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere).
+
+#### RabbitMQ
+Fiks-IO is using RabbitMQ and this Fiks-IO-Client is using its client for connecting and receiving messages. Sending messages goes through the Fiks-IO Rest-API.
+For more information on RabbitMQ, we recommend the documentation pages from RabbitMQ [here](https://www.rabbitmq.com/).
 
 ## Installation
 Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
@@ -20,7 +24,17 @@ Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nu
 ## Prerequisites
 To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
 
+## Usage recomendations
+We recommend having a long-lived Fiks-IO-Client and connection to Fiks-IO. Creating a new Fiks-IO-Client on demand, meaning creating a new Fiks-IO-Client e.g. many times pr hour, is not recommended.
+Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the RabbitMQ server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). 
+
+
 ## Examples
+
+### Example project
+An example project is provided here in the `ExampleApplication` and the Program.cs program. 
+This example program shows how to create a Fiks-IO-Client and subscribe. 
+
 ### Sending message
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
@@ -118,6 +132,9 @@ Only the required configuration parameters must be provided when you use these t
 
 You can also create the configuration yourself where also two convenience functions are provided for generating default configurations for *prod* and *test*,
 `CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Also here will only the required configuration parameters are needed.
+
+#### Logging
+Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
 
 #### Create with builder example:
 
