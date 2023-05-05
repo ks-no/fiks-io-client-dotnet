@@ -16,7 +16,7 @@ Using this client means that these details are hidden and simpflifies sending an
 
 #### RabbitMQ
 Fiks-IO is using RabbitMQ and this Fiks-IO-Client is using its client for connecting and receiving messages. Sending messages goes through the Fiks-IO Rest-API.
-For more information on RabbitMQ, we recommend the documentation pages from RabbitMQ [here](https://www.rabbitmq.com/).
+For more information on RabbitMQ, we recommend the documentation pages on connections from RabbitMQ [here](https://www.rabbitmq.com/connections.html).
 
 ## Installation
 Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
@@ -27,6 +27,8 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 ## Usage recomendations
 We recommend having a long-lived Fiks-IO-Client and connection to Fiks-IO. Creating a new Fiks-IO-Client on demand, meaning creating a new Fiks-IO-Client e.g. many times pr hour, is not recommended.
 Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the RabbitMQ server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). 
+
+We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle). 
 
 
 ## Examples
