@@ -28,7 +28,11 @@ To be able to use Fiks IO you have to have an active Fiks IO account with an ass
 We recommend having a long-lived Fiks-IO-Client and connection to Fiks-IO. Creating a new Fiks-IO-Client on demand, meaning creating a new Fiks-IO-Client e.g. many times pr hour, is not recommended.
 Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the RabbitMQ server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). 
 
-We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle). 
+We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle).
+
+### Health
+The client also exposes the status of the connection to RabbitMQ through the `IsOpen()` function. 
+We recommend using this for monitoring the health of the client. 
 
 
 ## Examples
