@@ -23,15 +23,15 @@ namespace KS.Fiks.IO.Client
 {
     public class FiksIOClient : IFiksIOClient
     {
-        private static ISendHandler _sendHandler;
+        private ISendHandler _sendHandler;
 
-        private static ILoggerFactory _loggerFactory;
+        private ILoggerFactory _loggerFactory;
 
-        private static IAmqpHandler _amqpHandler;
+        private IAmqpHandler _amqpHandler;
 
-        private static IDokumentlagerHandler _dokumentlagerHandler;
+        private IDokumentlagerHandler _dokumentlagerHandler;
 
-        private static IMaskinportenClient _maskinportenClient;
+        private IMaskinportenClient _maskinportenClient;
 
         private readonly ICatalogHandler _catalogHandler;
 
@@ -102,7 +102,7 @@ namespace KS.Fiks.IO.Client
             IPublicKeyProvider publicKeyProvider = null)
         {
             var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
-            await InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
+            await client.InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
             return client;
         }
 
@@ -118,7 +118,6 @@ namespace KS.Fiks.IO.Client
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null)
         {
-
             var client = new FiksIOClient(
                 configuration,
                 loggerFactory,
@@ -131,11 +130,11 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter);
 
-            await InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
+            await client.InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
             return client;
         }
 
-        private static async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration)
+        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration)
         {
             _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
                 _maskinportenClient,

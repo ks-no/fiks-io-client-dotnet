@@ -97,6 +97,7 @@ namespace KS.Fiks.IO.Client.Configuration
             ampqKeepAlive = keepAlive;
             amqpApplicationName = applicationName;
             amqpPrefetchCount = prefetchCount;
+            ampqKeepAliveHealthCheckInterval = keepAliveHealthCheckInterval;
             return this;
         }
 
