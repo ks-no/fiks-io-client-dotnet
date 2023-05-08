@@ -1,13 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
-using KS.Fiks.IO.Client.Configuration;
-using KS.Fiks.IO.Client.Models;
-using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

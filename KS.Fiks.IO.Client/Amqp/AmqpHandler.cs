@@ -16,17 +16,18 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpHandler : IAmqpHandler
     {
+        private static ILogger<AmqpHandler> _logger;
+
         private const string QueuePrefix = "fiksio.konto.";
 
-        private static IConnectionFactory _connectionFactory;
+        private IConnectionFactory _connectionFactory;
 
-        private static IMaskinportenClient _maskinportenClient;
+        private IMaskinportenClient _maskinportenClient;
 
-        private static IntegrasjonConfiguration _integrasjonConfiguration;
+        private IntegrasjonConfiguration _integrasjonConfiguration;
 
-        private static IConnection _connection;
+        private IConnection _connection;
 
-        private static ILogger<AmqpHandler> _logger;
 
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
 
