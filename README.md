@@ -31,7 +31,7 @@ Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the R
 We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle).
 
 ### Health
-The client also exposes the status of the connection to RabbitMQ through the `IsOpen()` function. 
+The client also exposes the status of the connection to RabbitMQ through the [IsOpen()](#isopen) function. 
 We recommend using this for monitoring the health of the client. 
 
 
