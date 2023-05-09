@@ -256,7 +256,8 @@ var configuration = new FiksIOConfiguration(
 - **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. 
 
 #### Asice signing:
-Asice signing is required since version 3.0.0 of this client.
+Asice signing is required since version 3.0.0 of this client. More information on Asice signing can be found [here](https://docs.digdir.no/dpi_dokumentpakke_sikkerhet.html).
+
 There are two ways of setting this up, either with a public/private key pair or a x509Certificate2 that also holds the private key.
 If you are reusing the x509Certificate2 from the `maskinporten` configuration you might have to inject the corresponding private key.
 
