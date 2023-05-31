@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
 namespace KS.Fiks.IO.Client.Configuration
@@ -89,6 +90,12 @@ namespace KS.Fiks.IO.Client.Configuration
         public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, string fiksPrivateKey) 
         {
             _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKey);
+            return this;
+        }
+        
+        public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, IEnumerable<string> fiksPrivateKeys)
+        {
+            _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKeys);
             return this;
         }
 

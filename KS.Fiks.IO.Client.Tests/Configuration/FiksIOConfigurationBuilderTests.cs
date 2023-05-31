@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Configuration;
@@ -36,6 +38,36 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
 
             configuration.ApiConfiguration.Host.Should().Be(ApiConfiguration.ProdHost);
             configuration.AmqpConfiguration.Host.Should().Be(AmqpConfiguration.ProdHost);
+        }
+
+        [Fact]
+        public void ConfigWithSinglPrivateKey()
+        {
+            var dummyPrivateKey = Guid.NewGuid().ToString();
+            var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKey)
+                .BuildTestConfiguration();
+
+            config.KontoConfiguration.PrivatNokler.Single().Should().Be(dummyPrivateKey);
+        }
+
+        [Fact]
+        public void ConfigWithMultiplePrivateKeys()
+        {
+            var dummyPrivateKeys = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid().ToString()).ToList();
+            var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKeys)
+                .BuildTestConfiguration();
+
+            config.KontoConfiguration.PrivatNokler.Should().BeEquivalentTo(dummyPrivateKeys);
         }
 
         [Fact]

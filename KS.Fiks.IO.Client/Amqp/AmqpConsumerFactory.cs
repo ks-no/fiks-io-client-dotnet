@@ -11,28 +11,32 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpConsumerFactory : IAmqpConsumerFactory
     {
-        private readonly IFileWriter fileWriter;
+        private readonly IFileWriter _fileWriter;
 
-        private readonly IAsicDecrypter decrypter;
+        private readonly IAsicDecrypter _decrypter;
 
-        private readonly ISendHandler sendHandler;
+        private readonly ISendHandler _sendHandler;
 
-        private readonly IDokumentlagerHandler dokumentlagerHandler;
+        private readonly IDokumentlagerHandler _dokumentlagerHandler;
 
-        private readonly Guid accountId;
+        private readonly Guid _accountId;
 
-        public AmqpConsumerFactory(ISendHandler sendHandler, IDokumentlagerHandler dokumentlagerHandler, KontoConfiguration kontoConfiguration)
+        public AmqpConsumerFactory(
+            ISendHandler sendHandler,
+            IDokumentlagerHandler dokumentlagerHandler,
+            KontoConfiguration kontoConfiguration)
         {
-            this.dokumentlagerHandler = dokumentlagerHandler;
-            this.fileWriter = new FileWriter();
-            this.decrypter = new AsicDecrypter(DecryptionService.Create(kontoConfiguration.PrivatNokkel));
-            this.sendHandler = sendHandler;
-            this.accountId = kontoConfiguration.KontoId;
+            _dokumentlagerHandler = dokumentlagerHandler;
+            _fileWriter = new FileWriter();
+            _decrypter = new AsicDecrypter(DecryptionService.Create(kontoConfiguration.PrivatNokler));
+
+            _sendHandler = sendHandler;
+            _accountId = kontoConfiguration.KontoId;
         }
 
         public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)
         {
-            return new AmqpReceiveConsumer(channel, this.dokumentlagerHandler, this.fileWriter, this.decrypter, this.sendHandler, this.accountId);
+            return new AmqpReceiveConsumer(channel, _dokumentlagerHandler, _fileWriter, _decrypter, _sendHandler, _accountId);
         }
     }
 }

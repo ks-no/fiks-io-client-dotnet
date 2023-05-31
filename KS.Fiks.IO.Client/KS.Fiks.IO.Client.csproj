@@ -13,7 +13,7 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
 		<VersionPrefix>3.0.6</VersionPrefix>
-		<TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<AssemblyVersion>3.0.0.0</AssemblyVersion>
@@ -43,7 +43,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="KS.Fiks.ASiC-E" Version="1.0.5" />
-		<PackageReference Include="KS.Fiks.Crypto" Version="1.0.5" />
+		<PackageReference Include="KS.Fiks.Crypto" Version="1.0.6" />
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.9" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.5" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
