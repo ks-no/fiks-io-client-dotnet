@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using KS.Fiks.IO.Client.Models;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace ExampleApplication
+namespace ExampleApplication.FiksIO
 {
     public class FiksIOSubscriber : BackgroundService
     {
@@ -21,19 +22,42 @@ namespace ExampleApplication
         {
             _fiksIoClient = fiksIoClient;
             _appSettings = appSettings;
-            
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Log.Information("Application is starting subscribe");
-            SubscribeToFiksIOClient();
-            
-            Log.Information($"FiksIOSubscriber is starting timer for simple health checks with interval of {HealthCheckInterval} ms");
-
             FiksIoClientStatusCheckTimer = new Timer(WriteStatusToLog, null, HealthCheckInterval, HealthCheckInterval);
-
+            SubscribeToFiksIOClient();
             await Task.CompletedTask;
+        }
+    
+        private void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
+        {
+            var receivedMeldingType = mottatt.Melding.MeldingType;
+
+            switch (receivedMeldingType)
+            {
+                case "pong":
+                    Log.Information("Received the reply message with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId : {KlientMeldingId}!", mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId);
+                    break;
+                case "ping":
+                {
+                    var klientMeldingId = Guid.NewGuid();
+                    var sendtMelding = mottatt.SvarSender.Svar("pong", klientMeldingId).Result;
+                    Log.Information("Received message with messagetype 'ping' and replied message with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}!", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    break;
+                }
+            }
+
+            mottatt.SvarSender.Ack(); 
+        }
+
+        private void SubscribeToFiksIOClient()
+        {
+            var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
+            Log.Information($"Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
+            _fiksIoClient.NewSubscription(OnReceivedMelding);
         }
         
         private void WriteStatusToLog(object o)
@@ -58,20 +82,6 @@ namespace ExampleApplication
             {
                 return false;
             }
-        }
-
-        private void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
-        {
-            Log.Information("Message with messageId {MeldingId} and messagetype {MeldingsType} received. Message will be acked.", mottatt.Melding.MeldingId,
-                mottatt.Melding.MeldingType);
-            mottatt.SvarSender.Ack(); 
-        }
-
-        private void SubscribeToFiksIOClient()
-        {
-            var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
-            Log.Information($"Starting subscribe on account {accountId}...");
-            _fiksIoClient.NewSubscription(OnReceivedMelding);
         }
     }
 }
