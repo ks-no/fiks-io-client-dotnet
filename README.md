@@ -39,7 +39,7 @@ We recommend using this for monitoring the health of the client.
 
 ### Example project
 An example project is provided here in the `ExampleApplication` and the Program.cs program. 
-This example program shows how to create a Fiks-IO-Client and subscribe. 
+This example program shows how to create a Fiks-IO-Client, subscribe, send and reply to messages. 
 
 ### Sending message
 ```csharp
