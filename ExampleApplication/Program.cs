@@ -60,7 +60,7 @@ namespace ExampleApplication
 
         private static async Task MonitorKeypress()
         {
-            Logger.Information("Teeeeeeest");
+            Logger.Information("Press Enter-key for sending a message, or Esc to stop application");
             var cki = new ConsoleKeyInfo();
             do 
             {
@@ -70,9 +70,9 @@ namespace ExampleApplication
 
                 if (key == ConsoleKey.Enter)
                 {
-                    Logger.Information("Enter pressed. Sending message to account {ToAccountId}", toAccountId);
+                    Logger.Information("Enter pressed. Sending message to account with account id: {ToAccountId}", toAccountId);
                     var sendtMessageId = await messageSender.Send("ping", toAccountId);
-                    Logger.Information("Message sendt with {MessageId}", sendtMessageId);
+                    Logger.Information("Message sendt with messageid: {MessageId}", sendtMessageId);
                 }
     
                 // Wait for an ESC

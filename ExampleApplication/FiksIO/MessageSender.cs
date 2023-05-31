@@ -23,17 +23,18 @@ public class MessageSender
 
     public async Task<Guid> Send(string messageType, Guid toAccountId)
     {
-        Log.Information("Seeeeeeeeeeend!!!!!!!!!!!");
         try
         {
+            var klientMeldingId = Guid.NewGuid();
+            Log.Information("MessageSender sending messagetype {MessageType} to account id: {AccountId} with klientMeldingId {KlientMeldingId}", messageType, toAccountId, klientMeldingId);
             var sendtMessage = await _fiksIoClient
-                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType))
+                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId))
                 .ConfigureAwait(false);
             return sendtMessage.MeldingId;
         }
         catch (Exception e)
         {
-            Log.Error("MessageSender klarte ikke sende melding. Error: {ErrorMessage}", e.Message);
+            Log.Error("MessageSender could not send message to account id {AccountId}. Error: {ErrorMessage}",toAccountId, e.Message);
             throw;
         }
     }
