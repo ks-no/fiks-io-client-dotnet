@@ -60,7 +60,7 @@ namespace ExampleApplication
 
         private static async Task MonitorKeypress()
         {
-            Logger.Information("Press Enter-key for sending a message, or Esc to stop application");
+            Logger.Information("Press Enter-key for sending a message");
             var cki = new ConsoleKeyInfo();
             do 
             {
@@ -77,9 +77,8 @@ namespace ExampleApplication
     
                 // Wait for an ESC
             } while (cki.Key != ConsoleKey.Escape);
-  
-            // Cancel the token
-            //cancellationToken.Cancel();
+            
+            //TODO Stop application on ESC
         }
         
         private static ILoggerFactory InitSerilogConfiguration()
