@@ -13,6 +13,11 @@ using Serilog.Events;
 
 namespace ExampleApplication
 {
+    /**
+     * Shows how to integrate with Fiks-IO using KS Fiks-IO-Client-dotnet.
+     * Prerequisites:
+     *  - A Fiks-IO account - see documentation on how to to this at https://developers.fiks.ks.no/
+     */
     class Program
     {
         private static MessageSender messageSender;
