@@ -70,9 +70,8 @@ namespace ExampleApplication
 
                 if (key == ConsoleKey.Enter)
                 {
-                    Logger.Information("Enter pressed. Sending message to account with account id: {ToAccountId}", toAccountId);
+                    Logger.Information("Enter pressed. Sending message to account id: {ToAccountId}", toAccountId);
                     var sendtMessageId = await messageSender.Send("ping", toAccountId);
-                    Logger.Information("Message sendt with messageid: {MessageId}", sendtMessageId);
                 }
     
                 // Wait for an ESC

@@ -26,15 +26,16 @@ public class MessageSender
         try
         {
             var klientMeldingId = Guid.NewGuid();
-            Log.Information("MessageSender sending messagetype {MessageType} to account id: {AccountId} with klientMeldingId {KlientMeldingId}", messageType, toAccountId, klientMeldingId);
+            Log.Information("MessageSender - sending messagetype {MessageType} to account id: {AccountId} with klientMeldingId {KlientMeldingId}", messageType, toAccountId, klientMeldingId);
             var sendtMessage = await _fiksIoClient
                 .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId))
                 .ConfigureAwait(false);
+            Log.Information("MessageSender - message sendt with messageid: {MessageId}", sendtMessage.MeldingId);
             return sendtMessage.MeldingId;
         }
         catch (Exception e)
         {
-            Log.Error("MessageSender could not send message to account id {AccountId}. Error: {ErrorMessage}",toAccountId, e.Message);
+            Log.Error("MessageSender - could not send message to account id {AccountId}. Error: {ErrorMessage}",toAccountId, e.Message);
             throw;
         }
     }

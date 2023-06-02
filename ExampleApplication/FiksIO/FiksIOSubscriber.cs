@@ -26,7 +26,7 @@ namespace ExampleApplication.FiksIO
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Log.Information("Application is starting subscribe");
+            Log.Information("FiksIOSubscriber - Application is starting subscribe");
             FiksIoClientStatusCheckTimer = new Timer(WriteStatusToLog, null, HealthCheckInterval, HealthCheckInterval);
             SubscribeToFiksIOClient();
             await Task.CompletedTask;
@@ -35,17 +35,24 @@ namespace ExampleApplication.FiksIO
         private void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
         {
             var receivedMeldingType = mottatt.Melding.MeldingType;
+            
+            Log.Information("FiksIOSubscriber - Received a message with messagetype '{MessageType}' with following attributes: " +
+                            "\n\t messageId : {MeldingId}" +
+                            "\n\t klientMeldingId : {KlientMeldingId}" +
+                            "\n\t svarPaMelding : {SvarPaMelding}", 
+                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding);
+
 
             switch (receivedMeldingType)
             {
                 case "pong":
-                    Log.Information("Received the reply message with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId : {KlientMeldingId}!", mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Do nothing with 'pong' message. End of correspondence for now.");
                     break;
                 case "ping":
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = mottatt.SvarSender.Svar("pong", klientMeldingId).Result;
-                    Log.Information("Received message with messagetype 'ping' and replied message with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}!", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
             }
@@ -56,7 +63,7 @@ namespace ExampleApplication.FiksIO
         private void SubscribeToFiksIOClient()
         {
             var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
-            Log.Information($"Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
+            Log.Information($"FiksIOSubscriber - Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
             _fiksIoClient.NewSubscription(OnReceivedMelding);
         }
         
