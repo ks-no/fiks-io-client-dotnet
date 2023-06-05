@@ -81,8 +81,6 @@ namespace ExampleApplication
     
                 // Wait for an ESC
             } while (cki.Key != ConsoleKey.Escape);
-            
-            //TODO Stop application on ESC
         }
         
         private static ILoggerFactory InitSerilogConfiguration()

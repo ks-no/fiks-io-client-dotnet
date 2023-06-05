@@ -32,7 +32,7 @@ namespace ExampleApplication.FiksIO
             await Task.CompletedTask;
         }
     
-        private void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
+        private async void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
         {
             var receivedMeldingType = mottatt.Melding.MeldingType;
             
@@ -51,13 +51,7 @@ namespace ExampleApplication.FiksIO
                 case "ping":
                 {
                     var klientMeldingId = Guid.NewGuid();
-                    var sendtMeldingTask = mottatt.SvarSender.Svar("pong", klientMeldingId);
-                    SendtMelding sendtMelding;
-                    var continuation = sendtMeldingTask.ContinueWith(t =>
-                    {
-                        sendtMelding = t.Result;
-                    });
-                    continuation.Wait();
+                    var sendtMelding = await mottatt.SvarSender.Svar("pong", klientMeldingId);
                     Log.Information("FiksIOSubscriber - Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
