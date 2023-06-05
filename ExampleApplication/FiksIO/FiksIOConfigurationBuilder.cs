@@ -22,8 +22,11 @@ namespace ExampleApplication.FiksIO
             var certPassword = appSettings.FiksIOConfig.MaskinPortenCompanyCertificatePassword;
             var asiceSigningPublicKey = appSettings.FiksIOConfig.AsiceSigningPublicKey;
             var asiceSigningPrivateKey = appSettings.FiksIOConfig.AsiceSigningPrivateKey;
-            var host = appSettings.FiksIOConfig.AmqpHost;
-            var port = appSettings.FiksIOConfig.AmqpPort;
+            var amqpHost = appSettings.FiksIOConfig.AmqpHost;
+            var amqpPort = appSettings.FiksIOConfig.AmqpPort;
+            var apiHost = appSettings.FiksIOConfig.ApiHost;
+            var apiPort = appSettings.FiksIOConfig.ApiPort;
+                
 
             return FiksIOConfigurationBuilder
                 .Init()
@@ -32,7 +35,7 @@ namespace ExampleApplication.FiksIO
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(accountId, ReadFromFile(privateKeyPath))
                 .WithAsiceSigningConfiguration(asiceSigningPublicKey, asiceSigningPrivateKey)
-                .BuildConfiguration(host, port);
+                .BuildConfiguration(amqpHost, apiHost, amqpPort, apiPort);
         }
         
         // Create a FiksIOConfiguration manually

@@ -39,7 +39,13 @@ We recommend using this for monitoring the health of the client.
 
 ### Example project
 An example project is provided here in the `ExampleApplication` and the Program.cs program. 
-This example program shows how to create a Fiks-IO-Client and subscribe. 
+This example program shows how to create a Fiks-IO-Client, subscribe, send and reply to messages. 
+
+The example project starts a console prorgam that listens and subscribes to messages on your Fiks-IO account. 
+It also listens to the Enter key in the console, that triggers it to send a 'ping' message to your Fiks-IO account.
+When the program receives the 'ping' message it will reply to that message with a 'pong' message. 
+
+The program also adds the optional 'klientMeldingId' when sending messages.
 
 ### Sending message
 ```csharp

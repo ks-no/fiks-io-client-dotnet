@@ -23,13 +23,26 @@ namespace KS.Fiks.IO.Client.Configuration
             return new FiksIOConfigurationBuilder();
         }
 
-        public FiksIOConfiguration BuildConfiguration(string host, int port = 5671)
+        public FiksIOConfiguration BuildConfiguration(string amqpHost, int amqpPort = 5671)
         {
             ValidateConfigurations();
 
             return new FiksIOConfiguration(
-                amqpConfiguration: new AmqpConfiguration(host, port, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
+                amqpConfiguration: new AmqpConfiguration(amqpHost, amqpPort, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
+                asiceSigningConfiguration: _asiceSigningConfiguration,
+                integrasjonConfiguration: _integrasjonConfiguration,
+                kontoConfiguration: _kontoConfiguration,
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
+        }
+
+        public FiksIOConfiguration BuildConfiguration(string amqpHost, string apiHost, int amqpPort = 5671, int apiPort = 443)
+        {
+            ValidateConfigurations();
+
+            return new FiksIOConfiguration(
+                amqpConfiguration: new AmqpConfiguration(amqpHost, amqpPort, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
+                apiConfiguration: new ApiConfiguration(host: apiHost, port: apiPort),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
@@ -105,6 +118,12 @@ namespace KS.Fiks.IO.Client.Configuration
             amqpApplicationName = applicationName;
             amqpPrefetchCount = prefetchCount;
             ampqKeepAliveHealthCheckInterval = keepAliveHealthCheckInterval;
+            return this;
+        }
+
+        public FiksIOConfigurationBuilder WithApiConfiguration(string hostName, int hostPort)
+        {
+            
             return this;
         }
 
