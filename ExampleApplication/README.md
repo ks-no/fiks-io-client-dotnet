@@ -56,7 +56,7 @@ Here are some explanations:
 
 #### FiksIoPrivateKey
 This is the private key that is paired with the public key uploaded to your Fiks Protokoll (Fiks-IO) account.
-It is not related to the Maskinporten certificate, but the private key part from a generated key-pair. It is used for decrypting messages that is encrypted by the sender of messages with the public key uploaded to Fiks-Protokoll.
+It is not related to the Maskinporten certificate, but the private key part from a generated key pair. It is used for decrypting messages that is encrypted by the sender of messages with the public key uploaded to Fiks-Protokoll.
 
 #### MaskinPortenXXX settings
 Please look at the documentation at [developers.ks.fiks.no](https://developers.fiks.ks.no/felles/difiidportenklient/) for further explanations.

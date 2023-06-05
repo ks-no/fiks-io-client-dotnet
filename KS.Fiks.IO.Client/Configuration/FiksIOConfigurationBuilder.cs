@@ -82,12 +82,18 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
-        public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(string certificatePath, string certificatePrivateKeyPath)
+        /*
+         * AsiceSigning with public/private key pair
+         */
+        public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(string publicKeyPath, string privateKeyPath)
         {
-            _asiceSigningConfiguration = new AsiceSigningConfiguration(certificatePath, certificatePrivateKeyPath);
+            _asiceSigningConfiguration = new AsiceSigningConfiguration(publicKeyPath, privateKeyPath);
             return this;
         }
 
+        /*
+         * AsiceSigning with a X509Certificate2 that must contain a matching privatekey. This can be the same as used for Maskinporten
+         */
         public FiksIOConfigurationBuilder WithAsiceSigningConfiguration(X509Certificate2 x509Certificate2)
         {
             _asiceSigningConfiguration = new AsiceSigningConfiguration(x509Certificate2);
