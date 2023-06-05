@@ -51,7 +51,13 @@ namespace ExampleApplication.FiksIO
                 case "ping":
                 {
                     var klientMeldingId = Guid.NewGuid();
-                    var sendtMelding = mottatt.SvarSender.Svar("pong", klientMeldingId).Result;
+                    var sendtMeldingTask = mottatt.SvarSender.Svar("pong", klientMeldingId);
+                    SendtMelding sendtMelding;
+                    var continuation = sendtMeldingTask.ContinueWith(t =>
+                    {
+                        sendtMelding = t.Result;
+                    });
+                    continuation.Wait();
                     Log.Information("FiksIOSubscriber - Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
