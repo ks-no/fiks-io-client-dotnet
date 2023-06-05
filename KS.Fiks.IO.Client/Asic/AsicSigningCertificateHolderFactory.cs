@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client.Asic
     {
         public static PreloadedCertificateHolder Create(AsiceSigningConfiguration configuration)
         {
-            return configuration.certificate != null ? Create(configuration.certificate) : Create(configuration.publicCertPath, configuration.privateKeyPath);
+            return configuration.Certificate != null ? Create(configuration.Certificate) : Create(configuration.PublicKeyPath, configuration.PrivateKeyPath);
         }
 
         private static PreloadedCertificateHolder Create(string publicKeyPath, string privateKeyPath)
