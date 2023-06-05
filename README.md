@@ -7,7 +7,8 @@
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
-It is also the underlying messaging system for the Fiks Protokoll messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+
+It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
 
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
@@ -38,14 +39,16 @@ We recommend using this for monitoring the health of the client.
 ## Examples
 
 ### Example project
-An example project is provided [here](ExampleApplication) in the `ExampleApplication` and the Program.cs program. 
-This example program shows how to create a Fiks-IO-Client, subscribe, send and reply to messages. 
+An example project is provided [here](ExampleApplication) in the `ExampleApplication` and the [Program.cs](ExampleApplication/Program.cs) program. 
+This example program shows how to create a Fiks-IO-Client, subscribe, send and reply to messages.
 
 The example project starts a console program that listens and subscribes to messages on your Fiks-IO account. 
 It listens to the Enter key in the console, that then triggers it to send a 'ping' message to your Fiks-IO account.
 When the program receives the 'ping' message it will reply to that message with a 'pong' message. 
 
 The program also adds the optional 'klientMeldingId' when sending messages and utilizes the IsOpen() feature to show the connection-status.
+
+Read more in the [README.md](ExampleApplication/README.md) file for the example application.
 
 ### Sending message
 ```csharp
