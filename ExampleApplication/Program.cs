@@ -15,6 +15,8 @@ namespace ExampleApplication
 {
     /**
      * Shows how to integrate with Fiks-IO using KS Fiks-IO-Client-dotnet.
+     * This program subscribes to incoming Fiks-IO messages and replies to 'ping' messages with a 'pong' message.
+     * It also sends the 'ping' message to it's own Fiks-IO account when pressing the Enter-key.
      * Prerequisites:
      *  - A Fiks-IO account - see documentation on how to to this at https://developers.fiks.ks.no/
      */
