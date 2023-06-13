@@ -124,7 +124,7 @@ var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
 client.NewSubscription(onReceived);
 ```
 ### Lookup
-Using lookup, you can find which Fiks IO account to send a message to, given organization number, message type and access level needed to read the message.
+Using lookup, you can find which Fiks IO account to send a message to, given an organization number, message type and access level needed to read the message.
 
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
@@ -160,8 +160,8 @@ var config = FiksIOConfigurationBuilder
                 .WithAmqpConfiguration("fiks-io-klient-prod-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privatNokkel)
-                .WithAsiceSigningConfiguration(asiceCertFilepath, asiceCertPrivateKeyPath) // Optional: use if you want to sign the asice packages
+                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
+                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
                 .BuildProdConfiguration();
 
 // Test config
@@ -170,11 +170,16 @@ var config = FiksIOConfigurationBuilder
                 .WithAmqpConfiguration("fiks-io-klient-test-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privatNokkel)
-                .WithAsiceSigningConfiguration(asiceCertFilepath, asiceCertPrivateKeyPath) // Optional: use if you want to sign the asice packages
+                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
+                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) //  A public/private key pair to sign the asice packages
                 .BuildTestConfiguration();
 );
 ```
+
+Explanations:
+
+`.WithFiksKontoConfiguration(kontoId, privateKey)`: The **privateKey** parameter is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account. The public key uploaded to your account is the public key that other clients will use for encrypting messages when sending messages to your account. The **privateKey** is then used for decrypting messages.   
+
 
 #### Create without builder example:
 Here are examples using the two convenience methods.
@@ -242,7 +247,7 @@ var amqp = new AmqpConfiguration(
 
 // Optional: Adding this configuration is optional. Use if you want to sign the asice package
 var asiceSigning = new AsiceSigningConfiguration(
-                publicCertPath: "/path/to/file",
+                publicKeyPath: "/path/to/file",
                 privateKeyPath: "/path/to/file"); 
 
 // Combine all configurations
@@ -252,7 +257,7 @@ var configuration = new FiksIOConfiguration(
                         maskinportenConfiguration: maskinportenConfig, 
                         apiConfiguration: apiConfig,  // Optional
                         amqpConfiguration: amqpConfig, // Optional
-                        asiceSigningConfiguration: asiceSigning); // Optional
+                        asiceSigningConfiguration: asiceSigning); 
 ```
 
 #### Configuration setting details:
