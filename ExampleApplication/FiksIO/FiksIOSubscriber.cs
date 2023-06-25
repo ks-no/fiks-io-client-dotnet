@@ -45,14 +45,22 @@ namespace ExampleApplication.FiksIO
 
             switch (receivedMeldingType)
             {
-                case "pong":
-                    Log.Information("FiksIOSubscriber - Do nothing with 'pong' message. End of correspondence for now.");
+                case Program.FiksIOPong:
+                case Program.FiksArkivPong:
+                    Log.Information($"FiksIOSubscriber - Received {receivedMeldingType}. Do nothing with 'pong' message. End of correspondence for now.");
                     break;
-                case "ping":
+                case Program.FiksIOPing:
                 {
                     var klientMeldingId = Guid.NewGuid();
-                    var sendtMelding = await mottatt.SvarSender.Svar("pong", klientMeldingId);
-                    Log.Information("FiksIOSubscriber - Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksIOPong, klientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    break;
+                }
+                case Program.FiksArkivPing:
+                {
+                    var klientMeldingId = Guid.NewGuid();
+                    var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksArkivPong, klientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
             }

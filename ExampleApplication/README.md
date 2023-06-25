@@ -4,7 +4,12 @@
 
 This application starts a simple console application that starts a subscription to Fiks-IO/Fiks-Protokoll messages as a BackgroundService in the [FiksIOSubscriber.cs](FiksIO/FiksIOSubscriber.cs) class.
 
-It also listens to the Enter key to send a message to it self, through it's own Fiks-IO account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubcriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
+It also listens to key-press to send a message to it self, through it's own Fiks-IO or Fiks-Protokoll account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubcriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
+
+The application listens to different keys for different types of ping-messages. There is one for Fiks-IO and one for each protocol.
+
+- Enter-key - Fiks-IO 'ping'-message
+- A-key - Fiks-Arkiv protocol 'ping'-message
 
 This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages.
 
