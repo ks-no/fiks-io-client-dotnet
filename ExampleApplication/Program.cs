@@ -16,11 +16,11 @@ namespace ExampleApplication
     /**
      * Shows how to integrate with Fiks-IO using KS Fiks-IO-Client-dotnet.
      * This program subscribes to incoming Fiks-IO messages and replies to 'ping' messages with a 'pong' message.
-     * It also sends the 'ping' message to it's own Fiks-IO account when pressing the Enter-key.
+     * It also sends the 'ping' message to it's own Fiks-IO account when pressing the Enter-key, or other keys for Fiks-Protokoll accounts.
      * If you're using a Fiks-Protokoll account, you will have to use the appropriate 'ping' or 'pong' message for that protocol.
-     * See available constants given in the code.
+     * See available constants given in the code and instructions in the console when starting the application.
      * Prerequisites:
-     *  - A Fiks-IO account og a Fiks-Protokoll account - see documentation on how to to this at https://developers.fiks.ks.no/
+     *  - A Fiks-IO account or a Fiks-Protokoll account - see documentation on how to to this at https://developers.fiks.ks.no/
      *    
      */
     class Program
@@ -32,6 +32,10 @@ namespace ExampleApplication
         public const string FiksIOPong = "pong";
         public const string FiksArkivPing = "no.ks.fiks.arkiv.v1.ping";
         public const string FiksArkivPong = "no.ks.fiks.arkiv.v1.pong";
+        public const string FiksPlanPing = "no.ks.fiks.plan.v2.ping";
+        public const string FiksPlanPong = "no.ks.fiks.plan.v2.pong";
+        public const string FiksMatrikkelfoeringPing = "no.ks.fiks.matrikkelfoering.v2.ping";
+        public const string FiksMatrikkelfoeringPong = "no.ks.fiks.matrikkelfoering.v2.pong";
         
         public static async Task Main(string[] args)
         {
@@ -75,7 +79,10 @@ namespace ExampleApplication
         private static async Task MonitorKeypress()
         {
             Logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
-            Logger.Information("Press A-key for sending a Fiks-Arkiv 'ping' message");
+            Logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
+            Logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
+            Logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+            
             var cki = new ConsoleKeyInfo();
             do 
             {
@@ -89,8 +96,16 @@ namespace ExampleApplication
                     var sendtMessageId = await messageSender.Send(FiksIOPing, toAccountId);
                 } else if (key == ConsoleKey.A)
                 {
-                    Logger.Information("A-key pressed. Sending Fiks-Arkiv ping-message to account id: {ToAccountId}", toAccountId);
+                    Logger.Information("A-key pressed. Sending Fiks-Arkiv V1 ping-message to account id: {ToAccountId}", toAccountId);
                     var sendtMessageId = await messageSender.Send(FiksArkivPing, toAccountId);
+                } else if (key == ConsoleKey.P)
+                {
+                    Logger.Information("P-key pressed. Sending Fiks-Plan V2 ping-message to account id: {ToAccountId}", toAccountId);
+                    var sendtMessageId = await messageSender.Send(FiksPlanPing, toAccountId);
+                } else if (key == ConsoleKey.M)
+                {
+                    Logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", toAccountId);
+                    var sendtMessageId = await messageSender.Send(FiksMatrikkelfoeringPing, toAccountId);
                 }
     
                 // Wait for an ESC

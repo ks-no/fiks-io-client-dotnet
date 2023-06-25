@@ -47,6 +47,8 @@ namespace ExampleApplication.FiksIO
             {
                 case Program.FiksIOPong:
                 case Program.FiksArkivPong:
+                case Program.FiksPlanPong:
+                case Program.FiksMatrikkelfoeringPong:
                     Log.Information($"FiksIOSubscriber - Received {receivedMeldingType}. Do nothing with 'pong' message. End of correspondence for now.");
                     break;
                 case Program.FiksIOPing:
@@ -60,6 +62,20 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksArkivPong, klientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    break;
+                }
+                case Program.FiksPlanPing:
+                {
+                    var klientMeldingId = Guid.NewGuid();
+                    var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksPlanPong, klientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    break;
+                }
+                case Program.FiksMatrikkelfoeringPing:
+                {
+                    var klientMeldingId = Guid.NewGuid();
+                    var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksMatrikkelfoeringPong, klientMeldingId);
                     Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }

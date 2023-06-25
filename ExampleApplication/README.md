@@ -13,6 +13,8 @@ The application listens to different keys for different types of ping-messages. 
 
 This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages.
 
+If you're using a Fiks-Protokoll account, please remember to add yourself as an approved sending account. This is only necessary for Fiks-Protokoll accounts.
+
 The program will also periodically print the status of the _IsOpen()_ health status of the Fiks-IO connection. The _IsOpen()_ method can be used for health checking. 
 
 ## Getting started
