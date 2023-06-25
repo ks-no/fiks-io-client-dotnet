@@ -10,6 +10,8 @@ The application listens to different keys for different types of ping-messages. 
 
 - Enter-key - Fiks-IO 'ping'-message
 - A-key - Fiks-Arkiv protocol 'ping'-message
+- P-key - Fiks-Plan protocol 'ping'-message
+- M-key - Fiks-Matrikkelfoering protocol 'ping'-message
 
 This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages.
 
