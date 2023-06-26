@@ -191,8 +191,9 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     integrasjonPassord: integrationPassord,
     kontoId: kontoId,
     privatNokkel: privatNokkel,
-    issuer: issuer, //klientid for maskinporten
-    certificate: certificat,
+    issuer: issuer, // klientid for maskinporten
+    maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten
+    asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
     keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
     applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
@@ -203,8 +204,9 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     integrasjonPassord: integrationPassord,
     kontoId: kontoId,
     privatNokkel: privatNokkel, 
-    issuer: issuer, //klientid for maskinporten
-    certificate: certificat,
+    issuer: issuer, // klientid for maskinporten
+    maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten as a X509Certificate2
+    asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
     keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
     applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
@@ -245,7 +247,7 @@ var amqp = new AmqpConfiguration(
                 applicationName: "my-application",
                 keepAlive: false); 
 
-// Optional: Adding this configuration is optional. Use if you want to sign the asice package
+// Configuration for Asice signing. Not optional. Either use a public/private key-pair or a X509Certificate2 that contains the corresponding private key.
 var asiceSigning = new AsiceSigningConfiguration(
                 publicKeyPath: "/path/to/file",
                 privateKeyPath: "/path/to/file"); 
