@@ -151,28 +151,55 @@ You can also create the configuration yourself where also two convenience functi
 #### Logging
 Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
 
-#### Create with builder example:
+#### Create with builder examples:
 
 ```csharp
-// Prod config
+
+// Prod alternative 1
+// Prod config with public/private key for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("fiks-io-klient-prod-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
                 .BuildProdConfiguration();
-
-// Test config
+                
+                
+// Prod alternative 2
+// Prod config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("fiks-io-klient-test-program-2", 1) // Optional but recomended: default values will be no applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithMaskinportenConfiguration(certificate, issuer)
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
+                .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
+                .BuildProdConfiguration();
+
+// Test alternative 1
+// Test config with public/private key for asice signing
+var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) //  A public/private key pair to sign the asice packages
                 .BuildTestConfiguration();
+            
+// Test alternative 2
+// Test config with a X509Certificate2 certificate for asice signing
+var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithMaskinportenConfiguration(certificate, issuer)
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
+                .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
+                .BuildTestConfiguration();
+                
 );
 ```
 
@@ -185,7 +212,7 @@ Explanations:
 Here are examples using the two convenience methods.
 
 ```csharp
-// Prod config
+// Prod config with a asice X509Certificate2 certificate
 var config = FiksIOConfiguration.CreateProdConfiguration(
     integrasjonId: integrationId,
     integrasjonPassord: integrationPassord,

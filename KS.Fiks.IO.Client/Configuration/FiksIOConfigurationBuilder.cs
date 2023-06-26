@@ -129,7 +129,6 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public FiksIOConfigurationBuilder WithApiConfiguration(string hostName, int hostPort)
         {
-            
             return this;
         }
 
@@ -151,6 +150,12 @@ namespace KS.Fiks.IO.Client.Configuration
             {
                 throw new ArgumentException(
                     "FiksKontoConfiguration missing. Have you called the WithFiksKontoConfiguration( ... ) in this builder?");
+            }
+
+            if (_asiceSigningConfiguration == null)
+            {
+                throw new ArgumentException(
+                    "AsiceSigningConfiguration missing. Have you called the WithAsiceSigningConfiguration( ... ) in this builder?");
             }
         }
     }
