@@ -17,6 +17,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .Init()
                 .WithAmqpConfiguration("test_app", 10)
                 .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
+                .WithAsiceSigningConfiguration(new X509Certificate2())
                 .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                 .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                 .BuildTestConfiguration();
@@ -32,6 +33,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .Init()
                 .WithAmqpConfiguration("test_app", 10)
                 .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
+                .WithAsiceSigningConfiguration(new X509Certificate2())
                 .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                 .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                 .BuildProdConfiguration();
@@ -48,6 +50,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .Init()
                 .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
                 .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithAsiceSigningConfiguration(new X509Certificate2())
                 .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
                 .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKey)
                 .BuildTestConfiguration();
@@ -63,6 +66,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .Init()
                 .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
                 .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithAsiceSigningConfiguration(new X509Certificate2())
                 .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
                 .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKeys)
                 .BuildTestConfiguration();
@@ -78,6 +82,19 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                     .Init()
                     .WithAmqpConfiguration("test_app", 10)
                     .WithMaskinportenConfiguration(null, "test-issuer")
+                    .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
+                    .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
+                    .BuildProdConfiguration());
+        }
+
+        [Fact]
+        public void ConfigurationFailsWithoutAsiceSigningConfiguration()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                FiksIOConfigurationBuilder
+                    .Init()
+                    .WithAmqpConfiguration("test_app", 10)
+                    .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
                     .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                     .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                     .BuildProdConfiguration());
