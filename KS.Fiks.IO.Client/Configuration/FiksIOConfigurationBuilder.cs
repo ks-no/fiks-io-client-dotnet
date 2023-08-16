@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using Ks.Fiks.Maskinporten.Client;
 
 namespace KS.Fiks.IO.Client.Configuration
 {
@@ -11,6 +12,8 @@ namespace KS.Fiks.IO.Client.Configuration
         private IntegrasjonConfiguration _integrasjonConfiguration;
         private KontoConfiguration _kontoConfiguration;
         private AsiceSigningConfiguration _asiceSigningConfiguration;
+        private MaskinportenClientConfiguration _maskinportenClientConfiguration;
+        private ApiConfiguration _apiConfiguration;
         private bool ampqKeepAlive = true;
         private int ampqKeepAliveHealthCheckInterval = AmqpConfiguration.DefaultKeepAliveHealthCheckInterval;
         private string amqpApplicationName = string.Empty;
@@ -21,32 +24,6 @@ namespace KS.Fiks.IO.Client.Configuration
         public static FiksIOConfigurationBuilder Init()
         {
             return new FiksIOConfigurationBuilder();
-        }
-
-        public FiksIOConfiguration BuildConfiguration(string amqpHost, int amqpPort = 5671)
-        {
-            ValidateConfigurations();
-
-            return new FiksIOConfiguration(
-                amqpConfiguration: new AmqpConfiguration(amqpHost, amqpPort, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
-                apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
-                asiceSigningConfiguration: _asiceSigningConfiguration,
-                integrasjonConfiguration: _integrasjonConfiguration,
-                kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
-        }
-
-        public FiksIOConfiguration BuildConfiguration(string amqpHost, string apiHost, int amqpPort = 5671, int apiPort = 443)
-        {
-            ValidateConfigurations();
-
-            return new FiksIOConfiguration(
-                amqpConfiguration: new AmqpConfiguration(amqpHost, amqpPort, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
-                apiConfiguration: new ApiConfiguration(host: apiHost, port: apiPort),
-                asiceSigningConfiguration: _asiceSigningConfiguration,
-                integrasjonConfiguration: _integrasjonConfiguration,
-                kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
         }
 
         public FiksIOConfiguration BuildTestConfiguration()
@@ -72,7 +49,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate));
         }
 
         public FiksIOConfigurationBuilder WithMaskinportenConfiguration(X509Certificate2 certificate, string issuer)
@@ -106,12 +83,12 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
-        public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, string fiksPrivateKey) 
+        public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, string fiksPrivateKey)
         {
             _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKey);
             return this;
         }
-        
+
         public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, IEnumerable<string> fiksPrivateKeys)
         {
             _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKeys);

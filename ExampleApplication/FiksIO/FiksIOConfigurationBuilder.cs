@@ -10,7 +10,7 @@ namespace ExampleApplication.FiksIO
     public static class FiksIoConfigurationBuilder
     {
         
-        // Create configuration with the fluent builder
+        // Create a configuration for the test environment with the fluent builder
         public static FiksIOConfiguration CreateConfiguration(AppSettings appSettings)
         {
             var accountId = appSettings.FiksIOConfig.FiksIoAccountId;
@@ -22,8 +22,6 @@ namespace ExampleApplication.FiksIO
             var certPassword = appSettings.FiksIOConfig.MaskinPortenCompanyCertificatePassword;
             var asiceSigningPublicKey = appSettings.FiksIOConfig.AsiceSigningPublicKey;
             var asiceSigningPrivateKey = appSettings.FiksIOConfig.AsiceSigningPrivateKey;
-            var amqpHost = appSettings.FiksIOConfig.AmqpHost;
-            var amqpPort = appSettings.FiksIOConfig.AmqpPort;
             var apiHost = appSettings.FiksIOConfig.ApiHost;
             var apiPort = appSettings.FiksIOConfig.ApiPort;
                 
@@ -35,17 +33,18 @@ namespace ExampleApplication.FiksIO
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(accountId, ReadFromFile(privateKeyPath))
                 .WithAsiceSigningConfiguration(asiceSigningPublicKey, asiceSigningPrivateKey)
-                .BuildConfiguration(amqpHost, apiHost, amqpPort, apiPort);
+                .WithApiConfiguration(apiHost, apiPort)
+                .BuildTestConfiguration();
         }
         
-        // Create a FiksIOConfiguration manually
+        // Create a FiksIOConfiguration manually. Use this if you want to use internal endpoints for testing, not Fiks-IO test or prod
         public static FiksIOConfiguration CreateConfig(string issuer, string p12Filename, string p12Password, string fiksIoAccountId,
             string fiksIoPrivateKeyPath, string integrasjonId, string integrasjonPassword)
         {
             // ID-porten machine to machine configuration
             var maskinportenConfig = new MaskinportenClientConfiguration(
-                audience: @"https://ver2.maskinporten.no/", // ID-porten audience path
-                tokenEndpoint: @"https://ver2.maskinporten.no/token", // ID-porten token path
+                audience: @"https://test.maskinporten.no/", // maskinporten audience path
+                tokenEndpoint: @"https://test.maskinporten.no/token", // maskinporten token path
                 issuer: issuer, // KS issuer name
                 numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
                 certificate: new X509Certificate2(p12Filename, p12Password));

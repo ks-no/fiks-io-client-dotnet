@@ -7,10 +7,10 @@ namespace KS.Fiks.IO.Client.Configuration
 {
     public class FiksIOConfiguration
     {
-        public const string maskinportenProdAudience = @"https://oidc.difi.no/idporten-oidc-provider/token";
-        public const string maskinportenProdTokenEndpoint = @"https://oidc.difi.no/idporten-oidc-provider/token";
-        public const string maskinportenTestAudience = @"https://oidc-ver2.difi.no/idporten-oidc-provider/";
-        public const string maskinportenTestTokenEndpoint = @"https://oidc-ver2.difi.no/idporten-oidc-provider/token";
+        public const string maskinportenProdAudience = @"https://maskinporten.no/";
+        public const string maskinportenProdTokenEndpoint = @"https://maskinporten.no/token";
+        public const string maskinportenTestAudience = @"https://test.maskinporten.no/";
+        public const string maskinportenTestTokenEndpoint = @"https://test.maskinporten.no/token";
         public const int maskinportenDefaultNumberOfSecondsLeftBeforeExpire = 10;
 
         public KontoConfiguration KontoConfiguration { get; }
