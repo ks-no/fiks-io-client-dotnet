@@ -253,9 +253,9 @@ var integrasjonConfig = new IntegrasjonConfiguration(
 
 // ID-porten machine to machine configuration
 var maskinportenConfig = new MaskinportenClientConfiguration(
-    audience: @"https://oidc-ver2.difi.no/idporten-oidc-provider/", // ID-porten audience path
-    tokenEndpoint: @"https://oidc-ver2.difi.no/idporten-oidc-provider/token", // ID-porten token path
-    issuer: @"oidc_ks_test",  //klientid for maskinporten
+    audience: @"https://test.maskinporten.no/", // Maskinporten audience path
+    tokenEndpoint: @"https://test.maskinporten.no/token", // Maskinporten token path
+    issuer: @"issuer",  // Issuer name
     numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
     certificate: /* virksomhetssertifikat as a X509Certificate2  */);
 
