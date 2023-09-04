@@ -52,6 +52,19 @@ namespace KS.Fiks.IO.Client.Configuration
                 maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate));
         }
 
+        public FiksIOConfiguration BuildDevConfiguration(string amqpHost, string apiHost, string maskinportenAudience, string maskinportenTokenEndpoint)
+        {
+            ValidateConfigurations();
+
+            return new FiksIOConfiguration(
+                amqpConfiguration: new AmqpConfiguration(amqpHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
+                apiConfiguration: new ApiConfiguration(host: apiHost),
+                asiceSigningConfiguration: _asiceSigningConfiguration,
+                integrasjonConfiguration: _integrasjonConfiguration,
+                kontoConfiguration: _kontoConfiguration,
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenDevConfig(maskinportenAudience, maskinportenTokenEndpoint, maskinportenIssuer, maskinportenCertificate));
+        }
+
         public FiksIOConfigurationBuilder WithMaskinportenConfiguration(X509Certificate2 certificate, string issuer)
         {
             maskinportenIssuer = issuer;
@@ -101,11 +114,6 @@ namespace KS.Fiks.IO.Client.Configuration
             amqpApplicationName = applicationName;
             amqpPrefetchCount = prefetchCount;
             ampqKeepAliveHealthCheckInterval = keepAliveHealthCheckInterval;
-            return this;
-        }
-
-        public FiksIOConfigurationBuilder WithApiConfiguration(string hostName, int hostPort)
-        {
             return this;
         }
 

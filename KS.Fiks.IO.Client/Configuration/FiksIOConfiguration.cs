@@ -117,5 +117,15 @@ namespace KS.Fiks.IO.Client.Configuration
                 numberOfSecondsLeftBeforeExpire: 10,
                 certificate: certificate);
         }
+
+        public static MaskinportenClientConfiguration CreateMaskinportenDevConfig(string audience, string tokenEndpoint, string issuer, X509Certificate2 certificate)
+        {
+            return new MaskinportenClientConfiguration(
+                audience: audience,
+                tokenEndpoint: tokenEndpoint,
+                issuer: issuer, // KS issuer name
+                numberOfSecondsLeftBeforeExpire: 10,
+                certificate: certificate);
+        }
     }
 }
