@@ -118,7 +118,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 certificate: certificate);
         }
 
-        public static MaskinportenClientConfiguration CreateMaskinportenDevConfig(string audience, string tokenEndpoint, string issuer, X509Certificate2 certificate)
+        public static MaskinportenClientConfiguration CreateMaskinportenConfig(string audience, string tokenEndpoint, string issuer, X509Certificate2 certificate)
         {
             return new MaskinportenClientConfiguration(
                 audience: audience,

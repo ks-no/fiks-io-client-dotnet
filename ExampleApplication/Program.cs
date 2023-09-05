@@ -46,7 +46,7 @@ namespace ExampleApplication
             
             var loggerFactory = InitSerilogConfiguration();
             var appSettings = AppSettingsBuilder.CreateAppSettings(configurationRoot);
-            var configuration = FiksIoConfigurationBuilder.CreateConfiguration(appSettings);
+            var configuration = FiksIoConfigurationBuilder.CreateTestConfiguration(appSettings);
             var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             
             // Creating messageSender as a local instance
