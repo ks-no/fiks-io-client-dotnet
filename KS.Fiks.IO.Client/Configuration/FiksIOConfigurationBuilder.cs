@@ -102,7 +102,7 @@ namespace KS.Fiks.IO.Client.Configuration
         public FiksIOConfiguration BuildConfiguration()
         {
             ValidateMinimumConfigurations();
-            ValidateFullConfiguration();
+            ValidateExtensiveConfiguration();
 
             return new FiksIOConfiguration(
                 amqpConfiguration: new AmqpConfiguration(amqpHost, amqpPort, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount, keepAlive: ampqKeepAlive),
@@ -204,7 +204,7 @@ namespace KS.Fiks.IO.Client.Configuration
             }
         }
 
-        private void ValidateFullConfiguration()
+        private void ValidateExtensiveConfiguration()
         {
             if (string.IsNullOrEmpty(amqpHost))
             {
