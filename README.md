@@ -9,10 +9,11 @@ This is a .NET library compatible with _[.Net Standard 2.0](https://docs.microso
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
+It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+
 ### Integrity
 The nuget package is signed with a KS certificate in our build process, stored securely in a safe build environment.
-
-It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+The package assemblies are also [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
 
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
