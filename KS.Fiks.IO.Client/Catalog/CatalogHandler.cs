@@ -55,7 +55,7 @@ namespace KS.Fiks.IO.Client.Catalog
         public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)
         {
             var requestUri = CreatePublicKeyUri(receiverAccountId);
-            var responseAsPublicKeyModel = await GetAsModel<KontoOffentligNokkel>(requestUri).ConfigureAwait(false);
+            var responseAsPublicKeyModel = await GetAsModel<KontoOffentligNokkel>(requestUri, authenticated: false).ConfigureAwait(false);
             return X509CertificateReader.ExtractCertificate(responseAsPublicKeyModel.Nokkel);
         }
 
@@ -97,22 +97,25 @@ namespace KS.Fiks.IO.Client.Catalog
                 .Uri;
         }
 
-        private async Task<T> GetAsModel<T>(Uri requestUri)
+        private async Task<T> GetAsModel<T>(Uri requestUri, bool authenticated = true)
         {
             var accessToken = await _maskinportenClient
                                     .GetAccessToken(_integrasjonConfiguration.Scope).ConfigureAwait(false);
 
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                requestMessage.Headers.Add(
-                    "integrasjonId",
-                    _integrasjonConfiguration.IntegrasjonId.ToString());
+                if (authenticated)
+                {
+                    requestMessage.Headers.Add(
+                        "integrasjonId",
+                        _integrasjonConfiguration.IntegrasjonId.ToString());
 
-                requestMessage.Headers.Add(
-                    "integrasjonPassord",
-                    _integrasjonConfiguration.IntegrasjonPassord);
-                requestMessage.Headers.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken.Token);
+                    requestMessage.Headers.Add(
+                        "integrasjonPassord",
+                        _integrasjonConfiguration.IntegrasjonPassord);
+                    requestMessage.Headers.Authorization =
+                        new AuthenticationHeaderValue("Bearer", accessToken.Token);
+                }
 
                 var response = await _httpClient.SendAsync(requestMessage).ConfigureAwait(false);
 
