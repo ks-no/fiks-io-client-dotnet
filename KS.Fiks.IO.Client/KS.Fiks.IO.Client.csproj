@@ -12,7 +12,7 @@
 		<RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
-		<VersionPrefix>3.0.8</VersionPrefix>
+		<VersionPrefix>3.0.9</VersionPrefix>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
