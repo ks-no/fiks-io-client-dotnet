@@ -28,7 +28,7 @@ namespace ExampleApplication.FiksIO
 
             return FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("fiks-io-client-dotnet-example-application", 1, true,20 * 1000)
+                .WithAmqpConfiguration("fiks-io-client-dotnet-example-application", 1)
                 .WithMaskinportenConfiguration(new X509Certificate2(certPath, certPassword), issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(accountId, ReadFromFile(privateKeyPath))

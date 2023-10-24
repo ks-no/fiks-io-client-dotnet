@@ -66,11 +66,10 @@ namespace KS.Fiks.IO.Client.Configuration
             string issuer,
             X509Certificate2 maskinportenSertifikat,
             X509Certificate2 asiceSertifikat,
-            bool keepAlive = false,
             string applicationName = null)
         {
             return new FiksIOConfiguration(
-                amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(keepAlive, applicationName),
+                amqpConfiguration: AmqpConfiguration.CreateProdConfiguration(applicationName),
                 apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(integrasjonId, integrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(kontoId, privatNokkel),
@@ -86,11 +85,10 @@ namespace KS.Fiks.IO.Client.Configuration
             string issuer,
             X509Certificate2 maskinportenSertifikat,
             X509Certificate2 asiceSertifikat,
-            bool keepAlive = false,
             string applicationName = null)
         {
             return new FiksIOConfiguration(
-                amqpConfiguration: AmqpConfiguration.CreateTestConfiguration(keepAlive, applicationName),
+                amqpConfiguration: AmqpConfiguration.CreateTestConfiguration(applicationName),
                 apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
                 integrasjonConfiguration: new IntegrasjonConfiguration(fiksIntegrasjonId, fiksIntegrasjonPassord),
                 kontoConfiguration: new KontoConfiguration(fiksKontoId, privatNokkel),
