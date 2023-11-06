@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using KS.Fiks.IO.Client.Configuration;
@@ -18,34 +17,15 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal class AmqpHandler : IAmqpHandler
     {
-        private static ILogger<AmqpHandler> _logger;
-
         private const string QueuePrefix = "fiksio.konto.";
-
-        private IConnectionFactory _connectionFactory;
-
-        private IMaskinportenClient _maskinportenClient;
-
-        private IntegrasjonConfiguration _integrasjonConfiguration;
-
-        private IConnection _connection;
-
+        private static ILogger<AmqpHandler> _logger;
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
-
         private readonly KontoConfiguration _kontoConfiguration;
-
         private readonly SslOption _sslOption;
-
-        private readonly Timer _ensureAmqpConnectionIsOpenTimer;
-
+        private IConnectionFactory _connectionFactory;
+        private IConnection _connection;
         private IModel _channel;
-
         private IAmqpReceiveConsumer _receiveConsumer;
-
-        private ICredentialsRefresher _credentialsRefresher;
-
-        private ICredentialsProvider _credentialsProvider;
-
         private RabbitMQEventLogger _rabbitMqEventLogger;
 
         private AmqpHandler(
@@ -59,14 +39,11 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            _credentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory);
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            _maskinportenClient = maskinportenClient;
-            _integrasjonConfiguration = integrasjonConfiguration;
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory
             {
-                CredentialsProvider = _credentialsProvider
+                CredentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
             };
 
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
@@ -90,7 +67,7 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null)
         {
             var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
-            await amqpHandler.Connect(integrasjonConfiguration, amqpConfiguration).ConfigureAwait(false);
+            await amqpHandler.Connect(amqpConfiguration).ConfigureAwait(false);
 
              _logger?.LogDebug("AmqpHandler CreateAsync done");
             return amqpHandler;
@@ -130,12 +107,11 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _channel.Dispose();
                 _connection.Dispose();
-                _ensureAmqpConnectionIsOpenTimer?.Dispose();
                 _rabbitMqEventLogger?.Dispose();
             }
         }
 
-        private async Task Connect(IntegrasjonConfiguration integrasjonConfiguration, AmqpConfiguration amqpConfiguration)
+        private async Task Connect(AmqpConfiguration amqpConfiguration)
         {
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
