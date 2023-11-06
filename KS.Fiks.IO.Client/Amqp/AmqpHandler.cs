@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
@@ -44,6 +46,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private ICredentialsProvider _credentialsProvider;
 
+        private RabbitMQEventLogger _rabbitMqEventLogger;
+
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,
@@ -55,15 +59,13 @@ namespace KS.Fiks.IO.Client.Amqp
             IConnectionFactory connectionFactory = null,
             IAmqpConsumerFactory consumerFactory = null)
         {
-            _credentialsRefresher = new TimerBasedCredentialRefresher();
-            _credentialsProvider = new MaskinportenCredentialsProvider(maskinportenClient, integrasjonConfiguration);
+            _credentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory);
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _maskinportenClient = maskinportenClient;
             _integrasjonConfiguration = integrasjonConfiguration;
             _kontoConfiguration = kontoConfiguration;
             _connectionFactory = connectionFactory ?? new ConnectionFactory
             {
-                CredentialsRefresher = _credentialsRefresher,
                 CredentialsProvider = _credentialsProvider
             };
 
@@ -72,6 +74,7 @@ namespace KS.Fiks.IO.Client.Amqp
             if (loggerFactory != null)
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
+                _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Warning);
             }
         }
 
@@ -128,6 +131,7 @@ namespace KS.Fiks.IO.Client.Amqp
                 _channel.Dispose();
                 _connection.Dispose();
                 _ensureAmqpConnectionIsOpenTimer?.Dispose();
+                _rabbitMqEventLogger?.Dispose();
             }
         }
 

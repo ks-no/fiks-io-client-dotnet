@@ -11,7 +11,6 @@ namespace KS.Fiks.IO.Client.Configuration
         public const string maskinportenProdTokenEndpoint = @"https://maskinporten.no/token";
         public const string maskinportenTestAudience = @"https://test.maskinporten.no/";
         public const string maskinportenTestTokenEndpoint = @"https://test.maskinporten.no/token";
-        public const int maskinportenDefaultNumberOfSecondsLeftBeforeExpire = 10;
 
         public KontoConfiguration KontoConfiguration { get; }
 

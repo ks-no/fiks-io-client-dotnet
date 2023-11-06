@@ -2,101 +2,52 @@ using System;
 using System.Threading;
 using KS.Fiks.IO.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using RabbitMQ.Client.OAuth2;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public class Token : IToken
-    {
-        private readonly JsonToken _source;
-        private readonly DateTime _lastTokenRenewal;
-
-        public Token(JsonToken json)
-        {
-            this._source = json;
-            this._lastTokenRenewal = DateTime.Now;
-        }
-
-        public string AccessToken
-        {
-            get
-            {
-                return _source.access_token;
-            }
-        }
-
-        public string RefreshToken
-        {
-            get
-            {
-                return _source.refresh_token;
-            }
-        }
-
-        public TimeSpan ExpiresIn
-        {
-            get
-            {
-                return TimeSpan.FromSeconds(_source.expires_in);
-            }
-        }
-
-        bool IToken.hasExpired
-        {
-            get
-            {
-                TimeSpan age = DateTime.Now - _lastTokenRenewal;
-                return age > ExpiresIn;
-            }
-        }
-    }
-    
     public class MaskinportenCredentialsProvider : ICredentialsProvider
     {
-        const int TOKEN_RETRIEVAL_TIMEOUT = 5000;
+        private static ILogger<MaskinportenCredentialsProvider> _logger;
+        private const int TokenRetrievalTimeout = 5000;
         private ReaderWriterLock _lock = new ReaderWriterLock();
-        private IMaskinportenClient _maskinportenClient;
-        private IntegrasjonConfiguration _integrasjonConfiguration;
+        private readonly IMaskinportenClient _maskinportenClient;
+        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
         private MaskinportenToken _maskinportenToken;
+        private const int ValidUntilBufferInSeconds = 10;
 
-        public MaskinportenCredentialsProvider(IMaskinportenClient maskinportenClient, IntegrasjonConfiguration integrasjonConfiguration)
+        public MaskinportenCredentialsProvider(string name, IMaskinportenClient maskinportenClient, IntegrasjonConfiguration integrasjonConfiguration, ILoggerFactory loggerFactory = null)
         {
+            Name = name;
             _maskinportenClient = maskinportenClient;
             _integrasjonConfiguration = integrasjonConfiguration;
+            if (loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger<MaskinportenCredentialsProvider>();
+            }
         }
 
         public string Name { get; }
 
         public string UserName => _integrasjonConfiguration.IntegrasjonId.ToString();
 
-        public string Password => $"{_integrasjonConfiguration.IntegrasjonPassord} {checkState().Token}";
+        public string Password => $"{_integrasjonConfiguration.IntegrasjonPassord} {CheckState().Token}";
 
-        public TimeSpan? ValidUntil
-        {
-            get
-            {
-                var t = checkState();
-                if (t is null)
-                {
-                    return null;
-                }
-
-                return TimeSpan.FromSeconds(t.ExpiresIn);
-            }
-        }
+        public TimeSpan? ValidUntil { get; private set; }
 
         public void Refresh()
         {
-            retrieveToken();
+            _logger.LogDebug("Refresh start");
+            RetrieveToken();
         }
 
-        private MaskinportenToken checkState()
+        private MaskinportenToken CheckState()
         {
-            _lock.AcquireReaderLock(TOKEN_RETRIEVAL_TIMEOUT);
+            _lock.AcquireReaderLock(TokenRetrievalTimeout);
             try
             {
-                if (_maskinportenToken != null)
+                if (_maskinportenToken != null && DateTime.Now.TimeOfDay < ValidUntil)
                 {
                     return _maskinportenToken;
                 }
@@ -106,15 +57,15 @@ namespace KS.Fiks.IO.Client.Amqp
                 _lock.ReleaseReaderLock();
             }
 
-            return retrieveToken();
+            return RetrieveToken();
         }
 
-        private MaskinportenToken retrieveToken()
+        private MaskinportenToken RetrieveToken()
         {
-            _lock.AcquireWriterLock(TOKEN_RETRIEVAL_TIMEOUT);
+            _lock.AcquireWriterLock(TokenRetrievalTimeout);
             try
             {
-                return requestOrRenewToken();
+                return RequestOrRenewToken();
             }
             finally
             {
@@ -122,9 +73,11 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private MaskinportenToken requestOrRenewToken()
+        private MaskinportenToken RequestOrRenewToken()
         {
-            return _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
+             _maskinportenToken = _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
+             ValidUntil = DateTime.Now.TimeOfDay.Add(TimeSpan.FromSeconds(_maskinportenToken.ExpiresIn - ValidUntilBufferInSeconds));
+            return _maskinportenToken;
         }
     }
 }

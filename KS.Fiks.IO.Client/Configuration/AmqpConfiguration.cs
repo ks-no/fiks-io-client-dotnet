@@ -7,7 +7,6 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         public const string ProdHost = "io.fiks.ks.no";
         public const string TestHost = "io.fiks.test.ks.no";
-        public const int DefaultKeepAliveHealthCheckInterval = 1 * 60 * 1000;
 
         public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10)
         {
