@@ -21,18 +21,6 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";
 
-        public AmqpHandlerFixture()
-        {
-            ConnectionFactoryMock = new Mock<IConnectionFactory>();
-            ConnectionMock = new Mock<IConnection>();
-            ModelMock = new Mock<IModel>();
-            AmqpReceiveConsumerMock = new Mock<IAmqpReceiveConsumer>();
-            AmqpConsumerFactoryMock = new Mock<IAmqpConsumerFactory>();
-            MaskinportenClientMock = new Mock<IMaskinportenClient>();
-            SendHandlerMock = new Mock<ISendHandler>();
-            DokumentlagerHandlerMock = new Mock<IDokumentlagerHandler>();
-        }
-
         public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
         {
             _connectionFactoryShouldThrow = true;
@@ -63,21 +51,21 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
-        public Mock<IModel> ModelMock { get; }
+        public Mock<IModel> ModelMock { get; } = new Mock<IModel>();
 
-        public Mock<IConnectionFactory> ConnectionFactoryMock { get; }
+        public Mock<IConnectionFactory> ConnectionFactoryMock { get; } = new Mock<IConnectionFactory>();
 
-        public Mock<IConnection> ConnectionMock { get; }
+        public Mock<IConnection> ConnectionMock { get; } = new Mock<IConnection>();
 
-        internal Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; }
+        internal Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; } = new Mock<IAmqpConsumerFactory>();
 
-        internal Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; }
+        internal Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; } = new Mock<IAmqpReceiveConsumer>();
 
-        internal Mock<IMaskinportenClient> MaskinportenClientMock { get; }
+        internal Mock<IMaskinportenClient> MaskinportenClientMock { get; } = new Mock<IMaskinportenClient>();
 
-        internal Mock<IDokumentlagerHandler> DokumentlagerHandlerMock { get; }
+        internal Mock<IDokumentlagerHandler> DokumentlagerHandlerMock { get; } = new Mock<IDokumentlagerHandler>();
 
-        internal Mock<ISendHandler> SendHandlerMock { get; }
+        internal Mock<ISendHandler> SendHandlerMock { get; } = new Mock<ISendHandler>();
 
         internal IAmqpHandler CreateSut()
         {

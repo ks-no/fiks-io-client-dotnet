@@ -81,16 +81,5 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
             counter.Should().Be(1);
         }
-
-        /*
-        [Fact]
-        public void PasswordIsSetToIntegrationPasswordAndMaskinportenToken()
-        {
-            var password = "myIntegrationPassword";
-            var token = "maskinportenExpectedToken";
-            var sut = _fixture.WithMaskinportenToken(token).WithIntegrationPassword(password).CreateSut();
-            _fixture.ConnectionFactoryMock.VerifySet(_ => _.Password = $"{password} {token}");
-        }
-        */
     }
 }
