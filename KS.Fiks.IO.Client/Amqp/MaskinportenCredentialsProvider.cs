@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
@@ -75,8 +76,10 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private MaskinportenToken RequestOrRenewToken()
         {
-             _maskinportenToken = _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope).Result;
-             ValidUntil = DateTime.Now.TimeOfDay.Add(TimeSpan.FromSeconds(_maskinportenToken.ExpiresIn - ValidUntilBufferInSeconds));
+            var getAccessTokenTask = Task.Run(() => _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope));
+            getAccessTokenTask.Wait();
+            _maskinportenToken = getAccessTokenTask.Result;
+            ValidUntil = DateTime.Now.TimeOfDay.Add(TimeSpan.FromSeconds(_maskinportenToken.ExpiresIn - ValidUntilBufferInSeconds));
             return _maskinportenToken;
         }
     }
