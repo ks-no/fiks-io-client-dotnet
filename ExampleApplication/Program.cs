@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
-using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RabbitMQ.Client.Logging;
 using Serilog;
 using Serilog.Events;
 using ILogger = Serilog.ILogger;
@@ -31,9 +26,9 @@ namespace ExampleApplication
      */
     class Program
     {
-        private static MessageSender messageSender;
-        private static Guid toAccountId;
-        private static ILogger Logger;
+        private static MessageSender _messageSender;
+        private static Guid _toAccountId;
+        private static ILogger _logger;
         public const string FiksIOPing = "ping";
         public const string FiksIOPong = "pong";
         public const string FiksArkivPing = "no.ks.fiks.arkiv.v1.ping";
@@ -56,12 +51,12 @@ namespace ExampleApplication
             var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             
             // Creating messageSender as a local instance
-            messageSender = new MessageSender(fiksIoClient, appSettings);
+            _messageSender = new MessageSender(fiksIoClient, appSettings);
             
             // Setting the account to send messages to. In this case the same as sending account
-            toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
+            _toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
             
-            Logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
+            _logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
 
             var consoleKeyTask = Task.Run(() => { MonitorKeypress(); });
 
@@ -70,7 +65,7 @@ namespace ExampleApplication
                 {
                     configHost.AddEnvironmentVariables("DOTNET_");
                 })
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton(appSettings);
                     services.AddSingleton(loggerFactory);
@@ -84,34 +79,37 @@ namespace ExampleApplication
 
         private static async Task MonitorKeypress()
         {
-            Logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
-            Logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
-            Logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
-            Logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
-            
-            var cki = new ConsoleKeyInfo();
+            _logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
+            _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
+            _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
+            _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+
+
+            ConsoleKeyInfo cki;
             do 
             {
+                //var cki = new ConsoleKeyInfo();
                 // true hides the pressed character from the console
                 cki = Console.ReadKey(true);
+
                 var key = cki.Key;
 
                 if (key == ConsoleKey.Enter)
                 {
-                    Logger.Information("Enter pressed. Sending Fiks-IO ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksIOPing, toAccountId);
+                    _logger.Information("Enter pressed. Sending Fiks-IO ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksIOPing, _toAccountId);
                 } else if (key == ConsoleKey.A)
                 {
-                    Logger.Information("A-key pressed. Sending Fiks-Arkiv V1 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksArkivPing, toAccountId);
+                    _logger.Information("A-key pressed. Sending Fiks-Arkiv V1 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksArkivPing, _toAccountId);
                 } else if (key == ConsoleKey.P)
                 {
-                    Logger.Information("P-key pressed. Sending Fiks-Plan V2 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksPlanPing, toAccountId);
+                    _logger.Information("P-key pressed. Sending Fiks-Plan V2 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksPlanPing, _toAccountId);
                 } else if (key == ConsoleKey.M)
                 {
-                    Logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksMatrikkelfoeringPing, toAccountId);
+                    _logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
                 }
     
                 // Wait for an ESC
@@ -132,83 +130,5 @@ namespace ExampleApplication
 
             return LoggerFactory.Create(logging => logging.AddSerilog(logger));
         }
-    }
-    
-    class RabbitMqEventListener : EventListener
-    {
-        private const string EventSourceName = "rabbitmq-dotnet-client";
-        private readonly ILoggerFactory _loggerFactory;
-        private static ILogger<RabbitMqEventListener> _logger;
-        private readonly EventLevel _eventLevel;
-
-        public RabbitMqEventListener(ILoggerFactory loggerFactory, EventLevel eventLevel)
-        {
-            _loggerFactory = loggerFactory;
-            _eventLevel = eventLevel;
-            _logger = loggerFactory.CreateLogger<RabbitMqEventListener>();
-        }
-
-        protected override void OnEventSourceCreated(EventSource eventSource)
-        {
-            if(eventSource.Name == EventSourceName)
-            {
-                EnableEvents(eventSource, _eventLevel);
-            }
-        }
-
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
-        {
-            var message = $"EventLog from {EventSourceName} " +
-                          $", eventData.EventName: {eventData.EventName} " +
-                          $", eventData.TimeStamp: {eventData.TimeStamp} " +
-                          $", eventData.Message: {eventData.Message} " +
-                          $", eventData.Level: {eventData.Level} ";
-
-            var i = 0;
-            foreach (var payload in eventData.Payload)
-            {
-                if (payload is string)
-                {
-                    message += $", Message: {payload}";
-                }
-                else // Most likely this is a RabbitMQExceptionDetail as a Dictionary. Try to convert and write to message
-                {
-                    try
-                    {
-                        var payloadAsDictionary = ConvertObject<Dictionary<string, object>>(payload);
-                        if (payloadAsDictionary != null)
-                        {
-                            var rabbitMqExceptionDetail = new RabbitMqExceptionDetail(payloadAsDictionary);
-                            message += $", RabbitMqExceptionDetail message: {rabbitMqExceptionDetail.Message}, RabbitMqExceptionDetail stacktrace: {rabbitMqExceptionDetail.StackTrace}, RabbitMqExceptionDetail inner exception: {rabbitMqExceptionDetail.InnerException}, RabbitMqExceptionDetail type: {rabbitMqExceptionDetail.Type}";
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        //Do nothing
-                    }
-                }
-
-                i++;
-            }
-
-            if (eventData.Level.ToString().ToLower().Contains("err"))
-            {
-                _logger.LogError(message);
-            } else if (eventData.Level.ToString().ToLower().Contains("warn"))
-            {
-                _logger.LogWarning(message);
-            }
-            else
-            {
-                _logger.LogInformation(message);
-            }
-            
-        }
-
-        private static T ConvertObject<T>(object M) where T : class
-        {
-            var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
-            return obj;
-        } 
     }
 }
