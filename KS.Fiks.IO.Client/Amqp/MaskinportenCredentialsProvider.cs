@@ -10,13 +10,12 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     public class MaskinportenCredentialsProvider : ICredentialsProvider
     {
-        private static ILogger<MaskinportenCredentialsProvider> _logger;
         private const int TokenRetrievalTimeout = 5000;
-        private ReaderWriterLock _lock = new ReaderWriterLock();
+        private static ILogger<MaskinportenCredentialsProvider> _logger;
         private readonly IMaskinportenClient _maskinportenClient;
         private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+        private ReaderWriterLock _lock = new ReaderWriterLock();
         private MaskinportenToken _maskinportenToken;
-        private const int ValidUntilBufferInSeconds = 10;
 
         public MaskinportenCredentialsProvider(string name, IMaskinportenClient maskinportenClient, IntegrasjonConfiguration integrasjonConfiguration, ILoggerFactory loggerFactory = null)
         {
@@ -35,7 +34,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public string Password => $"{_integrasjonConfiguration.IntegrasjonPassord} {CheckState().Token}";
 
-        public TimeSpan? ValidUntil { get; private set; }
+        public TimeSpan? ValidUntil { get; }
 
         public void Refresh()
         {
@@ -48,7 +47,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _lock.AcquireReaderLock(TokenRetrievalTimeout);
             try
             {
-                if (_maskinportenToken != null && DateTime.Now.TimeOfDay < ValidUntil)
+                if (_maskinportenToken != null && !_maskinportenToken.IsExpiring())
                 {
                     return _maskinportenToken;
                 }
@@ -79,7 +78,6 @@ namespace KS.Fiks.IO.Client.Amqp
             var getAccessTokenTask = Task.Run(() => _maskinportenClient.GetAccessToken(_integrasjonConfiguration.Scope));
             getAccessTokenTask.Wait();
             _maskinportenToken = getAccessTokenTask.Result;
-            ValidUntil = DateTime.Now.TimeOfDay.Add(TimeSpan.FromSeconds(_maskinportenToken.ExpiresIn - ValidUntilBufferInSeconds));
             return _maskinportenToken;
         }
     }
