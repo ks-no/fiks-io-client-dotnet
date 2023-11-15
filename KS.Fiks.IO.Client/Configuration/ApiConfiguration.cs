@@ -4,9 +4,8 @@ namespace KS.Fiks.IO.Client.Configuration
     {
         public const string ProdHost = "api.fiks.ks.no";
         public const string TestHost = "api.fiks.test.ks.no";
-        private const string DefaultScheme = "https";
-
-        private const int DefaultPort = 443;
+        public const string DefaultScheme = "https";
+        public const int DefaultPort = 443;
 
         public ApiConfiguration(string scheme = null, string host = null, int? port = null)
         {
