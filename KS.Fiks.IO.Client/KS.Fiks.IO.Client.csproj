@@ -42,7 +42,7 @@
 		<None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="KS.Fiks.ASiC-E" Version="2.0.0" />
+		<PackageReference Include="KS.Fiks.ASiC-E" Version="2.0.1" />
 		<PackageReference Include="KS.Fiks.Crypto" Version="2.0.1" />
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.11" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.9" />
