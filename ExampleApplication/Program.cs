@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using ILogger = Serilog.ILogger;
 
 namespace ExampleApplication
 {
@@ -25,9 +26,9 @@ namespace ExampleApplication
      */
     class Program
     {
-        private static MessageSender messageSender;
-        private static Guid toAccountId;
-        private static Serilog.ILogger Logger;
+        private static MessageSender _messageSender;
+        private static Guid _toAccountId;
+        private static ILogger _logger;
         public const string FiksIOPing = "ping";
         public const string FiksIOPong = "pong";
         public const string FiksArkivPing = "no.ks.fiks.arkiv.v1.ping";
@@ -50,13 +51,13 @@ namespace ExampleApplication
             var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             
             // Creating messageSender as a local instance
-            messageSender = new MessageSender(fiksIoClient, appSettings);
+            _messageSender = new MessageSender(fiksIoClient, appSettings);
             
             // Setting the account to send messages to. In this case the same as sending account
-            toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
+            _toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
             
-            Logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
-            
+            _logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
+
             var consoleKeyTask = Task.Run(() => { MonitorKeypress(); });
 
             await new HostBuilder()
@@ -64,7 +65,7 @@ namespace ExampleApplication
                 {
                     configHost.AddEnvironmentVariables("DOTNET_");
                 })
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton(appSettings);
                     services.AddSingleton(loggerFactory);
@@ -78,34 +79,37 @@ namespace ExampleApplication
 
         private static async Task MonitorKeypress()
         {
-            Logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
-            Logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
-            Logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
-            Logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
-            
-            var cki = new ConsoleKeyInfo();
+            _logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
+            _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
+            _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
+            _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+
+
+            ConsoleKeyInfo cki;
             do 
             {
+                //var cki = new ConsoleKeyInfo();
                 // true hides the pressed character from the console
                 cki = Console.ReadKey(true);
+
                 var key = cki.Key;
 
                 if (key == ConsoleKey.Enter)
                 {
-                    Logger.Information("Enter pressed. Sending Fiks-IO ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksIOPing, toAccountId);
+                    _logger.Information("Enter pressed. Sending Fiks-IO ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksIOPing, _toAccountId);
                 } else if (key == ConsoleKey.A)
                 {
-                    Logger.Information("A-key pressed. Sending Fiks-Arkiv V1 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksArkivPing, toAccountId);
+                    _logger.Information("A-key pressed. Sending Fiks-Arkiv V1 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksArkivPing, _toAccountId);
                 } else if (key == ConsoleKey.P)
                 {
-                    Logger.Information("P-key pressed. Sending Fiks-Plan V2 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksPlanPing, toAccountId);
+                    _logger.Information("P-key pressed. Sending Fiks-Plan V2 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksPlanPing, _toAccountId);
                 } else if (key == ConsoleKey.M)
                 {
-                    Logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", toAccountId);
-                    var sendtMessageId = await messageSender.Send(FiksMatrikkelfoeringPing, toAccountId);
+                    _logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", _toAccountId);
+                    await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
                 }
     
                 // Wait for an ESC

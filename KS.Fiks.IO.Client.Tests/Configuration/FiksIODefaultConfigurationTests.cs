@@ -32,7 +32,6 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
-            config.AmqpConfiguration.KeepAlive.Should().BeFalse();
             config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
         }
 
@@ -55,13 +54,11 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 privatNokkel: privatNokkel,
                 issuer: issuer,
                 maskinportenSertifikat: maskinportenSertifikat,
-                asiceSertifikat: asiceSertifikat,
-                keepAlive: true);
+                asiceSertifikat: asiceSertifikat);
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
-            config.AmqpConfiguration.KeepAlive.Should().BeTrue();
             config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
         }
 
@@ -90,7 +87,6 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
-            config.AmqpConfiguration.KeepAlive.Should().BeFalse();
             config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
         }
 
@@ -113,14 +109,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 privatNokkel: privatNokkel,
                 issuer: issuer,
                 maskinportenSertifikat: maskinportenSertifikat,
-                asiceSertifikat: asiceSertifikat,
-                keepAlive: true
+                asiceSertifikat: asiceSertifikat
             );
 
             config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
             config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
             config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
-            config.AmqpConfiguration.KeepAlive.Should().BeTrue();
             config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
         }
     }

@@ -12,12 +12,12 @@
 		<RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
-		<VersionPrefix>3.0.9</VersionPrefix>
+		<VersionPrefix>4.0.0</VersionPrefix>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<AssemblyVersion>3.0.0.0</AssemblyVersion>
-		<FileVersion>3.0.0.0</FileVersion>
+		<AssemblyVersion>4.0.0.0</AssemblyVersion>
+		<FileVersion>4.0.0.0</FileVersion>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
@@ -47,9 +47,10 @@
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.11" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.9" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-		<PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
+		<PackageReference Include="RabbitMQ.Client" Version="6.6.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="1.0.0" />
 	</ItemGroup>
 </Project>
