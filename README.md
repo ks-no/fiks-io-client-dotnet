@@ -158,9 +158,9 @@ You can also create the configuration yourself where also two convenience functi
 Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
 
 #### Logging from the RabbitMQ client
-The Fiks-IO-Client uses the official RabbitMQ-Client for .NET. This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
+The Fiks-IO-Client uses the official [RabbitMQ-Client for .NET](https://github.com/rabbitmq/rabbitmq-dotnet-client). This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
 We have created a RabbitMQEventLogger util-class for easy logging of these events to your logs.
-This util-class will have to bee initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
+This util-class will have to be initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
 ```csharp
 _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
 ```
