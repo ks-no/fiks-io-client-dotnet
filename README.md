@@ -35,6 +35,12 @@ We recommend reading through the RabbitMQ documentation on [connections](https:/
 The client also exposes the status of the connection to RabbitMQ through the [IsOpen()](#isopen) function. 
 We recommend using this for monitoring the health of the client. 
 
+### Logging
+The Fiks-IO client can provide logging if you pass it a LoggingFactory. 
+It is also highly recommended to either listen to RabbitMQ system EventLogs by your own means or use the RabbitMQEventLogger event listener util provided in the Fiks-IO client for converting them to log.
+See further down for examples.
+
+Please note that warnings and errors related to the RabbitMQ connection will only be visible through the RabbitMQ system EventLogs.
 
 ## Examples
 
@@ -148,8 +154,16 @@ Only the required configuration parameters must be provided when you use these t
 You can also create the configuration yourself where also two convenience functions are provided for generating default configurations for *prod* and *test*,
 `CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Also here will only the required configuration parameters are needed.
 
-#### Logging
+#### Logging from the Fiks-IO client
 Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
+
+#### Logging from the RabbitMQ client
+The Fiks-IO-Client uses the official RabbitMQ-Client for .NET. This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
+We have created a RabbitMQEventLogger util-class for easy logging of these events to your logs.
+This util-class will have to bee initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
+```csharp
+_rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
+```
 
 #### Create with builder examples:
 
