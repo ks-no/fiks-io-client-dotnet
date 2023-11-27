@@ -29,7 +29,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            var message = $"EventLog from {EventSourceName} " +
+            var message = $"EventLog from {eventData.EventSource} " +
                           $", eventData.Level: {eventData.Level}, eventData.Message: {eventData.Message}";
 
             var i = 0;
