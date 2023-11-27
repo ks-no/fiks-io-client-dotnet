@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
-using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
@@ -26,7 +24,6 @@ namespace KS.Fiks.IO.Client.Amqp
         private IConnection _connection;
         private IModel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
-        private RabbitMQEventLogger _rabbitMqEventLogger;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -51,7 +48,6 @@ namespace KS.Fiks.IO.Client.Amqp
             if (loggerFactory != null)
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
-                _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Warning);
             }
         }
 
@@ -107,7 +103,6 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _channel.Dispose();
                 _connection.Dispose();
-                _rabbitMqEventLogger?.Dispose();
             }
         }
 
