@@ -21,7 +21,8 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if(eventSource.Name == EventSourceName)
+            base.OnEventSourceCreated(eventSource);
+            if (eventSource.Name == EventSourceName)
             {
                 EnableEvents(eventSource, _eventLevel);
             }
