@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
+using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,6 +39,7 @@ namespace ExampleApplication
         public const string FiksPlanPong = "no.ks.fiks.plan.v2.pong";
         public const string FiksMatrikkelfoeringPing = "no.ks.fiks.matrikkelfoering.v2.ping";
         public const string FiksMatrikkelfoeringPong = "no.ks.fiks.matrikkelfoering.v2.pong";
+        private static RabbitMQEventLogger _rabbitMqEventLogger;
         
         public static async Task Main(string[] args)
         {
@@ -49,6 +52,7 @@ namespace ExampleApplication
             var appSettings = AppSettingsBuilder.CreateAppSettings(configurationRoot);
             var configuration = FiksIoConfigurationBuilder.CreateConfiguration(appSettings);
             var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
+            _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             
             // Creating messageSender as a local instance
             _messageSender = new MessageSender(fiksIoClient, appSettings);
