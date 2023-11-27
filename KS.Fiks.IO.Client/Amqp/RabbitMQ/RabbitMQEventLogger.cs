@@ -21,8 +21,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            base.OnEventSourceCreated(eventSource);
-            if (eventSource.Name == EventSourceName)
+            if(eventSource.Name.Equals(EventSourceName))
             {
                 EnableEvents(eventSource, _eventLevel);
             }
@@ -30,7 +29,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            var message = $"EventLog from {eventData.EventSource} " +
+            var message = $"EventLog from {eventData.EventSource.Name}  " +
                           $", eventData.Level: {eventData.Level}, eventData.Message: {eventData.Message}";
 
             var i = 0;
