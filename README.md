@@ -41,9 +41,9 @@ It is also highly recommended to either listen to RabbitMQ system EventLogs by y
 
 Please note that warnings and errors related to the RabbitMQ connection will only be visible through the RabbitMQ system EventLogs.
 These are important events like:
-- Connection is lost and the client will try AutoRecovery 
-- Succesfull AutoRecovery is performed
-- AutoRecovery failed and connection could not be recovered.
+- Connection is lost and the client will try [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) 
+- Succesfull [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) is performed
+- [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) failed and connection could not be recovered.
 
 Using the RabbitMQEventLogger util will show these events in your application log. 
 
