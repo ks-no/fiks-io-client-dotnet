@@ -38,9 +38,16 @@ We recommend using this for monitoring the health of the client.
 ### Logging
 The Fiks-IO client can provide logging if you pass it a LoggingFactory. 
 It is also highly recommended to either listen to RabbitMQ system EventLogs by your own means or use the RabbitMQEventLogger event listener util provided in the Fiks-IO client for converting them to log.
-See further down for examples.
 
 Please note that warnings and errors related to the RabbitMQ connection will only be visible through the RabbitMQ system EventLogs.
+These are important events like:
+- Connection is lost and the client will try AutoRecovery 
+- Succesfull AutoRecovery is performed
+- AutoRecovery failed and connection could not be recovered.
+
+Using the RabbitMQEventLogger util will show these events in your application log. 
+
+See further down in this README for example on how to use the RabbitMQEventLogger util.
 
 ## Examples
 
@@ -161,6 +168,7 @@ Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Exam
 The Fiks-IO-Client uses the official [RabbitMQ-Client for .NET](https://github.com/rabbitmq/rabbitmq-dotnet-client). This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
 We have created a RabbitMQEventLogger util-class for easy logging of these events to your logs.
 This util-class will have to be initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
+
 ```csharp
 _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
 ```
