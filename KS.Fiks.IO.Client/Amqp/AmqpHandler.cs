@@ -43,6 +43,11 @@ namespace KS.Fiks.IO.Client.Amqp
                 CredentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
             };
 
+            if (!string.IsNullOrEmpty(amqpConfiguration.Vhost))
+            {
+                _connectionFactory.VirtualHost = amqpConfiguration.Vhost;
+            }
+
             _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
 
             if (loggerFactory != null)
