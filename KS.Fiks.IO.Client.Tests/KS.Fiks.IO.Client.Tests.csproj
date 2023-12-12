@@ -26,7 +26,7 @@
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.15" />
-        <PackageReference Include="RabbitMQ.Client" Version="6.7.0" />
+        <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
         <PackageReference Include="RabbitMQ.Client.OAuth2" Version="1.0.0" />
         <PackageReference Include="xunit" Version="2.6.1" />
         <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
