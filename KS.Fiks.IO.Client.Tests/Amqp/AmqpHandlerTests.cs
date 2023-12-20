@@ -29,16 +29,16 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void ThrowsExceptionWhenConnectionFactoryThrows()
+        public async System.Threading.Tasks.Task ThrowsExceptionWhenConnectionFactoryThrows()
         {
-            Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
+            await Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
                 _fixture.WhereConnectionfactoryThrowsException().CreateSutAsync());
         }
 
         [Fact]
-        public void ThrowsExceptionWhenConnectionThrows()
+        public async System.Threading.Tasks.Task ThrowsExceptionWhenConnectionThrows()
         {
-            Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
+            await Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
                 _fixture.WhereConnectionThrowsException().CreateSutAsync());
         }
 
