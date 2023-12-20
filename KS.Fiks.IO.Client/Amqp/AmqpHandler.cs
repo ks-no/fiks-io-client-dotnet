@@ -80,8 +80,8 @@ namespace KS.Fiks.IO.Client.Amqp
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
-            this._cancelledEvent = cancelledEvent;
-            this._receivedEvent = receivedEvent;
+            _cancelledEvent = cancelledEvent;
+            _receivedEvent = receivedEvent;
 
             if (_receiveConsumer == null)
             {
