@@ -20,10 +20,12 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
         private readonly KontoConfiguration _kontoConfiguration;
         private readonly SslOption _sslOption;
-        private IConnectionFactory _connectionFactory;
+        private readonly IConnectionFactory _connectionFactory;
         private IConnection _connection;
         private IModel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
+        private EventHandler<MottattMeldingArgs> _receivedEvent;
+        private EventHandler<ConsumerEventArgs> _cancelledEvent;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -78,13 +80,15 @@ namespace KS.Fiks.IO.Client.Amqp
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
+            this._cancelledEvent = cancelledEvent;
+            this._receivedEvent = receivedEvent;
+
             if (_receiveConsumer == null)
             {
                 _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
             }
 
             _receiveConsumer.Received += receivedEvent;
-
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
             _channel.BasicConsume(_receiveConsumer, GetQueueName());
@@ -104,19 +108,32 @@ namespace KS.Fiks.IO.Client.Amqp
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposing)
             {
-                _channel.Dispose();
-                _connection.Dispose();
-
-                // Unsubscribe events for logging of RabbitMQ events
-                _connection.ConnectionShutdown -= HandleConnectionShutdown;
-                _connection.ConnectionBlocked -= HandleConnectionBlocked;
-                _connection.ConnectionUnblocked -= HandleConnectionUnblocked;
+                return;
             }
+
+            // Unsubscribe consumer events
+            if (_receivedEvent != null)
+            {
+                _receiveConsumer.Received -= _receivedEvent;
+            }
+
+            if (_cancelledEvent != null)
+            {
+                _receiveConsumer.ConsumerCancelled -= _cancelledEvent;
+            }
+
+            _channel.Dispose();
+            _connection.Dispose();
+
+            // Unsubscribe events for logging of RabbitMQ events
+            _connection.ConnectionShutdown -= HandleConnectionShutdown;
+            _connection.ConnectionBlocked -= HandleConnectionBlocked;
+            _connection.ConnectionUnblocked -= HandleConnectionUnblocked;
         }
 
-        private async Task Connect(AmqpConfiguration amqpConfiguration)
+        private Task Connect(AmqpConfiguration amqpConfiguration)
         {
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
@@ -125,6 +142,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _connection.ConnectionShutdown += HandleConnectionShutdown;
             _connection.ConnectionBlocked += HandleConnectionBlocked;
             _connection.ConnectionUnblocked += HandleConnectionUnblocked;
+            return Task.CompletedTask;
         }
 
         private void HandleConnectionBlocked(object sender, EventArgs e)
