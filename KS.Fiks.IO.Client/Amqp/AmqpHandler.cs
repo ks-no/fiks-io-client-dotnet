@@ -108,6 +108,11 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _channel.Dispose();
                 _connection.Dispose();
+
+                // Unsubscribe events for logging of RabbitMQ events
+                _connection.ConnectionShutdown -= HandleConnectionShutdown;
+                _connection.ConnectionBlocked -= HandleConnectionBlocked;
+                _connection.ConnectionUnblocked -= HandleConnectionUnblocked;
             }
         }
 
@@ -116,7 +121,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
 
-            // Handle events for debugging
+            // Handle events for logging of RabbitMQ events
             _connection.ConnectionShutdown += HandleConnectionShutdown;
             _connection.ConnectionBlocked += HandleConnectionBlocked;
             _connection.ConnectionUnblocked += HandleConnectionUnblocked;
