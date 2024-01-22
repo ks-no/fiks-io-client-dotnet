@@ -21,6 +21,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly KontoConfiguration _kontoConfiguration;
         private readonly SslOption _sslOption;
         private readonly IConnectionFactory _connectionFactory;
+        private readonly IAmqpWatcher _amqpWatcher;
         private IConnection _connection;
         private IModel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
@@ -36,7 +37,8 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            IAmqpWatcher amqpWatcher = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _kontoConfiguration = kontoConfiguration;
@@ -56,6 +58,8 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
             }
+
+            _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -67,9 +71,10 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            IAmqpWatcher amqpWatcher = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
             await amqpHandler.Connect(amqpConfiguration).ConfigureAwait(false);
 
              _logger?.LogDebug("AmqpHandler CreateAsync done");
@@ -128,9 +133,9 @@ namespace KS.Fiks.IO.Client.Amqp
             _connection.Dispose();
 
             // Unsubscribe events for logging of RabbitMQ events
-            _connection.ConnectionShutdown -= HandleConnectionShutdown;
-            _connection.ConnectionBlocked -= HandleConnectionBlocked;
-            _connection.ConnectionUnblocked -= HandleConnectionUnblocked;
+            _connection.ConnectionShutdown -= _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlocked -= _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblocked -= _amqpWatcher.HandleConnectionUnblocked;
         }
 
         private Task Connect(AmqpConfiguration amqpConfiguration)
@@ -139,25 +144,10 @@ namespace KS.Fiks.IO.Client.Amqp
             _channel = ConnectToChannel(amqpConfiguration);
 
             // Handle events for logging of RabbitMQ events
-            _connection.ConnectionShutdown += HandleConnectionShutdown;
-            _connection.ConnectionBlocked += HandleConnectionBlocked;
-            _connection.ConnectionUnblocked += HandleConnectionUnblocked;
+            _connection.ConnectionShutdown += _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlocked += _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblocked += _amqpWatcher.HandleConnectionUnblocked;
             return Task.CompletedTask;
-        }
-
-        private void HandleConnectionBlocked(object sender, EventArgs e)
-        {
-            _logger?.LogDebug("RabbitMQ Connection ConnectionBlocked event has been triggered");
-        }
-
-        private void HandleConnectionUnblocked(object sender, EventArgs e)
-        {
-            _logger?.LogDebug("RabbitMQ Connection ConnectionUnblocked event has been triggered");
-        }
-
-        private void HandleConnectionShutdown(object sender, EventArgs shutdownEventArgs)
-        {
-            _logger?.LogDebug($"RabbitMQ Connection ConnectionShutdown event has been triggered");
         }
 
         private IModel ConnectToChannel(AmqpConfiguration configuration)
