@@ -3,12 +3,17 @@
 [![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://www.nuget.org/packages/KS.Fiks.IO.Client)
 [![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/kryptering-dotnet.svg)](//github.com/ks-no/fiks-io-client-dotnet/issues)
 
-.net library compatible with _[.Net Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
+
+## About this library
+This is a .NET library compatible with _[.Net Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
-
 It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+
+### Integrity
+The nuget package is signed with a KS certificate in our build process, stored securely in a safe build environment.
+The package assemblies are also [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
 
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
