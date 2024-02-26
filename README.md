@@ -155,6 +155,22 @@ var request = new LookupRequest(
 var receiverKontoId = await client.Lookup(request); 
 ```
 
+### GetKonto
+Using GetKonto, you can get information about a Fiks IO account, e.g. municipality number and organization name, given the account id.
+
+```csharp
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
+
+var onReceived = new EventHandler<MottattMeldingArgs>(async (sender, fileArgs) =>
+                {
+                    var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId); // Get information about the sender account
+                    ...
+                });
+
+client.NewSubscription(onReceived);
+```
+
+
 ### IsOpen
 This method can be used to check if the amqp connection is open.
 

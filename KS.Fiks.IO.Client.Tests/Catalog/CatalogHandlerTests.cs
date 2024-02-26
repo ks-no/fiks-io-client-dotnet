@@ -190,5 +190,35 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             var result = await sut.GetPublicKey(Guid.NewGuid()).ConfigureAwait(false);
             result.Should().BeOfType<X509Certificate>();
         }
+
+        [Fact]
+        public async Task GetKontoReturnsExpectedAccount()
+        {
+            var expectedAccount = new KatalogKonto
+            {
+                KontoId = Guid.NewGuid(),
+                KontoNavn = "accountName",
+                FiksOrgId = Guid.NewGuid(),
+                FiksOrgNavn = "orgName",
+                KommuneNummer = "1234",
+                Status = new KontoSvarStatus
+                {
+                    Melding = "Melding",
+                    GyldigAvsender = true,
+                    GyldigMottaker = false
+                }
+            };
+            var sut = _fixture.WithAccountResponse(expectedAccount).CreateSut();
+
+            var result = await sut.GetKonto(Guid.NewGuid()).ConfigureAwait(true);
+
+            result.FiksOrgId.Should().Be(expectedAccount.FiksOrgId);
+            result.FiksOrgNavn.Should().Be(expectedAccount.FiksOrgNavn);
+            result.KontoId.Should().Be(expectedAccount.KontoId);
+            result.KontoNavn.Should().Be(expectedAccount.KontoNavn);
+            result.KommuneNummer.Should().Be(expectedAccount.KommuneNummer);
+            result.IsGyldigAvsender.Should().Be(expectedAccount.Status.GyldigAvsender);
+            result.IsGyldigMottaker.Should().Be(expectedAccount.Status.GyldigMottaker);
+        }
     }
 }
