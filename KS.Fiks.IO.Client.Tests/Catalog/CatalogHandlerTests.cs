@@ -200,6 +200,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 KontoNavn = "accountName",
                 FiksOrgId = Guid.NewGuid(),
                 FiksOrgNavn = "orgName",
+                Organisasjonsnummer = "123456789",
                 KommuneNummer = "1234",
                 Status = new KontoSvarStatus
                 {
@@ -214,6 +215,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
             result.FiksOrgId.Should().Be(expectedAccount.FiksOrgId);
             result.FiksOrgNavn.Should().Be(expectedAccount.FiksOrgNavn);
+            result.Organisasjonsnummer.Should().Be(expectedAccount.Organisasjonsnummer);
             result.KontoId.Should().Be(expectedAccount.KontoId);
             result.KontoNavn.Should().Be(expectedAccount.KontoNavn);
             result.KommuneNummer.Should().Be(expectedAccount.KommuneNummer);

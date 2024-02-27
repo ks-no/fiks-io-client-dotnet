@@ -41,8 +41,8 @@ namespace ExampleApplication.FiksIO
                             "\n\t messageId : {MeldingId}" +
                             "\n\t klientMeldingId : {KlientMeldingId}" +
                             "\n\t svarPaMelding : {SvarPaMelding}" + 
-                            "\n\t kommuneNummer : {KommuneNummer}" , 
-                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding, konto.KommuneNummer);
+                            "\n\t fiksOrgNavn : {FiksOrgNavn}" , 
+                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding, konto.FiksOrgNavn);
             
             switch (receivedMeldingType)
             {

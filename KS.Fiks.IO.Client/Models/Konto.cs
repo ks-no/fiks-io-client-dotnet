@@ -8,6 +8,8 @@ namespace KS.Fiks.IO.Client.Models
 
         public string FiksOrgNavn { get; set; }
 
+        public string Organisasjonsnummer { get; set; }
+
         public string KommuneNummer { get; set; }
 
         public Guid KontoId { get; set; }
@@ -24,6 +26,7 @@ namespace KS.Fiks.IO.Client.Models
             {
                 FiksOrgId = katalogKonto.FiksOrgId,
                 FiksOrgNavn = katalogKonto.FiksOrgNavn,
+                Organisasjonsnummer = katalogKonto.Organisasjonsnummer,
                 KommuneNummer = katalogKonto.KommuneNummer,
                 KontoId = katalogKonto.KontoId,
                 KontoNavn = katalogKonto.KontoNavn,
