@@ -201,7 +201,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 FiksOrgId = Guid.NewGuid(),
                 FiksOrgNavn = "orgName",
                 Organisasjonsnummer = "123456789",
-                KommuneNummer = "1234",
+                Kommunenummer = "1234",
                 Status = new KontoSvarStatus
                 {
                     Melding = "Melding",
@@ -218,7 +218,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             result.Organisasjonsnummer.Should().Be(expectedAccount.Organisasjonsnummer);
             result.KontoId.Should().Be(expectedAccount.KontoId);
             result.KontoNavn.Should().Be(expectedAccount.KontoNavn);
-            result.KommuneNummer.Should().Be(expectedAccount.KommuneNummer);
+            result.Kommunenummer.Should().Be(expectedAccount.Kommunenummer);
             result.IsGyldigAvsender.Should().Be(expectedAccount.Status.GyldigAvsender);
             result.IsGyldigMottaker.Should().Be(expectedAccount.Status.GyldigMottaker);
         }

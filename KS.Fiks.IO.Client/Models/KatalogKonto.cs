@@ -14,8 +14,8 @@ namespace KS.Fiks.IO.Client.Models
         [JsonProperty("organisasjonsnummer")]
         public string Organisasjonsnummer { get; set; }
 
-        [JsonProperty("kommuneNummer")]
-        public string KommuneNummer { get; set; }
+        [JsonProperty("kommunenummer")]
+        public string Kommunenummer { get; set; }
 
         [JsonProperty("kontoId")]
         public Guid KontoId { get; set; }
