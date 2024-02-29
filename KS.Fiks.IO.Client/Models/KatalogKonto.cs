@@ -11,6 +11,12 @@ namespace KS.Fiks.IO.Client.Models
         [JsonProperty("fiksOrgNavn")]
         public string FiksOrgNavn { get; set; }
 
+        [JsonProperty("organisasjonsnummer")]
+        public string Organisasjonsnummer { get; set; }
+
+        [JsonProperty("kommunenummer")]
+        public string Kommunenummer { get; set; }
+
         [JsonProperty("kontoId")]
         public Guid KontoId { get; set; }
 

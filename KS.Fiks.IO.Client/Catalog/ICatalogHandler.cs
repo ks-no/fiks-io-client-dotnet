@@ -9,6 +9,8 @@ namespace KS.Fiks.IO.Client.Catalog
     {
         Task<Konto> Lookup(LookupRequest request);
 
+        Task<Konto> GetKonto(Guid kontoId);
+
         Task<X509Certificate> GetPublicKey(Guid receiverAccountId);
     }
 }
