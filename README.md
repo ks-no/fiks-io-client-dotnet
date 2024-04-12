@@ -347,22 +347,27 @@ Asice signing is required since version 3.0.0 of this client. More information o
 There are two ways of setting this up, either with a public/private key pair or a x509Certificate2 that also holds the private key.
 If you are reusing the x509Certificate2 from the `maskinporten` configuration you might have to inject the corresponding private key.
 
-Examples:
-A x509Certificate2 with a private key: `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
-
-Or path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
-
 A PKCS#1 key can be converted using this command:
 ```powershell
 openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
 ```
-Content in file is expected value in `privateNokkel`, i.e.
-```text
------BEGIN PRIVATE KEY-----
-... ...
------END PRIVATE KEY-----
 
+Example for generating a simple private/public key-pair for asice signing:
+
+```powershell
+openssl genrsa -out key.pem 4096
+
+openssl rsa -in key.pem -pubout -out public.pem
 ```
+
+
+**Examples:**
+
+x509Certificate2 with a private key `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
+
+Path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
+
+
 
 ### Public Key provider
 
