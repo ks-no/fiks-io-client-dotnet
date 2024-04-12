@@ -352,15 +352,6 @@ A PKCS#1 key can be converted using this command:
 openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
 ```
 
-Example for generating a simple private/public key-pair for asice signing:
-
-```powershell
-openssl genrsa -out key.pem 4096
-
-openssl rsa -in key.pem -pubout -out public.pem
-```
-
-
 **Examples:**
 
 x509Certificate2 with a private key `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
