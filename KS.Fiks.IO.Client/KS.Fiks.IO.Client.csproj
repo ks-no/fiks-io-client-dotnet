@@ -12,7 +12,7 @@
 		<RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
-		<VersionPrefix>4.0.2</VersionPrefix>
+		<VersionPrefix>4.0.5</VersionPrefix>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -45,7 +45,7 @@
 		<PackageReference Include="KS.Fiks.ASiC-E" Version="2.0.1" />
 		<PackageReference Include="KS.Fiks.Crypto" Version="2.0.1" />
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.11" />
-		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.9" />
+		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.10" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
 		<PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

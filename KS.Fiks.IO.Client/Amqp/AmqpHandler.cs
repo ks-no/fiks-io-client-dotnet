@@ -20,10 +20,13 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
         private readonly KontoConfiguration _kontoConfiguration;
         private readonly SslOption _sslOption;
-        private IConnectionFactory _connectionFactory;
+        private readonly IConnectionFactory _connectionFactory;
+        private readonly IAmqpWatcher _amqpWatcher;
         private IConnection _connection;
         private IModel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
+        private EventHandler<MottattMeldingArgs> _receivedEvent;
+        private EventHandler<ConsumerEventArgs> _cancelledEvent;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -34,7 +37,8 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            IAmqpWatcher amqpWatcher = null)
         {
             _sslOption = amqpConfiguration.SslOption ?? new SslOption();
             _kontoConfiguration = kontoConfiguration;
@@ -54,6 +58,8 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
             }
+
+            _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -65,9 +71,10 @@ namespace KS.Fiks.IO.Client.Amqp
             KontoConfiguration kontoConfiguration,
             ILoggerFactory loggerFactory = null,
             IConnectionFactory connectionFactory = null,
-            IAmqpConsumerFactory consumerFactory = null)
+            IAmqpConsumerFactory consumerFactory = null,
+            IAmqpWatcher amqpWatcher = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory);
+            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
             await amqpHandler.Connect(amqpConfiguration).ConfigureAwait(false);
 
              _logger?.LogDebug("AmqpHandler CreateAsync done");
@@ -78,13 +85,15 @@ namespace KS.Fiks.IO.Client.Amqp
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
+            _cancelledEvent = cancelledEvent;
+            _receivedEvent = receivedEvent;
+
             if (_receiveConsumer == null)
             {
                 _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
             }
 
             _receiveConsumer.Received += receivedEvent;
-
             _receiveConsumer.ConsumerCancelled += cancelledEvent;
 
             _channel.BasicConsume(_receiveConsumer, GetQueueName());
@@ -104,37 +113,41 @@ namespace KS.Fiks.IO.Client.Amqp
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposing)
             {
-                _channel.Dispose();
-                _connection.Dispose();
+                return;
             }
+
+            // Unsubscribe consumer events
+            if (_receivedEvent != null)
+            {
+                _receiveConsumer.Received -= _receivedEvent;
+            }
+
+            if (_cancelledEvent != null)
+            {
+                _receiveConsumer.ConsumerCancelled -= _cancelledEvent;
+            }
+
+            _channel.Dispose();
+            _connection.Dispose();
+
+            // Unsubscribe events for logging of RabbitMQ events
+            _connection.ConnectionShutdown -= _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlocked -= _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblocked -= _amqpWatcher.HandleConnectionUnblocked;
         }
 
-        private async Task Connect(AmqpConfiguration amqpConfiguration)
+        private Task Connect(AmqpConfiguration amqpConfiguration)
         {
             _connection = CreateConnection(amqpConfiguration);
             _channel = ConnectToChannel(amqpConfiguration);
 
-            // Handle events for debugging
-            _connection.ConnectionShutdown += HandleConnectionShutdown;
-            _connection.ConnectionBlocked += HandleConnectionBlocked;
-            _connection.ConnectionUnblocked += HandleConnectionUnblocked;
-        }
-
-        private void HandleConnectionBlocked(object sender, EventArgs e)
-        {
-            _logger?.LogDebug("RabbitMQ Connection ConnectionBlocked event has been triggered");
-        }
-
-        private void HandleConnectionUnblocked(object sender, EventArgs e)
-        {
-            _logger?.LogDebug("RabbitMQ Connection ConnectionUnblocked event has been triggered");
-        }
-
-        private void HandleConnectionShutdown(object sender, EventArgs shutdownEventArgs)
-        {
-            _logger?.LogDebug($"RabbitMQ Connection ConnectionShutdown event has been triggered");
+            // Handle events for logging of RabbitMQ events
+            _connection.ConnectionShutdown += _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlocked += _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblocked += _amqpWatcher.HandleConnectionUnblocked;
+            return Task.CompletedTask;
         }
 
         private IModel ConnectToChannel(AmqpConfiguration configuration)
