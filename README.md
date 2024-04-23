@@ -3,12 +3,17 @@
 [![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://www.nuget.org/packages/KS.Fiks.IO.Client)
 [![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/kryptering-dotnet.svg)](//github.com/ks-no/fiks-io-client-dotnet/issues)
 
-.net library compatible with _[.Net Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
+
+## About this library
+This is a .NET library compatible with _[.Net Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
-
 It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+
+### Integrity
+The nuget package is signed with a KS certificate in our build process, stored securely in a safe build environment.
+The package assemblies are also [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
 
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
@@ -35,6 +40,19 @@ We recommend reading through the RabbitMQ documentation on [connections](https:/
 The client also exposes the status of the connection to RabbitMQ through the [IsOpen()](#isopen) function. 
 We recommend using this for monitoring the health of the client. 
 
+### Logging
+The Fiks-IO client can provide logging if you pass it a LoggingFactory. 
+It is also highly recommended to either listen to RabbitMQ system EventLogs by your own means or use the RabbitMQEventLogger event listener util provided in the Fiks-IO client for converting them to log.
+
+Please note that warnings and errors related to the RabbitMQ connection will only be visible through the RabbitMQ system EventLogs.
+These are important events like:
+- Connection is lost and the client will try [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) 
+- Succesfull [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) is performed
+- [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) failed and connection could not be recovered.
+
+Using the RabbitMQEventLogger util will show these events in your application log. 
+
+See further down in this README for example on how to use the RabbitMQEventLogger util.
 
 ## Examples
 
@@ -137,6 +155,22 @@ var request = new LookupRequest(
 var receiverKontoId = await client.Lookup(request); 
 ```
 
+### GetKonto
+Using GetKonto, you can get information about a Fiks IO account, e.g. municipality number and organization name, given the account id.
+
+```csharp
+var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
+
+var onReceived = new EventHandler<MottattMeldingArgs>(async (sender, fileArgs) =>
+                {
+                    var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId); // Get information about the sender account
+                    ...
+                });
+
+client.NewSubscription(onReceived);
+```
+
+
 ### IsOpen
 This method can be used to check if the amqp connection is open.
 
@@ -148,8 +182,17 @@ Only the required configuration parameters must be provided when you use these t
 You can also create the configuration yourself where also two convenience functions are provided for generating default configurations for *prod* and *test*,
 `CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Also here will only the required configuration parameters are needed.
 
-#### Logging
+#### Logging from the Fiks-IO client
 Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
+
+#### Logging from the RabbitMQ client
+The Fiks-IO-Client uses the official [RabbitMQ-Client for .NET](https://github.com/rabbitmq/rabbitmq-dotnet-client). This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
+We have created a RabbitMQEventLogger util-class for easy logging of these events to your logs.
+This util-class will have to be initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
+
+```csharp
+_rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
+```
 
 #### Create with builder examples:
 
@@ -304,22 +347,23 @@ Asice signing is required since version 3.0.0 of this client. More information o
 There are two ways of setting this up, either with a public/private key pair or a x509Certificate2 that also holds the private key.
 If you are reusing the x509Certificate2 from the `maskinporten` configuration you might have to inject the corresponding private key.
 
-Examples:
-A x509Certificate2 with a private key: `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
-
-Or path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
-
 A PKCS#1 key can be converted using this command:
 ```powershell
 openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
 ```
-Content in file is expected value in `privateNokkel`, i.e.
-```text
------BEGIN PRIVATE KEY-----
-... ...
------END PRIVATE KEY-----
 
+Example for generating private/public key pair for signing
+```powershell
+openssl genrsa -out key.pem 4096
+
+openssl req -new -x509 -key key.pem -out public.pem -days 99999
 ```
+
+**Examples:**
+
+x509Certificate2 with a private key `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
+
+Path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
 
 ### Public Key provider
 

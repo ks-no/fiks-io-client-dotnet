@@ -99,10 +99,11 @@ namespace KS.Fiks.IO.Client
             FiksIOConfiguration configuration,
             ILoggerFactory loggerFactory = null,
             HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null)
+            IPublicKeyProvider publicKeyProvider = null,
+            IAmqpWatcher amqpWatcher = null)
         {
             var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
-            await client.InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
+            await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
         }
 
@@ -116,7 +117,8 @@ namespace KS.Fiks.IO.Client
             IAmqpHandler amqpHandler = null,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
-            IAsicEncrypter asicEncrypter = null)
+            IAsicEncrypter asicEncrypter = null,
+            IAmqpWatcher amqpWatcher = null)
         {
             var client = new FiksIOClient(
                 configuration,
@@ -130,11 +132,11 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter);
 
-            await client.InitializeAmqpHandlerAsync(configuration).ConfigureAwait(false);
+            await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
         }
 
-        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration)
+        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration, IAmqpWatcher amqpWatcher = null)
         {
             _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
                 _maskinportenClient,
@@ -144,7 +146,8 @@ namespace KS.Fiks.IO.Client
                 configuration.IntegrasjonConfiguration,
                 configuration.KontoConfiguration,
                 _loggerFactory,
-                connectionFactory: null).ConfigureAwait(false);
+                connectionFactory: null,
+                amqpWatcher: amqpWatcher).ConfigureAwait(false);
         }
 
         public Guid KontoId { get; }
@@ -152,6 +155,11 @@ namespace KS.Fiks.IO.Client
         public async Task<Konto> Lookup(LookupRequest request)
         {
             return await _catalogHandler.Lookup(request).ConfigureAwait(false);
+        }
+
+        public async Task<Konto> GetKonto(Guid kontoId)
+        {
+            return await _catalogHandler.GetKonto(kontoId).ConfigureAwait(false);
         }
 
         public async Task<SendtMelding> Send(MeldingRequest request)

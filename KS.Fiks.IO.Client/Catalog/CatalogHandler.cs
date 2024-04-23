@@ -52,6 +52,13 @@ namespace KS.Fiks.IO.Client.Catalog
             return Konto.FromKatalogModel(responseAsAccount);
         }
 
+        public async Task<Konto> GetKonto(Guid kontoId)
+        {
+            var requestUri = CreateGetKontoUri(kontoId);
+            var responseAsAccount = await GetAsModel<KatalogKonto>(requestUri).ConfigureAwait(false);
+            return Konto.FromKatalogModel(responseAsAccount);
+        }
+
         public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)
         {
             var requestUri = CreatePublicKeyUri(receiverAccountId);
@@ -82,6 +89,17 @@ namespace KS.Fiks.IO.Client.Catalog
                     _katalogConfiguration.Port,
                     servicePath,
                     query)
+                .Uri;
+        }
+        
+        private Uri CreateGetKontoUri(Guid kontoId)
+        {
+            var servicePath = $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{kontoId.ToString()}";
+            return new UriBuilder(
+                    _katalogConfiguration.Scheme,
+                    _katalogConfiguration.Host,
+                    _katalogConfiguration.Port,
+                    servicePath)
                 .Uri;
         }
 

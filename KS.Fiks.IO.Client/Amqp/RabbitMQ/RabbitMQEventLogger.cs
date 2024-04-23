@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 {
     public class RabbitMQEventLogger : EventListener
     {
-        private const string EventSourceName = "rabbitmq-dotnet-client";
+        private const string RabbitMQEventSourceName = "rabbitmq-dotnet-client";
         private static ILogger<RabbitMQEventLogger> _logger;
         private readonly EventLevel _eventLevel;
 
@@ -21,7 +21,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if(eventSource.Name == EventSourceName)
+            if(eventSource.Name.Equals(RabbitMQEventSourceName))
             {
                 EnableEvents(eventSource, _eventLevel);
             }
@@ -29,8 +29,13 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            var message = $"EventLog from {EventSourceName} " +
-                          $", eventData.Level: {eventData.Level} ";
+            if (eventData.EventSource.Name != RabbitMQEventSourceName)
+            {
+                return;
+            }
+
+            var message = $"EventLog from {eventData.EventSource.Name}  " +
+                          $", eventData.Level: {eventData.Level}, eventData.Message: {eventData.Message}";
 
             var i = 0;
             foreach (var payload in eventData.Payload)

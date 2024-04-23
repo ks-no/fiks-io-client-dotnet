@@ -35,14 +35,15 @@ namespace ExampleApplication.FiksIO
         private async void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
         {
             var receivedMeldingType = mottatt.Melding.MeldingType;
+            var konto = await _fiksIoClient.GetKonto(mottatt.Melding.AvsenderKontoId);
             
             Log.Information("FiksIOSubscriber - Received a message with messagetype '{MessageType}' with following attributes: " +
                             "\n\t messageId : {MeldingId}" +
                             "\n\t klientMeldingId : {KlientMeldingId}" +
-                            "\n\t svarPaMelding : {SvarPaMelding}", 
-                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding);
-
-
+                            "\n\t svarPaMelding : {SvarPaMelding}" + 
+                            "\n\t fiksOrgNavn : {FiksOrgNavn}" , 
+                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding, konto.FiksOrgNavn);
+            
             switch (receivedMeldingType)
             {
                 case Program.FiksIOPong:
