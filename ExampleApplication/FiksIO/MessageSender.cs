@@ -28,7 +28,7 @@ public class MessageSender
             var klientMeldingId = Guid.NewGuid();
             Log.Information("MessageSender - sending messagetype {MessageType} to account id: {AccountId} with klientMeldingId {KlientMeldingId}", messageType, toAccountId, klientMeldingId);
             var sendtMessage = await _fiksIoClient
-                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId))
+                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId), "./testfile.txt")
                 .ConfigureAwait(false);
             Log.Information("MessageSender - message sendt with messageid: {MessageId}", sendtMessage.MeldingId);
             return sendtMessage.MeldingId;

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -56,33 +58,52 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksIOPong, klientMeldingId);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
+                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
                 case Program.FiksArkivPing:
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksArkivPong, klientMeldingId);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
+                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
                 case Program.FiksPlanPing:
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksPlanPong, klientMeldingId);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
+                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
                 case Program.FiksMatrikkelfoeringPing:
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksMatrikkelfoeringPong, klientMeldingId);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
+                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}",sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
             }
 
             mottatt.SvarSender.Ack(); 
+        }
+
+        private static async Task<string> GetDecryptedPayloadTxt(IEnumerable<IPayload> decryptedMessagePayloads)
+        {
+            var payloadTxt = "empty";
+            foreach (var payload in decryptedMessagePayloads)
+            {
+                
+            }
+
+            return payloadTxt;
         }
 
         private void SubscribeToFiksIOClient()
