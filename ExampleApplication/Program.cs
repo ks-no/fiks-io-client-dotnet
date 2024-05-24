@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
+using KS.Fiks.IO.Client.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -46,11 +48,12 @@ namespace ExampleApplication
             var configurationRoot = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile($"appsettings.Development.json", optional: true).Build();
+                .AddJsonFile($"appsettings.Test.json", optional: true).Build();
             
             var loggerFactory = InitSerilogConfiguration();
             var appSettings = AppSettingsBuilder.CreateAppSettings(configurationRoot);
-            var configuration = FiksIoConfigurationBuilder.CreateConfiguration(appSettings);
+            var configuration = FiksIoConfigurationBuilder.CreateTestConfiguration(appSettings);
+            
             var fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             
@@ -63,7 +66,7 @@ namespace ExampleApplication
             _logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
 
             var consoleKeyTask = Task.Run(() => { MonitorKeypress(); });
-
+            
             await new HostBuilder()
                 .ConfigureHostConfiguration((configHost) =>
                 {

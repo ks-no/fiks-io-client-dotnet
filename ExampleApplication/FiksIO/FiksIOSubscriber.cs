@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.ASiC_E;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Models;
 using Microsoft.Extensions.Hosting;
@@ -58,8 +59,7 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksIOPong, klientMeldingId);
-                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
-                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
                     Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
@@ -67,8 +67,7 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksArkivPong, klientMeldingId);
-                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
-                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
                     Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
@@ -76,8 +75,7 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksPlanPong, klientMeldingId);
-                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
-                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
                     Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
@@ -85,8 +83,7 @@ namespace ExampleApplication.FiksIO
                 {
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksMatrikkelfoeringPong, klientMeldingId);
-                    var decryptedMessagePayloads = await mottatt.Melding.DecryptedPayloads;
-                    var payloadTxt = await GetDecryptedPayloadTxt(decryptedMessagePayloads);
+                    var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
                     Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}",sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
                     break;
                 }
@@ -95,14 +92,27 @@ namespace ExampleApplication.FiksIO
             mottatt.SvarSender.Ack(); 
         }
 
-        private static async Task<string> GetDecryptedPayloadTxt(IEnumerable<IPayload> decryptedMessagePayloads)
+        private static async Task<string> GetDecryptedPayloadTxt(MottattMeldingArgs mottattMeldingArgs)
         {
             var payloadTxt = "empty";
-            foreach (var payload in decryptedMessagePayloads)
-            {
-                
-            }
+            
+            IAsicReader asiceReader = new AsiceReader();
+            using var asiceReadModel = asiceReader.Read(await mottattMeldingArgs.Melding.DecryptedStream);
 
+              
+            // Verify asice and read payload
+            foreach (var asiceVerifyReadEntry in asiceReadModel.Entries)
+            {
+                await using (var entryStream = asiceVerifyReadEntry.OpenStream())
+                {
+                    Log.Information($"GetDecryptedPayloadTxt - {asiceVerifyReadEntry.FileName}");
+                    await using var fileStream = new FileStream($"received-{asiceVerifyReadEntry.FileName}", FileMode.Create, FileAccess.Write);
+                    await entryStream.CopyToAsync(fileStream);
+                }
+                payloadTxt = await File.ReadAllTextAsync($"received-{asiceVerifyReadEntry.FileName}");
+            }            
+            
+            // Only one payload in this example, and only one text
             return payloadTxt;
         }
 

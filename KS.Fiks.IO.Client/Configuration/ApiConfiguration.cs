@@ -37,5 +37,10 @@ namespace KS.Fiks.IO.Client.Configuration
         {
             return new ApiConfiguration(host: TestHost);
         }
+
+        public static ApiConfiguration CreateDevConfiguration(string host)
+        {
+            return new ApiConfiguration(host: host);
+        }
     }
 }

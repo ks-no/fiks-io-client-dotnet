@@ -38,3 +38,5 @@ msbuild.wrn
 
 appsettings.Development.json
 appsettings.Development.original.json
+appsettings.Test.json
+appsettings.Test2.json
