@@ -11,7 +11,7 @@ namespace ExampleApplication.FiksIO
     {
         
         // Create a configuration for the test environment with the fluent builder
-        public static FiksIOConfiguration CreateConfiguration(AppSettings appSettings)
+        public static FiksIOConfiguration CreateTestConfiguration(AppSettings appSettings)
         {
             var accountId = appSettings.FiksIOConfig.FiksIoAccountId;
             var privateKeyPath = appSettings.FiksIOConfig.FiksIoPrivateKey;
@@ -35,6 +35,33 @@ namespace ExampleApplication.FiksIO
                 .WithAsiceSigningConfiguration(asiceSigningPublicKey, asiceSigningPrivateKey)
                 .WithApiConfiguration(apiHost, apiPort)
                 .BuildTestConfiguration();
+        }
+
+        // Create a configuration for a dev environment with the fluent builder
+        public static FiksIOConfiguration CreateDevConfiguration(AppSettings appSettings)
+        {
+            var accountId = appSettings.FiksIOConfig.FiksIoAccountId;
+            var privateKeyPath = appSettings.FiksIOConfig.FiksIoPrivateKey;
+            var integrationId = appSettings.FiksIOConfig.FiksIoIntegrationId; 
+            var integrationPassword = appSettings.FiksIOConfig.FiksIoIntegrationPassword;
+            var issuer = appSettings.FiksIOConfig.MaskinPortenIssuer;
+            var certPath = appSettings.FiksIOConfig.MaskinPortenCompanyCertificatePath;
+            var certPassword = appSettings.FiksIOConfig.MaskinPortenCompanyCertificatePassword;
+            var asiceSigningPublicKey = appSettings.FiksIOConfig.AsiceSigningPublicKey;
+            var asiceSigningPrivateKey = appSettings.FiksIOConfig.AsiceSigningPrivateKey;
+            var apiHost = appSettings.FiksIOConfig.ApiHost;
+            var apiPort = appSettings.FiksIOConfig.ApiPort;
+                
+
+            return FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("fiks-io-client-dotnet-example-application", 1)
+                .WithMaskinportenConfiguration(new X509Certificate2(certPath, certPassword), issuer)
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(accountId, ReadFromFile(privateKeyPath))
+                .WithAsiceSigningConfiguration(asiceSigningPublicKey, asiceSigningPrivateKey)
+                .WithApiConfiguration(apiHost, apiPort)
+                .BuildDevConfiguration(appSettings.FiksIOConfig.AmqpHost, appSettings.FiksIOConfig.ApiHost);
         }
         
         // Create a FiksIOConfiguration manually. Use this if you want to use internal endpoints for testing, not Fiks-IO test or prod

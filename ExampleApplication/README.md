@@ -13,7 +13,7 @@ The application listens to different keys for different types of ping-messages. 
 - P-key - Fiks-Plan protocol 'ping'-message
 - M-key - Fiks-Matrikkelfoering protocol 'ping'-message
 
-This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages.
+This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages. It sends the `testfile.txt` file as payload, and prints the text inside the file when it receives the message.
 
 If you're using a Fiks-Protokoll account, please remember to add yourself as an approved sending account. This is only necessary for Fiks-Protokoll accounts.
 

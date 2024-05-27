@@ -37,6 +37,19 @@ namespace KS.Fiks.IO.Client.Configuration
                 maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
         }
 
+        public FiksIOConfiguration BuildDevConfiguration(string amqpHost, string apiHost)
+        {
+            ValidateConfigurations();
+
+            return new FiksIOConfiguration(
+                amqpConfiguration: new AmqpConfiguration(amqpHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount),
+                apiConfiguration: ApiConfiguration.CreateDevConfiguration(apiHost),
+                asiceSigningConfiguration: _asiceSigningConfiguration,
+                integrasjonConfiguration: _integrasjonConfiguration,
+                kontoConfiguration: _kontoConfiguration,
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate));
+        }
+
         public FiksIOConfiguration BuildProdConfiguration()
         {
             ValidateConfigurations();
