@@ -48,12 +48,12 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "FiksIoIntegrationPassword": "<your integration password>", // Your Fiks Protokoll (Fiks-IO) integration password
         "FiksIoIntegrationScope": "ks:fiks", // Leave this as it is
         "FiksIoPrivateKey": "<path to private key>", // Path to the private key that is paired with the public key uploaded to your Fiks Protokoll (Fiks-IO) account
-        "MaskinPortenAudienceUrl": "https://ver2.maskinporten.no/", // Maskinporten Audience url. Test: "https://ver2.maskinporten.no", Prod: "https://maskinporten.no"
+        "MaskinPortenAudienceUrl": "https://test.maskinporten.no/", // Maskinporten Audience url. Test: "https://test.maskinporten.no", Prod: "https://maskinporten.no"
         "MaskinPortenCompanyCertificateThumbprint": "<your thumbprint>", // The thumbprint for the certificate used with Maskinporten
         "MaskinPortenCompanyCertificatePath": "", // The path to the certificate used with Maskinporten
         "MaskinPortenCompanyCertificatePassword": "", // The password for the certificate used with Maskinporten
         "MaskinPortenIssuer": "", // Maskinporten issuer
-        "MaskinPortenTokenUrl": "https://ver2.maskinporten.no/token", // Token url for Maskinporten. Test: "https://ver2.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
+        "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
         "AsiceSigningPublicKey": "" // The path to the public key for verification of AsiceSigning of the payloads.
     }
