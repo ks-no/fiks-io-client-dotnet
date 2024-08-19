@@ -20,6 +20,8 @@ namespace KS.Fiks.IO.Client.Models
 
         public bool IsGyldigMottaker { get; set; }
 
+        public long AntallKonsumenter { get; set; }
+
         internal static Konto FromKatalogModel(KatalogKonto katalogKonto)
         {
             return new Konto
@@ -31,7 +33,8 @@ namespace KS.Fiks.IO.Client.Models
                 KontoId = katalogKonto.KontoId,
                 KontoNavn = katalogKonto.KontoNavn,
                 IsGyldigAvsender = katalogKonto.Status.GyldigAvsender,
-                IsGyldigMottaker = katalogKonto.Status.GyldigMottaker
+                IsGyldigMottaker = katalogKonto.Status.GyldigMottaker,
+                AntallKonsumenter = katalogKonto.Status.AntallKonsumenter
             };
         }
     }

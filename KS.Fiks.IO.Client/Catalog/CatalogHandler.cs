@@ -21,6 +21,8 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private const string AccountsEndpoint = "kontoer";
 
+        private const string StatusEndpoint = "status";
+
         private const string IdentifyerQueryName = "identifikator";
 
         private const string MessageProtocolQueryName = "meldingProtokoll";
@@ -59,6 +61,13 @@ namespace KS.Fiks.IO.Client.Catalog
             return Konto.FromKatalogModel(responseAsAccount);
         }
 
+        public async Task<Status> GetStatus(Guid kontoId)
+        {
+            var requestUri = CreateGetKontoStatusUri(kontoId);
+            var responseAsAccount = await GetAsModel<KontoSvarStatus>(requestUri).ConfigureAwait(false);
+            return Status.FromKatalogModel(responseAsAccount);
+        }
+
         public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)
         {
             var requestUri = CreatePublicKeyUri(receiverAccountId);
@@ -91,8 +100,19 @@ namespace KS.Fiks.IO.Client.Catalog
                     query)
                 .Uri;
         }
-        
+
         private Uri CreateGetKontoUri(Guid kontoId)
+        {
+            var servicePath = $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{kontoId.ToString()}";
+            return new UriBuilder(
+                    _katalogConfiguration.Scheme,
+                    _katalogConfiguration.Host,
+                    _katalogConfiguration.Port,
+                    servicePath)
+                .Uri;
+        }
+
+        private Uri CreateGetKontoStatusUri(Guid kontoId)
         {
             var servicePath = $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{kontoId.ToString()}";
             return new UriBuilder(

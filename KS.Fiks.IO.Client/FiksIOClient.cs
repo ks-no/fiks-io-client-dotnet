@@ -162,6 +162,11 @@ namespace KS.Fiks.IO.Client
             return await _catalogHandler.GetKonto(kontoId).ConfigureAwait(false);
         }
 
+        public async Task<Status> GetKontoStatus(Guid kontoId)
+        {
+            return await _catalogHandler.GetStatus(kontoId).ConfigureAwait(false);
+        }
+
         public async Task<SendtMelding> Send(MeldingRequest request)
         {
             return await Send(request, new List<IPayload>()).ConfigureAwait(false);

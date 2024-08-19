@@ -38,7 +38,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 {
                     Melding = "No melding",
                     GyldigAvsender = true,
-                    GyldigMottaker = false
+                    GyldigMottaker = false,
+                    AntallKonsumenter = 3
                 }
             };
             var sut = _fixture.WithAccountResponse(expectedAccount).CreateSut();
@@ -51,6 +52,27 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             result.KontoNavn.Should().Be(expectedAccount.KontoNavn);
             result.IsGyldigAvsender.Should().Be(expectedAccount.Status.GyldigAvsender);
             result.IsGyldigMottaker.Should().Be(expectedAccount.Status.GyldigMottaker);
+            result.AntallKonsumenter.Should().Be(expectedAccount.Status.AntallKonsumenter);
+        }
+
+        [Fact]
+        public async Task GetsExpectedStatus()
+        {
+            var expectedStatus = new KontoSvarStatus()
+            {
+                Melding = "No melding",
+                GyldigAvsender = true,
+                GyldigMottaker = false,
+                AntallKonsumenter = 3
+            };
+            var sut = _fixture.WithStatusResponse(expectedStatus).CreateSut();
+
+            var result = await sut.GetStatus(_fixture.DefaultKontoId).ConfigureAwait(false);
+
+            result.IsGyldigAvsender.Should().Be(expectedStatus.GyldigAvsender);
+            result.IsGyldigMottaker.Should().Be(expectedStatus.GyldigMottaker);
+            result.AntallKonsumenter.Should().Be(expectedStatus.AntallKonsumenter);
+            result.Melding.Should().Be(expectedStatus.Melding);
         }
 
         [Fact]
@@ -206,7 +228,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 {
                     Melding = "Melding",
                     GyldigAvsender = true,
-                    GyldigMottaker = false
+                    GyldigMottaker = false,
+                    AntallKonsumenter = 9
                 }
             };
             var sut = _fixture.WithAccountResponse(expectedAccount).CreateSut();
@@ -221,6 +244,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             result.Kommunenummer.Should().Be(expectedAccount.Kommunenummer);
             result.IsGyldigAvsender.Should().Be(expectedAccount.Status.GyldigAvsender);
             result.IsGyldigMottaker.Should().Be(expectedAccount.Status.GyldigMottaker);
+            result.AntallKonsumenter.Should().Be(expectedAccount.Status.AntallKonsumenter);
         }
     }
 }
