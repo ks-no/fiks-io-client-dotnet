@@ -114,7 +114,7 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private Uri CreateGetKontoStatusUri(Guid kontoId)
         {
-            var servicePath = $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{kontoId.ToString()}";
+            var servicePath = $"{_katalogConfiguration.Path}/{AccountsEndpoint}/{kontoId.ToString()}/{StatusEndpoint}";
             return new UriBuilder(
                     _katalogConfiguration.Scheme,
                     _katalogConfiguration.Host,
