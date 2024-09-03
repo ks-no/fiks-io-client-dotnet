@@ -340,7 +340,7 @@ var configuration = new FiksIOConfiguration(
 
 #### Fiks-IO Konto: 
 - **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. This is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account.
-It is not required to be derived from the Maskinporten certificate. See example on how to generate private/public keys further down.
+It is not required to be derived from the Maskinporten certificate. See example on how to convert a PKCS#1 or generate private/public keys further down.
 
 #### Asice signing:
 Asice signing is required since version 3.0.0 of this client. More information on Asice signing can be found [here](https://docs.digdir.no/dpi_dokumentpakke_sikkerhet.html).
