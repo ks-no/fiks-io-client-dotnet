@@ -1,7 +1,7 @@
 using System;
 
 namespace KS.Fiks.IO.Client.Configuration
-{
+{/*
     public class IntegrasjonConfiguration
     {
         private const string DefaultScope = "ks:fiks";
@@ -18,5 +18,5 @@ namespace KS.Fiks.IO.Client.Configuration
         public string IntegrasjonPassord { get; }
 
         public string Scope { get; }
-    }
+    }*/
 }

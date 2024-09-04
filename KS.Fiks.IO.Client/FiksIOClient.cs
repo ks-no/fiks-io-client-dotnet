@@ -102,7 +102,7 @@ namespace KS.Fiks.IO.Client
             IPublicKeyProvider publicKeyProvider = null,
             IAmqpWatcher amqpWatcher = null)
         {
-            var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
+            var client = new FiksIOClient(configuration, loggerFactory, null, configuration.CustomMaskinportenClient, null,null, null,httpClient, publicKeyProvider);
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
         }

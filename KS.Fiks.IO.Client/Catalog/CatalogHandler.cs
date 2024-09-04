@@ -4,12 +4,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using KS.Fiks.Crypto.BouncyCastle;
-using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Newtonsoft.Json;
 using Org.BouncyCastle.X509;
+using KatalogConfiguration = KS.Fiks.IO.Client.Configuration.KatalogConfiguration;
 
 namespace KS.Fiks.IO.Client.Catalog
 {

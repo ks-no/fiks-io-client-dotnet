@@ -57,6 +57,8 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public AsiceSigningConfiguration AsiceSigningConfiguration { get; }
 
+        public IMaskinportenClient CustomMaskinportenClient { get; set; }
+
         public static FiksIOConfiguration CreateProdConfiguration(
             Guid integrasjonId,
             string integrasjonPassord,
@@ -97,6 +99,11 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate)
         {
+            if (certificate == null)
+            {
+                return null;
+            }
+
             return new MaskinportenClientConfiguration(
                 audience: maskinportenProdAudience,
                 tokenEndpoint: maskinportenProdTokenEndpoint,
@@ -107,6 +114,11 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate)
         {
+            if (certificate == null)
+            {
+                return null;
+            }
+
             return new MaskinportenClientConfiguration(
                 audience: maskinportenTestAudience,
                 tokenEndpoint: maskinportenTestTokenEndpoint,
