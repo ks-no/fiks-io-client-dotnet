@@ -9,10 +9,13 @@ using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client.Events;
+using ApiConfiguration = KS.Fiks.IO.Client.Configuration.ApiConfiguration;
+using KatalogConfiguration = KS.Fiks.IO.Client.Configuration.KatalogConfiguration;
 
 namespace KS.Fiks.IO.Client.Tests
 {

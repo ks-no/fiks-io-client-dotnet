@@ -3,7 +3,9 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using ApiConfiguration = KS.Fiks.IO.Client.Configuration.ApiConfiguration;
 
 namespace ExampleApplication.FiksIO
 {

@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
+using ApiConfiguration = KS.Fiks.IO.Client.Configuration.ApiConfiguration;
+using KatalogConfiguration = KS.Fiks.IO.Client.Configuration.KatalogConfiguration;
 
 namespace KS.Fiks.IO.Client.Tests.Catalog
 {

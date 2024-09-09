@@ -8,7 +8,7 @@
         <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
         <OutputType>Library</OutputType>
         <LangVersion>8</LangVersion>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
     <PropertyGroup>
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
@@ -17,7 +17,6 @@
         <PackageReference Include="FluentAssertions" Version="6.12.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
         <PackageReference Include="KS.Fiks.ASiC-E" Version="2.0.1" />
-        <PackageReference Include="KS.Fiks.IO.Send.Client" Version="1.0.12" />
         <PackageReference Include="KS.Fiks.Maskinporten.Client" Version="1.1.10" />
         <PackageReference Include="Moq" Version="4.20.70" />
         <PackageReference Include="more.xunit.runner.visualstudio" Version="2.3.1">
