@@ -65,7 +65,7 @@ namespace KS.Fiks.IO.Client.Catalog
         {
             var requestUri = CreateGetKontoStatusUri(kontoId);
             var responseAsAccount = await GetAsModel<KontoSvarStatus>(requestUri).ConfigureAwait(false);
-            return Status.FromKatalogModel(responseAsAccount);
+            return Status.FromKontoSvarStatusModel(responseAsAccount);
         }
 
         public async Task<X509Certificate> GetPublicKey(Guid receiverAccountId)

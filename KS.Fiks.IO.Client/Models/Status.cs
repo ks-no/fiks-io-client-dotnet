@@ -12,7 +12,7 @@ namespace KS.Fiks.IO.Client.Models
 
         public string Melding { get; set; }
 
-        internal static Status FromKatalogModel(KontoSvarStatus kontoSvarStatus)
+        internal static Status FromKontoSvarStatusModel(KontoSvarStatus kontoSvarStatus)
         {
             return new Status
             {
