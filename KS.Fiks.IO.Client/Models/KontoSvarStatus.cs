@@ -10,6 +10,9 @@ namespace KS.Fiks.IO.Client.Models
         [JsonProperty("gyldigMottaker")]
         public bool GyldigMottaker { get; set; }
 
+        [JsonProperty("antallKonsumenter")]
+        public long AntallKonsumenter { get; set; }
+
         [JsonProperty("melding")]
         public string Melding { get; set; }
     }

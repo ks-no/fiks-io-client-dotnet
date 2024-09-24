@@ -18,6 +18,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
     {
         private HttpStatusCode _statusCode = HttpStatusCode.OK;
         private KatalogKonto _katalogKonto;
+        private KontoSvarStatus _status;
         private KontoOffentligNokkel _kontoOffentligNokkel;
         private string _scheme = "http";
         private string _host = "api.fiks.dev.ks";
@@ -26,6 +27,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         private string _accessToken = "token";
         private string _integrasjonPassword = "default";
         private Guid _integrasjonId;
+        public Guid DefaultKontoId = Guid.NewGuid();
 
         public CatalogHandlerFixture()
         {
@@ -62,6 +64,12 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         public CatalogHandlerFixture WithAccountResponse(KatalogKonto response)
         {
             _katalogKonto = response;
+            return this;
+        }
+
+        public CatalogHandlerFixture WithStatusResponse(KontoSvarStatus response)
+        {
+            _status = response;
             return this;
         }
 
@@ -174,6 +182,11 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             if (_katalogKonto != null)
             {
                 return new StringContent(JsonConvert.SerializeObject(_katalogKonto));
+            }
+
+            if (_status != null)
+            {
+                return new StringContent(JsonConvert.SerializeObject(_status));
             }
 
             if (_kontoOffentligNokkel != null)

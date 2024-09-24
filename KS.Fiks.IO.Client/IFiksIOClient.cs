@@ -15,6 +15,8 @@ namespace KS.Fiks.IO.Client
 
         Task<Konto> GetKonto(Guid kontoId);
 
+        Task<Status> GetKontoStatus(Guid kontoId);
+
         Task<SendtMelding> Send(MeldingRequest request);
 
         Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload);

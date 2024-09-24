@@ -12,5 +12,7 @@ namespace KS.Fiks.IO.Client.Catalog
         Task<Konto> GetKonto(Guid kontoId);
 
         Task<X509Certificate> GetPublicKey(Guid receiverAccountId);
+
+        Task<Status> GetStatus(Guid receiverAccountId);
     }
 }
