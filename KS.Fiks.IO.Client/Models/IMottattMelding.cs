@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Crypto.Models;
 
 namespace KS.Fiks.IO.Client.Models
 {

@@ -5,6 +5,7 @@ using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Send;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client;

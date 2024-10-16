@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Send.Client.Authentication;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using Moq.Protected;

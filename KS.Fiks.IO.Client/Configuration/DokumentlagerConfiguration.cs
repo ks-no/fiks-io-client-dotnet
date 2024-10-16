@@ -1,3 +1,5 @@
+using KS.Fiks.IO.Send.Client.Configuration;
+
 namespace KS.Fiks.IO.Client.Configuration
 {
     public class DokumentlagerConfiguration : ApiConfiguration

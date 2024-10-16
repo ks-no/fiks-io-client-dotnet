@@ -5,10 +5,11 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
-using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Utility;
+using KS.Fiks.IO.Crypto.Asic;
 using Moq;
 using RabbitMQ.Client;
 using Xunit;
@@ -57,7 +58,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
                 {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
-                {Utility.ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
+                {ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
             };
 
             var propertiesMock = new Mock<IBasicProperties>();
@@ -110,7 +111,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
                 {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
                 {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
-                {Utility.ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
+                {ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
             };
 
             var propertiesMock = new Mock<IBasicProperties>();

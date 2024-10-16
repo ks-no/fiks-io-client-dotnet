@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Configuration;
+using KS.Fiks.IO.Send.Client.Configuration;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Configuration

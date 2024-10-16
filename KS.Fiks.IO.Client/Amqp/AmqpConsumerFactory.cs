@@ -1,10 +1,10 @@
 using System;
 using KS.Fiks.Crypto;
-using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Send;
+using KS.Fiks.IO.Crypto.Asic;
 using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp

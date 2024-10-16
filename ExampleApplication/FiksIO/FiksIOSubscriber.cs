@@ -113,7 +113,7 @@ namespace ExampleApplication.FiksIO
             return payloadTxt;
         }
 
-        public void SubscribeToFiksIOClient()
+        private void SubscribeToFiksIOClient()
         {
             var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
             Log.Information($"FiksIOSubscriber - Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");

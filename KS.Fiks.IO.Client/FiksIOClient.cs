@@ -5,19 +5,26 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
-using KS.Fiks.IO.Client.Asic;
-using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
+using KS.Fiks.IO.Crypto.Asic;
+using KS.Fiks.IO.Crypto.Models;
+using KS.Fiks.IO.Send.Client.Catalog;
+using KS.Fiks.IO.Send.Client.Configuration;
+using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7")]
+[assembly:
+    InternalsVisibleTo(
+        "DynamicProxyGenAssembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7")]
 
-[assembly: InternalsVisibleTo("KS.Fiks.IO.Client.Tests, PublicKey=002400000480000014010000060200000024000052534131000800000100010089a68f3fecb97831d694aff0c0108cfe2e11a96516448ed41db22281454d59eb3b18ca24f54dafc23e021e172399ec611b5c5195e481529ff2c17f5c72b0f9a438a7b386963bb70b560eb33fa08cb6b01604d76658ae3c151109b493a0dd4dc63789a84ac13e74bf7734843ce6065a36c2a3a27dc8395f96cd3c261c8db8275f9d270a3160ed0e36178908ab11b50663ed874dbe570303e44199b32ad1c0eee81286498d6fc4b24df661e1b359d9254d9118dda111d5f8bb0327e1584e1ad3260cad4e3a59b3898db7a6d129fa99156da7e2cad4282ad921cf26cb27d5951157ea6ccc572f198d9f7fb837c546dfa73f4a285423826de10eb8684cbbf26c3c93")]
+[assembly:
+    InternalsVisibleTo(
+        "KS.Fiks.IO.Client.Tests, PublicKey=002400000480000014010000060200000024000052534131000800000100010089a68f3fecb97831d694aff0c0108cfe2e11a96516448ed41db22281454d59eb3b18ca24f54dafc23e021e172399ec611b5c5195e481529ff2c17f5c72b0f9a438a7b386963bb70b560eb33fa08cb6b01604d76658ae3c151109b493a0dd4dc63789a84ac13e74bf7734843ce6065a36c2a3a27dc8395f96cd3c261c8db8275f9d270a3160ed0e36178908ab11b50663ed874dbe570303e44199b32ad1c0eee81286498d6fc4b24df661e1b359d9254d9118dda111d5f8bb0327e1584e1ad3260cad4e3a59b3898db7a6d129fa99156da7e2cad4282ad921cf26cb27d5951157ea6ccc572f198d9f7fb837c546dfa73f4a285423826de10eb8684cbbf26c3c93")]
 
 namespace KS.Fiks.IO.Client
 {
@@ -58,13 +65,14 @@ namespace KS.Fiks.IO.Client
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
-            _maskinportenClient = maskinportenClient ?? new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
+            _maskinportenClient = maskinportenClient ??
+                                  new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
 
             _catalogHandler = catalogHandler ?? new CatalogHandler(
-                                  configuration.KatalogConfiguration,
-                                  configuration.IntegrasjonConfiguration,
-                                  _maskinportenClient,
-                                  httpClient);
+                configuration.KatalogConfiguration,
+                configuration.IntegrasjonConfiguration,
+                _maskinportenClient,
+                httpClient);
 
             if (asicEncrypter == null)
             {
@@ -79,7 +87,9 @@ namespace KS.Fiks.IO.Client
                                _catalogHandler,
                                _maskinportenClient,
                                configuration.FiksIOSenderConfiguration,
-                               configuration.IntegrasjonConfiguration,
+                               new IntegrasjonConfiguration(configuration.IntegrasjonConfiguration.IntegrasjonId,
+                                   configuration.IntegrasjonConfiguration.IntegrasjonPassord,
+                                   configuration.IntegrasjonConfiguration.Scope),
                                httpClient,
                                asicEncrypter,
                                publicKeyProvider ?? new CatalogPublicKeyProvider(_catalogHandler));
@@ -136,7 +146,8 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration, IAmqpWatcher amqpWatcher = null)
+        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration,
+            IAmqpWatcher amqpWatcher = null)
         {
             _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
                 _maskinportenClient,

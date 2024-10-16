@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Crypto.Models;
+using KS.Fiks.IO.Send.Client.Models;
 using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client
