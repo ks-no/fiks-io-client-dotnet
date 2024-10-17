@@ -54,9 +54,4 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
-    <ItemGroup>
-      <Reference Include="KS.Fiks.IO.Crypto">
-        <HintPath>..\..\..\.nuget\packages\ks.fiks.io.crypto\1.0.4\lib\netstandard2.1\KS.Fiks.IO.Crypto.dll</HintPath>
-      </Reference>
-    </ItemGroup>
 </Project>
