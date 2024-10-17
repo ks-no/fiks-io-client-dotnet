@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using KS.Fiks.IO.Client.Asic;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Client.Utility;
+using KS.Fiks.IO.Crypto.Asic;
 using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
@@ -105,8 +105,8 @@ namespace KS.Fiks.IO.Client.Amqp
                 HasPayload(properties, body),
                 metadata,
                 GetDataProvider(properties, body.ToArray()),
-                this._decrypter,
-                this._fileWriter);
+                _decrypter,
+                _fileWriter);
         }
 
         private Func<Task<Stream>> GetDataProvider(IBasicProperties properties, byte[] body)

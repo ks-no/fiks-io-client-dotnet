@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Crypto.Models;
+using KS.Fiks.IO.Send.Client.Models;
 using Moq;
 using RabbitMQ.Client.Events;
 using Xunit;

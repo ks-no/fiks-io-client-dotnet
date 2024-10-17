@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using KS.Fiks.IO.Client.Asic;
-using KS.Fiks.IO.Client.Catalog;
-using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Crypto.Asic;
+using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client;
+using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using IntegrasjonConfiguration = KS.Fiks.IO.Send.Client.Configuration.IntegrasjonConfiguration;
 
 namespace KS.Fiks.IO.Client.Send
 {
