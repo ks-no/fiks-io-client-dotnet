@@ -7,8 +7,8 @@
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
         <OutputType>Library</OutputType>
-        <LangVersion>8</LangVersion>
-        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
     <PropertyGroup>
         <CodeAnalysisRuleSet>..\fiks.ruleset</CodeAnalysisRuleSet>
