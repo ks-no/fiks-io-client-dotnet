@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Configuration;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Configuration
@@ -23,8 +22,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                 .BuildTestConfiguration();
 
-            configuration.ApiConfiguration.Host.Should().Be(ApiConfiguration.TestHost);
-            configuration.AmqpConfiguration.Host.Should().Be(AmqpConfiguration.TestHost);
+            configuration.ApiConfiguration.Host.ShouldBe(ApiConfiguration.TestHost);
+            configuration.AmqpConfiguration.Host.ShouldBe(AmqpConfiguration.TestHost);
         }
 
         [Fact]
@@ -39,8 +38,8 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                 .BuildProdConfiguration();
 
-            configuration.ApiConfiguration.Host.Should().Be(ApiConfiguration.ProdHost);
-            configuration.AmqpConfiguration.Host.Should().Be(AmqpConfiguration.ProdHost);
+            configuration.ApiConfiguration.Host.ShouldBe(ApiConfiguration.ProdHost);
+            configuration.AmqpConfiguration.Host.ShouldBe(AmqpConfiguration.ProdHost);
         }
 
         [Fact]
@@ -56,7 +55,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKey)
                 .BuildTestConfiguration();
 
-            config.KontoConfiguration.PrivatNokler.Single().Should().Be(dummyPrivateKey);
+            config.KontoConfiguration.PrivatNokler.Single().ShouldBe(dummyPrivateKey);
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKeys)
                 .BuildTestConfiguration();
 
-            config.KontoConfiguration.PrivatNokler.Should().BeEquivalentTo(dummyPrivateKeys);
+            config.KontoConfiguration.PrivatNokler.ShouldBeEquivalentTo(dummyPrivateKeys);
         }
 
         [Fact]

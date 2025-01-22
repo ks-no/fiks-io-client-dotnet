@@ -2,10 +2,10 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using Moq;
 using Moq.Protected;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Dokumentlager
@@ -38,7 +38,7 @@ namespace KS.Fiks.IO.Client.Tests.Dokumentlager
 
             var result = await sut.Download(messageId).ConfigureAwait(false);
 
-            _fixture.RequestUri.ToString().Should().Be(expectedUri);
+            _fixture.RequestUri.ToString().ShouldBe(expectedUri);
 
             _fixture.HttpMessageHandleMock.Protected().Verify(
                 "SendAsync",

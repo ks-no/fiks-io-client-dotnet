@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
@@ -65,7 +65,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             sut.AddMessageReceivedHandler(handler, null);
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.Received += null, this, null);
-            counter.Should().Be(1);
+            counter.ShouldBe(1);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             sut.AddMessageReceivedHandler(null, handler);
 
             _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
-            counter.Should().Be(1);
+            counter.ShouldBe(1);
         }
     }
 }

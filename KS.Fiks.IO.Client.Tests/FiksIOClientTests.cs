@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client.Models;
 using Moq;
 using RabbitMQ.Client.Events;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests
@@ -28,7 +28,7 @@ namespace KS.Fiks.IO.Client.Tests
             var expectedAccountId = Guid.NewGuid();
             var sut = _fixture.WithAccountId(expectedAccountId).CreateSut();
             var actualAccountId = sut.KontoId;
-            actualAccountId.Should().Be(expectedAccountId);
+            actualAccountId.ShouldBe(expectedAccountId);
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace KS.Fiks.IO.Client.Tests
                 3);
             var sut = _fixture.WithLookupAccount(expectedAccount).CreateSut();
             var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
-            actualAccount.Should().Be(expectedAccount);
+            actualAccount.ShouldBe(expectedAccount);
         }
 
         [Fact]
@@ -171,7 +171,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, payload).ConfigureAwait(false);
 
-            result.Should().Be(expectedMessage);
+            result.ShouldBe(expectedMessage);
         }
 
         [Fact]

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -12,6 +11,7 @@ using KS.Fiks.IO.Client.Utility;
 using KS.Fiks.IO.Crypto.Asic;
 using Moq;
 using RabbitMQ.Client;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
@@ -44,7 +44,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 Array.Empty<byte>());
 
-            hasBeenCalled.Should().BeTrue();
+            hasBeenCalled.ShouldBeTrue();
         }
 
         [Fact]
@@ -90,14 +90,14 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 propertiesMock.Object,
                 Array.Empty<byte>());
 
-            actualMelding.MeldingId.Should().Be(expectedMessageMetadata.MeldingId);
-            actualMelding.MeldingType.Should().Be(expectedMessageMetadata.MeldingType);
-            actualMelding.MottakerKontoId.Should().Be(expectedMessageMetadata.MottakerKontoId);
-            actualMelding.AvsenderKontoId.Should().Be(expectedMessageMetadata.AvsenderKontoId);
-            actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
-            actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
-            actualMelding.Headere["test"].ToString().Should().Be("Test");
-            actualMelding.Resendt.Should().BeFalse();
+            actualMelding.MeldingId.ShouldBe(expectedMessageMetadata.MeldingId);
+            actualMelding.MeldingType.ShouldBe(expectedMessageMetadata.MeldingType);
+            actualMelding.MottakerKontoId.ShouldBe(expectedMessageMetadata.MottakerKontoId);
+            actualMelding.AvsenderKontoId.ShouldBe(expectedMessageMetadata.AvsenderKontoId);
+            actualMelding.SvarPaMelding.ShouldBe(expectedMessageMetadata.SvarPaMelding);
+            actualMelding.Ttl.ShouldBe(expectedMessageMetadata.Ttl);
+            actualMelding.Headere["test"].ToString().ShouldBe("Test");
+            actualMelding.Resendt.ShouldBeFalse();
         }
 
         [Fact]
@@ -143,14 +143,14 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 propertiesMock.Object,
                 Array.Empty<byte>());
 
-            actualMelding.MeldingId.Should().Be(expectedMessageMetadata.MeldingId);
-            actualMelding.MeldingType.Should().Be(expectedMessageMetadata.MeldingType);
-            actualMelding.MottakerKontoId.Should().Be(expectedMessageMetadata.MottakerKontoId);
-            actualMelding.AvsenderKontoId.Should().Be(expectedMessageMetadata.AvsenderKontoId);
-            actualMelding.SvarPaMelding.Should().Be(expectedMessageMetadata.SvarPaMelding);
-            actualMelding.Ttl.Should().Be(expectedMessageMetadata.Ttl);
-            actualMelding.Headere["test"].ToString().Should().Be("Test");
-            actualMelding.Resendt.Should().BeTrue();
+            actualMelding.MeldingId.ShouldBe(expectedMessageMetadata.MeldingId);
+            actualMelding.MeldingType.ShouldBe(expectedMessageMetadata.MeldingType);
+            actualMelding.MottakerKontoId.ShouldBe(expectedMessageMetadata.MottakerKontoId);
+            actualMelding.AvsenderKontoId.ShouldBe(expectedMessageMetadata.AvsenderKontoId);
+            actualMelding.SvarPaMelding.ShouldBe(expectedMessageMetadata.SvarPaMelding);
+            actualMelding.Ttl.ShouldBe(expectedMessageMetadata.Ttl);
+            actualMelding.Headere["test"].ToString().ShouldBe("Test");
+            actualMelding.Resendt.ShouldBeTrue();
         }
 
         [Fact]
@@ -356,8 +356,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             var actualData = new byte[2];
             await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
 
-            actualData[0].Should().Be(data[0]);
-            actualData[1].Should().Be(data[1]);
+            actualData[0].ShouldBe(data[0]);
+            actualData[1].ShouldBe(data[1]);
         }
 
         [Fact]
@@ -388,8 +388,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var actualData = new byte[2];
             await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
-            actualData[0].Should().Be(data[0]);
-            actualData[1].Should().Be(data[1]);
+            actualData[0].ShouldBe(data[0]);
+            actualData[1].ShouldBe(data[1]);
         }
 
         [Fact]
@@ -489,7 +489,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            correctExceptionThrown.Should().BeTrue();
+            correctExceptionThrown.ShouldBeTrue();
         }
 
         [Fact]
@@ -522,7 +522,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            correctExceptionThrown.Should().BeTrue();
+            correctExceptionThrown.ShouldBeTrue();
         }
 
         [Fact]
@@ -555,7 +555,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            correctExceptionThrown.Should().BeTrue();
+            correctExceptionThrown.ShouldBeTrue();
         }
 
         [Fact]
@@ -588,7 +588,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            correctExceptionThrown.Should().BeTrue();
+            correctExceptionThrown.ShouldBeTrue();
         }
     }
 }
