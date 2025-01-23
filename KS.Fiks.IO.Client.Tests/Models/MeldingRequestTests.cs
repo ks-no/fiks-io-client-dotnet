@@ -1,6 +1,6 @@
 using System;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Models
@@ -14,7 +14,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 "meldingType").ToApiModel();
-            result.Headere.Should().BeEmpty();
+            result.Headere.ShouldBeEmpty();
         }
 
         [Fact]
@@ -26,9 +26,9 @@ namespace KS.Fiks.IO.Client.Tests.Models
                 Guid.NewGuid(),
                 "meldingType",
                 klientMeldingId: klientMeldingId).ToApiModel();
-            result.Headere.Should().NotBeEmpty();
-            result.Headere.ContainsKey(MeldingBase.headerKlientMeldingId).Should().BeTrue();
-            result.Headere.ContainsValue(klientMeldingId.ToString()).Should().BeTrue();
+            result.Headere.ShouldNotBeEmpty();
+            result.Headere.ContainsKey(MeldingBase.headerKlientMeldingId).ShouldBeTrue();
+            result.Headere.ContainsValue(klientMeldingId.ToString()).ShouldBeTrue();
         }
     }
 }

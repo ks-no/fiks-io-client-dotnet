@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client.Models;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Models
@@ -25,7 +25,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
                     Ttl = 1000L
                 });
 
-            result.KlientMeldingId.Should().BeNull();
+            result.KlientMeldingId.ShouldBeNull();
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
                     Ttl = 1000L
                 });
 
-            result.KlientMeldingId.Should().BeNull();
+            result.KlientMeldingId.ShouldBeNull();
         }
 
         [Fact]
@@ -64,8 +64,8 @@ namespace KS.Fiks.IO.Client.Tests.Models
                     Ttl = 1000L
                 });
 
-            result.KlientMeldingId.Should().NotBeNull();
-            result.KlientMeldingId.Should().Be(klientMeldingId.ToString());
+            result.KlientMeldingId.ShouldNotBeNull();
+            result.KlientMeldingId.ShouldBe(klientMeldingId);
         }
     }
 }

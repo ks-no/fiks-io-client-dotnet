@@ -1,7 +1,7 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
-using FluentAssertions;
 using KS.Fiks.IO.Client.Configuration;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Configuration
@@ -29,10 +29,10 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 maskinportenSertifikat: maskinportenSertifikat,
                 asiceSertifikat: asiceSertifikat);
 
-            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
-            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
-            config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
-            config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
+            config.IntegrasjonConfiguration.IntegrasjonId.ShouldBe(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.ShouldBe(integrationPassord);
+            config.AmqpConfiguration.Host.ShouldBe("io.fiks.ks.no");
+            config.ApiConfiguration.Host.ShouldBe("api.fiks.ks.no");
         }
 
         [Fact]
@@ -56,10 +56,10 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 maskinportenSertifikat: maskinportenSertifikat,
                 asiceSertifikat: asiceSertifikat);
 
-            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
-            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
-            config.AmqpConfiguration.Host.Should().Be("io.fiks.ks.no");
-            config.ApiConfiguration.Host.Should().Be("api.fiks.ks.no");
+            config.IntegrasjonConfiguration.IntegrasjonId.ShouldBe(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.ShouldBe(integrationPassord);
+            config.AmqpConfiguration.Host.ShouldBe("io.fiks.ks.no");
+            config.ApiConfiguration.Host.ShouldBe("api.fiks.ks.no");
         }
 
         [Fact]
@@ -84,10 +84,10 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 asiceSertifikat: asiceSertifikat
             );
 
-            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
-            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
-            config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
-            config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
+            config.IntegrasjonConfiguration.IntegrasjonId.ShouldBe(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.ShouldBe(integrationPassord);
+            config.AmqpConfiguration.Host.ShouldBe("io.fiks.test.ks.no");
+            config.ApiConfiguration.Host.ShouldBe("api.fiks.test.ks.no");
         }
 
         [Fact]
@@ -112,10 +112,10 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 asiceSertifikat: asiceSertifikat
             );
 
-            config.IntegrasjonConfiguration.IntegrasjonId.Should().Be(integrationId);
-            config.IntegrasjonConfiguration.IntegrasjonPassord.Should().Be(integrationPassord);
-            config.AmqpConfiguration.Host.Should().Be("io.fiks.test.ks.no");
-            config.ApiConfiguration.Host.Should().Be("api.fiks.test.ks.no");
+            config.IntegrasjonConfiguration.IntegrasjonId.ShouldBe(integrationId);
+            config.IntegrasjonConfiguration.IntegrasjonPassord.ShouldBe(integrationPassord);
+            config.AmqpConfiguration.Host.ShouldBe("io.fiks.test.ks.no");
+            config.ApiConfiguration.Host.ShouldBe("api.fiks.test.ks.no");
         }
     }
 }
