@@ -66,6 +66,9 @@ namespace KS.Fiks.IO.Client.Tests
             return FiksIOClient.CreateAsync(
                 _configuration,
                 null,
+                null,
+                null,
+                null,
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
@@ -80,6 +83,9 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
+                null,
+                null,
+                null,
                 null,
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,

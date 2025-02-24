@@ -110,25 +110,13 @@ namespace KS.Fiks.IO.Client
             ILoggerFactory loggerFactory = null,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
-            IAmqpWatcher amqpWatcher = null)
-        {
-            var client = new FiksIOClient(configuration, loggerFactory, httpClient, publicKeyProvider);
-            await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
-            return client;
-        }
-
-        public static async Task<FiksIOClient> CreateAsync(
-            FiksIOConfiguration configuration,
-            LoggerFactory loggerFactory = null,
+            IAmqpWatcher amqpWatcher = null,
             ICatalogHandler catalogHandler = null,
             IMaskinportenClient maskinportenClient = null,
             ISendHandler sendHandler = null,
             IDokumentlagerHandler dokumentlagerHandler = null,
             IAmqpHandler amqpHandler = null,
-            HttpClient httpClient = null,
-            IPublicKeyProvider publicKeyProvider = null,
-            IAsicEncrypter asicEncrypter = null,
-            IAmqpWatcher amqpWatcher = null)
+            IAsicEncrypter asicEncrypter = null)
         {
             var client = new FiksIOClient(
                 configuration,
