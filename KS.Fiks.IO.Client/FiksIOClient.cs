@@ -117,7 +117,7 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        internal static async Task<FiksIOClient> CreateAsync(
+        public static async Task<FiksIOClient> CreateAsync(
             FiksIOConfiguration configuration,
             LoggerFactory loggerFactory = null,
             ICatalogHandler catalogHandler = null,

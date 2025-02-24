@@ -4,7 +4,7 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    internal interface IAmqpHandler : IDisposable
+    public interface IAmqpHandler : IDisposable
     {
         void AddMessageReceivedHandler(
             EventHandler<MottattMeldingArgs> receivedEvent,
