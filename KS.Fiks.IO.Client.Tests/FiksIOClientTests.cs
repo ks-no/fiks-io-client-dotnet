@@ -199,5 +199,25 @@ namespace KS.Fiks.IO.Client.Tests
 
             _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandler(onReceived, onCanceled));
         }
+
+        [Fact]
+        public async Task SendCallsSendHandlerAsPayloadListWithOutMaskinportenConfig()
+        {
+            var sut = _fixture.CreateSutWithoutMaskinportenConfig();
+
+            var request = _fixture.DefaultRequest;
+
+            var stream = Mock.Of<Stream>();
+            var filename = "filename.file";
+
+            var result = await sut.Send(request, stream, filename).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(
+                request,
+                It.Is<IList<IPayload>>(actualPayload =>
+                    actualPayload.Count() == 1 &&
+                    actualPayload.FirstOrDefault().Payload == stream &&
+                    actualPayload.FirstOrDefault().Filename == filename)));
+        }
     }
 }

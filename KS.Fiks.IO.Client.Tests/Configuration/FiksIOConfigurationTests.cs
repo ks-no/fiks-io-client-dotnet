@@ -19,5 +19,14 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                 new MaskinportenClientConfiguration("aud", "tokenedm", "issuer",100, Mock.Of<X509Certificate2>()),
                 null);
         }
+
+        [Fact]
+        public void WorksWithNullMaskinportenClientConfigurationConstructor()
+        {
+            var result = new FiksIOConfiguration(
+                new KontoConfiguration(Guid.NewGuid(),"string"),
+                new IntegrasjonConfiguration(Guid.NewGuid(),"password"),
+                null);
+        }
     }
 }

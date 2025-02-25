@@ -61,10 +61,31 @@ namespace KS.Fiks.IO.Client.Tests
 
         public FiksIOClient CreateSut()
         {
-            SetupConfiguration();
+            SetupConfiguration(true);
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
+                null,
+                null,
+                null,
+                null,
+                CatalogHandlerMock.Object,
+                MaskinportenClientMock.Object,
+                SendHandlerMock.Object,
+                DokumentlagerHandlerMock.Object,
+                AmqpHandlerMock.Object,
+                asicEncrypter: AsicEncrypterMock.Object).Result;
+        }
+
+        public FiksIOClient CreateSutWithoutMaskinportenConfig()
+        {
+            SetupConfiguration(false);
+            SetupMocks();
+            return FiksIOClient.CreateAsync(
+                _configuration,
+                null,
+                null,
+                null,
                 null,
                 CatalogHandlerMock.Object,
                 MaskinportenClientMock.Object,
@@ -138,15 +159,18 @@ namespace KS.Fiks.IO.Client.Tests
                 It.IsAny<EventHandler<ConsumerEventArgs>>()));
         }
 
-        private void SetupConfiguration()
+        private void SetupConfiguration(bool withMaskinportenConfig)
         {
             var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
             var accountConfiguration = new KontoConfiguration(_accountId, "dummyKey");
+            var maskinportenConfig = withMaskinportenConfig
+                ? new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2())
+                : null;
             _configuration = new FiksIOConfiguration(
                 accountConfiguration,
                 new IntegrasjonConfiguration(_integrasjonId, _integrasjonPassword),
-                new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2()),
-                new AsiceSigningConfiguration("",""),
+                maskinportenConfig,
+                new AsiceSigningConfiguration("", ""),
                 apiConfiguration: apiConfiguration,
                 katalogConfiguration: _katalogConfiguration);
         }

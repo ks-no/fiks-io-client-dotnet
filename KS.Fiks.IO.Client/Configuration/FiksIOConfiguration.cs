@@ -50,6 +50,31 @@ namespace KS.Fiks.IO.Client.Configuration
                 ApiConfiguration.Port);
         }
 
+        public FiksIOConfiguration(
+            KontoConfiguration kontoConfiguration,
+            IntegrasjonConfiguration integrasjonConfiguration,
+            AsiceSigningConfiguration asiceSigningConfiguration,
+            ApiConfiguration apiConfiguration = null,
+            AmqpConfiguration amqpConfiguration = null,
+            KatalogConfiguration katalogConfiguration = null,
+            FiksIOSenderConfiguration fiksIOSenderConfiguration = null,
+            DokumentlagerConfiguration dokumentlagerConfiguration = null
+        )
+        {
+            KontoConfiguration = kontoConfiguration;
+            IntegrasjonConfiguration = integrasjonConfiguration;
+            AsiceSigningConfiguration = asiceSigningConfiguration;
+            ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
+            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
+            KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
+            DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
+            FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
+                null,
+                ApiConfiguration.Scheme,
+                ApiConfiguration.Host,
+                ApiConfiguration.Port);
+        }
+
         public FiksIOSenderConfiguration FiksIOSenderConfiguration { get; }
 
         public MaskinportenClientConfiguration MaskinportenConfiguration { get; }
