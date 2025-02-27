@@ -34,7 +34,7 @@ namespace KS.Fiks.IO.Client.Amqp
             _accountId = kontoConfiguration.KontoId;
         }
 
-        public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)
+        public IAmqpReceiveConsumer CreateReceiveConsumer(IChannel channel)
         {
             return new AmqpReceiveConsumer(channel, _dokumentlagerHandler, _fileWriter, _decrypter, _sendHandler, _accountId);
         }

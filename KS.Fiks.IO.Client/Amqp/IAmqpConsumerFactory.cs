@@ -4,6 +4,6 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     internal interface IAmqpConsumerFactory
     {
-        IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel);
+        IAmqpReceiveConsumer CreateReceiveConsumer(IChannel channel);
     }
 }

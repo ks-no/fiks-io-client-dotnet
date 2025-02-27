@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Authentication;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -25,7 +24,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IConnectionFactory _connectionFactory;
         private readonly IAmqpWatcher _amqpWatcher;
         private IConnection _connection;
-        private IModel _channel;
+        private IChannel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
         private EventHandler<MottattMeldingArgs> _receivedEvent;
         private EventHandler<ConsumerEventArgs> _cancelledEvent;
@@ -132,9 +131,9 @@ namespace KS.Fiks.IO.Client.Amqp
             }
 
             // Unsubscribe events for logging of RabbitMQ events
-            _connection.ConnectionShutdown -= _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlocked -= _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblocked -= _amqpWatcher.HandleConnectionUnblocked;
+            _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
 
             _channel.Dispose();
             _connection.Dispose();
@@ -146,19 +145,19 @@ namespace KS.Fiks.IO.Client.Amqp
             _channel = ConnectToChannel(amqpConfiguration);
 
             // Handle events for logging of RabbitMQ events
-            _connection.ConnectionShutdown += _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlocked += _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblocked += _amqpWatcher.HandleConnectionUnblocked;
+            _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
 
             return Task.CompletedTask;
         }
 
-        private IModel ConnectToChannel(AmqpConfiguration configuration)
+        private async Task<IChannel> ConnectToChannel(AmqpConfiguration configuration)
         {
             try
             {
-                var channel = _connection.CreateModel();
-                channel.BasicQos(0, configuration.PrefetchCount, false);
+                var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
+                await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
                 return channel;
             }
             catch (Exception ex)
@@ -172,7 +171,7 @@ namespace KS.Fiks.IO.Client.Amqp
             try
             {
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                var connection = _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
+                var connection = _connectionFactory.CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
                 return connection;
             }
             catch (Exception ex)
