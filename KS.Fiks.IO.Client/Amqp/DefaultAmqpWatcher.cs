@@ -16,22 +16,22 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        public async Task HandleConnectionBlocked(object sender, ConnectionBlockedEventArgs connectionBlockedEventArgs)
+        public Task HandleConnectionBlocked(object sender, ConnectionBlockedEventArgs connectionBlockedEventArgs)
         {
             _logger?.LogDebug($"RabbitMQ Connection Blocked: {connectionBlockedEventArgs.Reason}");
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
-        public async Task HandleConnectionUnblocked(object sender, AsyncEventArgs asyncEventArgs)
+        public Task HandleConnectionUnblocked(object sender, AsyncEventArgs asyncEventArgs)
         {
             _logger?.LogDebug("RabbitMQ Connection Unblocked");
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
-        public async Task HandleConnectionShutdown(object sender, ShutdownEventArgs eventArgs)
+        public Task HandleConnectionShutdown(object sender, ShutdownEventArgs eventArgs)
         {
             _logger?.LogDebug($"RabbitMQ Connection Shutdown: {eventArgs.ReplyText}");
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
     }
 }

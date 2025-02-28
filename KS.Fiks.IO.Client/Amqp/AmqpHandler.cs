@@ -136,14 +136,25 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public async ValueTask DisposeAsync()
         {
-            if (_connection is { IsOpen: true })
+            try
             {
-                _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
-                _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
-                _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
+                if (_connection is { IsOpen: true })
+                {
+                    _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
+                    _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
+                    _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
 
-                await _channel.DisposeAsync().ConfigureAwait(false);
-                await _connection.DisposeAsync().ConfigureAwait(false);
+                    if (_channel != null)
+                    {
+                        await _channel.DisposeAsync().ConfigureAwait(false);
+                    }
+
+                    await _connection.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error disposing AmqpHandler resources.");
             }
         }
 
