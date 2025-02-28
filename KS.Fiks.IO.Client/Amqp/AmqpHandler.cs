@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
+using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client.Configuration;
@@ -148,8 +149,23 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task ConnectAsync(AmqpConfiguration amqpConfiguration)
         {
-            _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
-            _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+            try
+            {
+                _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
+                _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIOAmqpConnectionFailedException("Failed to connect to AMQP.", ex);
+            }
+            finally
+            {
+                if (_connection == null || !_connection.IsOpen)
+                {
+                    _connection?.Dispose();
+                    _connection = null;
+                }
+            }
         }
 
         private async Task<IChannel> ConnectToChannelAsync(AmqpConfiguration configuration)

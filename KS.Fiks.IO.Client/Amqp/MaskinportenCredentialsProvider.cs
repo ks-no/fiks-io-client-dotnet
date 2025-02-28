@@ -25,8 +25,8 @@ namespace KS.Fiks.IO.Client.Amqp
             ILoggerFactory loggerFactory = null)
         {
             Name = name;
-            _maskinportenClient = maskinportenClient ?? throw new ArgumentNullException(nameof(maskinportenClient));
-            _integrasjonConfiguration = integrasjonConfiguration ?? throw new ArgumentNullException(nameof(integrasjonConfiguration));
+            _maskinportenClient = maskinportenClient;
+            _integrasjonConfiguration = integrasjonConfiguration;
             _logger = loggerFactory?.CreateLogger<MaskinportenCredentialsProvider>();
         }
 
@@ -143,7 +143,6 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (disposing)
             {
-                // Dispose managed resources if needed
                 _lock.ReleaseLock();
             }
 

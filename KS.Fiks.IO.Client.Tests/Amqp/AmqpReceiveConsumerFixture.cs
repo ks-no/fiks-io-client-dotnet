@@ -18,13 +18,13 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
-        private Mock<IBasicProperties> _defaultProperties;
+        private Mock<IReadOnlyBasicProperties> _defaultProperties;
 
         private bool _shouldUseDokumentlager = false;
 
         public AmqpReceiveConsumerFixture()
         {
-            ModelMock = new Mock<IChannel>();
+            ChannelMock = new Mock<IChannel>();
             DokumentlagerHandler = new Mock<IDokumentlagerHandler>();
             FileWriterMock = new Mock<IFileWriter>();
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
@@ -41,11 +41,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Stream DokumentlagerOutStream => new MemoryStream();
 
-        public Mock<IChannel> ModelMock { get; }
+        public Mock<IChannel> ChannelMock { get; }
 
         public MottattMeldingMetadata DefaultMetadata { get; }
 
-        public IBasicProperties DefaultProperties => _defaultProperties.Object;
+        public IReadOnlyBasicProperties DefaultProperties => _defaultProperties.Object;
 
         public AmqpReceiveConsumerFixture WithDokumentlagerHeader()
         {
@@ -67,22 +67,23 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IDokumentlagerHandler> DokumentlagerHandler { get; }
 
-        internal AmqpReceiveConsumer CreateSut()
+        internal Task<AmqpReceiveConsumer> CreateSutAsync()
         {
             SetProperties();
             SetupMocks();
-            return new AmqpReceiveConsumer(
-                ModelMock.Object,
+            return Task.FromResult(new AmqpReceiveConsumer(
+                ChannelMock.Object,
                 DokumentlagerHandler.Object,
                 FileWriterMock.Object,
                 AsicDecrypterMock.Object,
                 SendHandlerMock.Object,
-                DefaultMetadata.MottakerKontoId);
+                DefaultMetadata.MottakerKontoId));
         }
 
         private void SetProperties()
         {
-            _defaultProperties = new Mock<IBasicProperties>();
+            _defaultProperties = new Mock<IReadOnlyBasicProperties>();
+
             var headers = new Dictionary<string, object>
             {
                 {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
@@ -97,8 +98,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             }
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);
-            _defaultProperties.Setup(_ => _.Expiration)
-                              .Returns(value: "100");
+            _defaultProperties.Setup(_ => _.Expiration).Returns("100");
         }
 
         private void SetupMocks()

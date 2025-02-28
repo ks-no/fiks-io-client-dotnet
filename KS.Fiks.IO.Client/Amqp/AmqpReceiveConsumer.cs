@@ -51,7 +51,8 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (ConsumerCancelledAsync != null)
             {
-                await ConsumerCancelledAsync.Invoke(new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);            }
+                await ConsumerCancelledAsync.Invoke(new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+            }
         }
 
         public async Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default)
@@ -145,7 +146,8 @@ namespace KS.Fiks.IO.Client.Amqp
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        private MottattMelding ParseMessage(IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body, bool resendt)
+        private MottattMelding ParseMessage(IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+            bool resendt)
         {
             var metadata = ReceivedMessageParser.Parse(_accountId, properties, resendt);
             return new MottattMelding(
@@ -175,7 +177,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties)).ConfigureAwait(false);
+                return async () =>
+                    await _dokumentlagerHandler.Download(GetDokumentlagerId(properties)).ConfigureAwait(false);
             }
 
             return async () => await Task.FromResult<Stream>(new MemoryStream(body)).ConfigureAwait(false);
