@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    internal class AmqpReceiveConsumer : IAsyncBasicConsumer, IAmqpReceiveConsumer
+    internal class AmqpReceiveConsumer : IAmqpReceiveConsumer
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
@@ -42,12 +43,15 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public IChannel Channel { get; }
 
-        public event EventHandler<MottattMeldingArgs> Received;
+        public event Func<MottattMeldingArgs, Task> ReceivedAsync;
+
+        public event Func<ConsumerEventArgs, Task> ConsumerCancelledAsync;
 
         public async Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"Consumer {consumerTag} was cancelled.");
-            await Task.CompletedTask.ConfigureAwait(false);
+            if (ConsumerCancelledAsync != null)
+            {
+                await ConsumerCancelledAsync.Invoke(new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);            }
         }
 
         public async Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default)
@@ -62,7 +66,7 @@ namespace KS.Fiks.IO.Client.Amqp
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        async Task IAsyncBasicConsumer.HandleBasicDeliverAsync(
+        public async Task HandleBasicDeliverAsync(
             string consumerTag,
             ulong deliveryTag,
             bool redelivered,
@@ -70,8 +74,14 @@ namespace KS.Fiks.IO.Client.Amqp
             string routingKey,
             IReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
+            if (ReceivedAsync == null)
+            {
+                Console.WriteLine("No handler for received messages.");
+                return;
+            }
+
             try
             {
                 var receivedMessage = ParseMessage(properties, body, redelivered);
@@ -115,17 +125,18 @@ namespace KS.Fiks.IO.Client.Amqp
                     receivedMessage,
                     svarSender);
 
-                Received?.Invoke(
-                    this,
-                    mottattMeldingArgs);
+                await ReceivedAsync.Invoke(mottattMeldingArgs).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"Error handling message: {ex.Message}");
+                if (Channel != null)
+                {
+                    await Channel.BasicNackAsync(deliveryTag, false, true, cancellationToken).ConfigureAwait(false);
+                }
+
                 throw;
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         public async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
@@ -164,10 +175,10 @@ namespace KS.Fiks.IO.Client.Amqp
 
             if (IsDataInDokumentlager(properties))
             {
-                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties));
+                return async () => await _dokumentlagerHandler.Download(GetDokumentlagerId(properties)).ConfigureAwait(false);
             }
 
-            return async () => await Task.FromResult(new MemoryStream(body));
+            return async () => await Task.FromResult<Stream>(new MemoryStream(body)).ConfigureAwait(false);
         }
 
         private static Guid GetDokumentlagerId(IReadOnlyBasicProperties properties)

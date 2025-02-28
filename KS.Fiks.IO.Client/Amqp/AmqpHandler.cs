@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
-using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client.Configuration;
@@ -26,8 +26,6 @@ namespace KS.Fiks.IO.Client.Amqp
         private IConnection _connection;
         private IChannel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
-        private EventHandler<MottattMeldingArgs> _receivedEvent;
-        private EventHandler<ConsumerEventArgs> _cancelledEvent;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -76,9 +74,9 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpWatcher amqpWatcher = null)
         {
             var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
-            await amqpHandler.Connect(amqpConfiguration).ConfigureAwait(false);
+            await amqpHandler.ConnectAsync(amqpConfiguration).ConfigureAwait(false);
 
-             _logger?.LogDebug("AmqpHandler CreateAsync done");
+            _logger?.LogDebug("AmqpHandler CreateAsync done");
             return amqpHandler;
         }
 
@@ -86,98 +84,85 @@ namespace KS.Fiks.IO.Client.Amqp
             EventHandler<MottattMeldingArgs> receivedEvent,
             EventHandler<ConsumerEventArgs> cancelledEvent)
         {
-            _cancelledEvent = cancelledEvent;
-            _receivedEvent = receivedEvent;
+            AddMessageReceivedHandlerAsync(AsyncReceived, AsyncCancelled)
+                .GetAwaiter().GetResult();
+            return;
 
-            if (_receiveConsumer == null)
+            Task AsyncCancelled(ConsumerEventArgs args)
             {
-                _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+                cancelledEvent?.Invoke(this, args);
+                return Task.CompletedTask;
             }
 
-            _receiveConsumer.Received += receivedEvent;
-            _receiveConsumer.ConsumerCancelled += cancelledEvent;
-
-            _channel.BasicConsume(_receiveConsumer, GetQueueName());
+            Task AsyncReceived(MottattMeldingArgs args)
+            {
+                receivedEvent?.Invoke(this, args);
+                return Task.CompletedTask;
+            }
         }
 
-        public void Dispose()
+        public async Task AddMessageReceivedHandlerAsync(
+            Func<MottattMeldingArgs, Task> receivedEvent,
+            Func<ConsumerEventArgs, Task> cancelledEvent)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            _receiveConsumer ??= _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+
+            _receiveConsumer.ReceivedAsync += receivedEvent;
+            _receiveConsumer.ConsumerCancelledAsync += cancelledEvent;
+
+            await _channel.BasicConsumeAsync(
+                queue: GetQueueName(),
+                autoAck: false,
+                consumer: _receiveConsumer,
+                cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
         public bool IsOpen()
         {
-            _logger?.LogDebug($"IsOpen status _channel: {_channel} and _connection: {_connection}");
-            return _channel != null && _channel.IsOpen && _connection != null && _connection.IsOpen;
+            return _channel is { IsOpen: true } && _connection is { IsOpen: true };
         }
 
-        protected virtual void Dispose(bool disposing)
+        public Task<bool> IsOpenAsync()
         {
-            if (!disposing)
-            {
-                return;
-            }
-
-            // Unsubscribe consumer events
-            if (_receivedEvent != null)
-            {
-                _receiveConsumer.Received -= _receivedEvent;
-            }
-
-            if (_cancelledEvent != null)
-            {
-                _receiveConsumer.ConsumerCancelled -= _cancelledEvent;
-            }
-
-            // Unsubscribe events for logging of RabbitMQ events
-            _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
-
-            _channel.Dispose();
-            _connection.Dispose();
+            return Task.FromResult(IsOpen());
         }
 
-        private Task Connect(AmqpConfiguration amqpConfiguration)
+        public void Dispose()
         {
-            _connection = CreateConnection(amqpConfiguration);
-            _channel = ConnectToChannel(amqpConfiguration);
-
-            // Handle events for logging of RabbitMQ events
-            _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
-
-            return Task.CompletedTask;
+            DisposeAsync().GetAwaiter().GetResult();
+            GC.SuppressFinalize(this);
         }
 
-        private async Task<IChannel> ConnectToChannel(AmqpConfiguration configuration)
+        public async ValueTask DisposeAsync()
         {
-            try
+            if (_connection is { IsOpen: true })
             {
-                var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
-                await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
-                return channel;
-            }
-            catch (Exception ex)
-            {
-                throw new FiksIOAmqpConnectionFailedException("Unable to connect to channel", ex);
+                _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
+                _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
+                _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
+
+                await _channel.DisposeAsync().ConfigureAwait(false);
+                await _connection.DisposeAsync().ConfigureAwait(false);
             }
         }
 
-        private IConnection CreateConnection(AmqpConfiguration configuration)
+        private async Task ConnectAsync(AmqpConfiguration amqpConfiguration)
         {
-            try
-            {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                var connection = _connectionFactory.CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
-                return connection;
-            }
-            catch (Exception ex)
-            {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
-            }
+            _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
+            _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+        }
+
+        private async Task<IChannel> ConnectToChannelAsync(AmqpConfiguration configuration)
+        {
+            var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
+            await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
+            return channel;
+        }
+
+        private async Task<IConnection> CreateConnectionAsync(AmqpConfiguration configuration)
+        {
+            var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
+            return await _connectionFactory.CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName).ConfigureAwait(false);
         }
 
         private string GetQueueName()

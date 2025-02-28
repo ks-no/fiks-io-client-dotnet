@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public AmqpReceiveConsumerFixture()
         {
-            ModelMock = new Mock<IModel>();
+            ModelMock = new Mock<IChannel>();
             DokumentlagerHandler = new Mock<IDokumentlagerHandler>();
             FileWriterMock = new Mock<IFileWriter>();
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
@@ -41,7 +41,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Stream DokumentlagerOutStream => new MemoryStream();
 
-        public Mock<IModel> ModelMock { get; }
+        public Mock<IChannel> ModelMock { get; }
 
         public MottattMeldingMetadata DefaultMetadata { get; }
 

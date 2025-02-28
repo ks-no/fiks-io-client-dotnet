@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
 using Moq;
@@ -22,63 +24,85 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         [Fact]
         public void CreatesModelWhenConstructed()
         {
-            var sut = _fixture.CreateSut();
+            var sut = _fixture.CreateSutAsync();
 
-            _fixture.ConnectionFactoryMock.Verify(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()), Times.Once);
-            _fixture.ConnectionMock.Verify(_ => _.CreateModel(), Times.Once);
+            _fixture.ConnectionFactoryMock.Verify(
+                factory =>
+                    factory.CreateConnectionAsync(
+                        It.IsAny<IList<AmqpTcpEndpoint>>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ThrowsExceptionWhenConnectionFactoryThrows()
+        public async Task ThrowsExceptionWhenConnectionFactoryThrows()
         {
             await Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
-                _fixture.WhereConnectionfactoryThrowsException().CreateSutAsync());
+                _fixture.WhereConnectionFactoryThrowsException().CreateSutAsync());
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ThrowsExceptionWhenConnectionThrows()
+        public async Task ThrowsExceptionWhenConnectionThrows()
         {
             await Assert.ThrowsAsync<FiksIOAmqpConnectionFailedException>(() =>
                 _fixture.WhereConnectionThrowsException().CreateSutAsync());
         }
 
         [Fact]
-        public void AddReceivedListenerCreatesNewConsumer()
+        public async Task AddReceivedListenerCreatesNewConsumer()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { });
+            var handler = new Func<MottattMeldingArgs, Task>(_ => Task.CompletedTask);
+            var cancelledHandler = new Func<ConsumerEventArgs, Task>(_ => Task.CompletedTask);
 
-            sut.AddMessageReceivedHandler(handler, null);
+            await sut.AddMessageReceivedHandlerAsync(handler, cancelledHandler);
 
-            _fixture.AmqpConsumerFactoryMock.Verify(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()));
+            _fixture.AmqpConsumerFactoryMock.Verify(
+                consumerFactory =>
+                    consumerFactory.CreateReceiveConsumer(It.IsAny<IChannel>()),
+                Times.Once);
         }
 
         [Fact]
-        public void AddReceivedListenerAddsHandlerToReceivedEvent()
+        public async Task AddReceivedListenerAddsHandlerToReceivedEvent()
         {
-            var sut = _fixture.CreateSut();
-
+            var sut = await _fixture.CreateSutAsync();
             var counter = 0;
-            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { counter++; });
 
-            sut.AddMessageReceivedHandler(handler, null);
+            Func<MottattMeldingArgs, Task> handler = args =>
+            {
+                counter++;
+                return Task.CompletedTask;
+            };
 
-            _fixture.AmqpReceiveConsumerMock.Raise(_ => _.Received += null, this, null);
+            await sut.AddMessageReceivedHandlerAsync(handler, null);
+
+            await _fixture.AmqpReceiveConsumerMock.RaiseAsync(
+                consumer => consumer.ReceivedAsync += null,
+                new MottattMeldingArgs(null, null));
+
             counter.ShouldBe(1);
         }
 
         [Fact]
-        public void AddReceivedListenerAddsHandlerToListenOnCanceledEvent()
+        public async Task AddReceivedListenerAddsHandlerToListenOnCanceledEventAsync()
         {
-            var sut = _fixture.CreateSut();
-
+            var sut = await _fixture.CreateSutAsync();
             var counter = 0;
-            var handler = new EventHandler<ConsumerEventArgs>((a, _) => { counter++; });
+            Func<ConsumerEventArgs, Task> asyncHandler = args =>
+            {
+                counter++;
+                return Task.CompletedTask;
+            };
 
-            sut.AddMessageReceivedHandler(null, handler);
+            await sut.AddMessageReceivedHandlerAsync(null, asyncHandler);
 
-            _fixture.AmqpReceiveConsumerMock.Raise(_ => _.ConsumerCancelled += null, this, null);
+            await _fixture.AmqpReceiveConsumerMock.RaiseAsync(
+                consumer => consumer.ConsumerCancelledAsync += null,
+                new ConsumerEventArgs(new[] { "TestConsumerTag" }));
+
             counter.ShouldBe(1);
         }
     }
