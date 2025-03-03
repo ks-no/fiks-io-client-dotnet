@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
@@ -8,85 +9,81 @@ using RabbitMQ.Client;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public sealed class MaskinportenCredentialsProvider : ICredentialsProvider, IDisposable
+    public class MaskinportenCredentialsProvider : ICredentialsProvider
     {
-        private static readonly TimeSpan TokenRetrievalTimeout = TimeSpan.FromMilliseconds(5000); // 5 seconds timeout
+        private const int TokenRetrievalTimeout = 5000;
+        private static ILogger<MaskinportenCredentialsProvider> _logger;
         private readonly IMaskinportenClient _maskinportenClient;
         private readonly IntegrasjonConfiguration _integrasjonConfiguration;
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-        private readonly ILogger<MaskinportenCredentialsProvider> _logger;
+        private ReaderWriterLock _lock = new ReaderWriterLock();
         private MaskinportenToken _maskinportenToken;
-        private bool _disposed;
+        private ICredentialsProvider _credentialsProviderImplementation;
 
-        public MaskinportenCredentialsProvider(
-            string name,
-            IMaskinportenClient maskinportenClient,
-            IntegrasjonConfiguration integrasjonConfiguration,
-            ILoggerFactory loggerFactory = null)
+        public MaskinportenCredentialsProvider(string name, IMaskinportenClient maskinportenClient, IntegrasjonConfiguration integrasjonConfiguration, ILoggerFactory loggerFactory = null)
         {
             Name = name;
             _maskinportenClient = maskinportenClient;
             _integrasjonConfiguration = integrasjonConfiguration;
-            _logger = loggerFactory?.CreateLogger<MaskinportenCredentialsProvider>();
+            if (loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger<MaskinportenCredentialsProvider>();
+            }
+        }
+
+        public async Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default)
+        {
+            var token = await CheckState().ConfigureAwait(false);
+            var password = $"{_integrasjonConfiguration.IntegrasjonPassord} {token.Token}";
+
+            return new Credentials(Name, UserName, password, ValidUntil);
         }
 
         public string Name { get; }
 
         public string UserName => _integrasjonConfiguration.IntegrasjonId.ToString();
 
-        public async Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default)
+
+        public TimeSpan? ValidUntil { get; }
+
+        public void Refresh()
         {
-            var token = await CheckStateAsync(cancellationToken).ConfigureAwait(false);
-            var password = $"{_integrasjonConfiguration.IntegrasjonPassord} {token.Token}";
-            return new Credentials(Name, UserName, password, null);
+            _logger.LogDebug("Refresh start");
+            RetrieveToken();
         }
 
-        public async Task RefreshAsync(CancellationToken cancellationToken = default)
+        private async Task<MaskinportenToken> CheckState()
         {
-            _logger?.LogDebug("Refresh start");
-            await RetrieveTokenAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<MaskinportenToken> CheckStateAsync(CancellationToken cancellationToken)
-        {
-            if (!_lock.TryEnterUpgradeableReadLock(TokenRetrievalTimeout))
-            {
-                _logger?.LogError("Failed to acquire upgradeable read lock within timeout.");
-                throw new TimeoutException("Unable to acquire upgradeable read lock within timeout.");
-            }
-
+            _lock.AcquireReaderLock(TokenRetrievalTimeout);
             try
             {
                 if (_maskinportenToken != null && !_maskinportenToken.IsExpiring())
                 {
                     return _maskinportenToken;
                 }
-
-                _logger?.LogDebug("Refreshing token due to expiration or absence.");
-
-                _lock.ExitUpgradeableReadLock();
-
-                return await RetrieveTokenAsync(cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                if (_lock.IsUpgradeableReadLockHeld)
-                {
-                    _lock.ExitUpgradeableReadLock();
-                }
+                _lock.ReleaseReaderLock();
+            }
+
+            return await RetrieveToken().ConfigureAwait(false);
+        }
+
+        private Task<MaskinportenToken> RetrieveToken()
+        {
+            _lock.AcquireWriterLock(TokenRetrievalTimeout);
+            try
+            {
+                return RequestOrRenewToken();
+            }
+            finally
+            {
+                _lock.ReleaseReaderLock();
             }
         }
 
-        private async Task<MaskinportenToken> RetrieveTokenAsync(CancellationToken cancellationToken)
+        private async Task<MaskinportenToken> RequestOrRenewToken()
         {
-            _logger?.LogDebug("Requesting or renewing Maskinporten token asynchronously");
-
-            if (!_lock.TryEnterWriteLock(TokenRetrievalTimeout))
-            {
-                _logger?.LogError("Failed to acquire write lock within timeout.");
-                throw new TimeoutException("Unable to acquire write lock within timeout.");
-            }
-
             try
             {
                 _maskinportenToken = await _maskinportenClient
@@ -94,36 +91,10 @@ namespace KS.Fiks.IO.Client.Amqp
                     .ConfigureAwait(false);
                 return _maskinportenToken;
             }
-            finally
+            catch (Exception ex)
             {
-                _lock.ExitWriteLock();
+                throw new Exception("Token retrieval failed", ex);
             }
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                _lock?.Dispose();
-            }
-
-            _disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~MaskinportenCredentialsProvider()
-        {
-            Dispose(false);
         }
     }
 }
