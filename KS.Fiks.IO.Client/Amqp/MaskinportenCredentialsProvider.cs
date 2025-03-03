@@ -49,51 +49,54 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task<MaskinportenToken> CheckStateAsync(CancellationToken cancellationToken)
         {
-            if (_lock.TryEnterUpgradeableReadLock(TokenRetrievalTimeout))
-            {
-                try
-                {
-                    if (_maskinportenToken != null && !_maskinportenToken.IsExpiring())
-                    {
-                        return _maskinportenToken;
-                    }
-                }
-                finally
-                {
-                    _lock.ExitUpgradeableReadLock();
-                }
-
-                _logger?.LogDebug("Refreshing token due to expiration or absence.");
-                return await RetrieveTokenAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
+            if (!_lock.TryEnterUpgradeableReadLock(TokenRetrievalTimeout))
             {
                 _logger?.LogError("Failed to acquire upgradeable read lock within timeout.");
                 throw new TimeoutException("Unable to acquire upgradeable read lock within timeout.");
+            }
+
+            try
+            {
+                if (_maskinportenToken != null && !_maskinportenToken.IsExpiring())
+                {
+                    return _maskinportenToken;
+                }
+
+                _logger?.LogDebug("Refreshing token due to expiration or absence.");
+
+                _lock.ExitUpgradeableReadLock();
+
+                return await RetrieveTokenAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (_lock.IsUpgradeableReadLockHeld)
+                {
+                    _lock.ExitUpgradeableReadLock();
+                }
             }
         }
 
         private async Task<MaskinportenToken> RetrieveTokenAsync(CancellationToken cancellationToken)
         {
-            if (_lock.TryEnterWriteLock(TokenRetrievalTimeout))
-            {
-                try
-                {
-                    _logger?.LogDebug("Requesting or renewing Maskinporten token");
-                    _maskinportenToken = await _maskinportenClient
-                        .GetAccessToken(_integrasjonConfiguration.Scope)
-                        .ConfigureAwait(false);
-                    return _maskinportenToken;
-                }
-                finally
-                {
-                    _lock.ExitWriteLock();
-                }
-            }
-            else
+            _logger?.LogDebug("Requesting or renewing Maskinporten token asynchronously");
+
+            if (!_lock.TryEnterWriteLock(TokenRetrievalTimeout))
             {
                 _logger?.LogError("Failed to acquire write lock within timeout.");
                 throw new TimeoutException("Unable to acquire write lock within timeout.");
+            }
+
+            try
+            {
+                _maskinportenToken = await _maskinportenClient
+                    .GetAccessToken(_integrasjonConfiguration.Scope)
+                    .ConfigureAwait(false);
+                return _maskinportenToken;
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
             }
         }
 
