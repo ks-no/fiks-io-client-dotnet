@@ -121,7 +121,7 @@ namespace ExampleApplication
                     await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
                 } else if (key == ConsoleKey.L)
                 {
-                    WriteHeartBeatConnectionStatusToLog();
+                    await WriteHeartBeatConnectionStatusToLog();
                     await WriteStatusFromApiToLog();
                 }
     
@@ -144,9 +144,10 @@ namespace ExampleApplication
             return LoggerFactory.Create(logging => logging.AddSerilog(logger));
         }
         
-        private static void WriteHeartBeatConnectionStatusToLog()
+        private static async Task WriteHeartBeatConnectionStatusToLog()
         {
-            Log.Information($"FiksIOSubscriber status check - FiksIOClient connection IsOpen: {_fiksIoClient.IsOpen()}");
+            var isOpen = await _fiksIoClient.IsOpenAsync();
+            Log.Information($"FiksIOSubscriber status check - FiksIOClient connection IsOpen: {isOpen}");
         }
 
         private static async Task WriteStatusFromApiToLog()
