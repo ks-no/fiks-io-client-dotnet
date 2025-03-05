@@ -86,7 +86,7 @@ namespace ExampleApplication.FiksIO
                 }
             }
 
-            mottatt.SvarSender.Ack(); 
+            await mottatt.SvarSender.AckAsync(); 
         }
 
         private static async Task<string> GetDecryptedPayloadTxt(MottattMeldingArgs mottattMeldingArgs)

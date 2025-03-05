@@ -16,6 +16,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
+        // Connection events
         public Task HandleConnectionBlocked(object sender, ConnectionBlockedEventArgs connectionBlockedEventArgs)
         {
             _logger?.LogWarning($"RabbitMQ Connection Blocked: {connectionBlockedEventArgs.Reason}");
@@ -30,7 +31,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public Task HandleConnectionShutdown(object sender, ShutdownEventArgs eventArgs)
         {
-            _logger?.LogError($"RabbitMQ Connection Shutdown: {eventArgs.ReplyText}");
+            _logger?.LogWarning($"RabbitMQ Connection Shutdown: {eventArgs.ReplyText}");
             return Task.CompletedTask;
         }
 
@@ -49,6 +50,31 @@ namespace KS.Fiks.IO.Client.Amqp
         public Task HandleRecoveringConsumer(object sender, RecoveringConsumerEventArgs recoveringConsumerEvent)
         {
             _logger?.LogInformation($"RabbitMQ Recovering Consumer: {recoveringConsumerEvent.ConsumerTag}");
+            return Task.CompletedTask;
+        }
+
+        // Consumer events
+        public Task HandleChannelShutdown(object sender, ShutdownEventArgs eventArgs)
+        {
+            _logger?.LogWarning($"RabbitMQ Channel Shutdown: {eventArgs.ReplyText}");
+            return Task.CompletedTask;
+        }
+
+        public Task HandleBasicChannelCancel(string consumerTag)
+        {
+            _logger?.LogWarning($"RabbitMQ Consumer Cancelled: {consumerTag}");
+            return Task.CompletedTask;
+        }
+
+        public Task HandleBasicChannelCancelOk(string consumerTag)
+        {
+            _logger?.LogInformation($"RabbitMQ Consumer Cancellation Acknowledged: {consumerTag}");
+            return Task.CompletedTask;
+        }
+
+        public Task HandleBasicChannelConsumeOk(string consumerTag)
+        {
+            _logger?.LogInformation($"RabbitMQ Consumer Successfully Started: {consumerTag}");
             return Task.CompletedTask;
         }
     }

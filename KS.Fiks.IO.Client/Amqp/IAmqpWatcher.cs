@@ -16,5 +16,13 @@ namespace KS.Fiks.IO.Client.Amqp
         Task HandleRecoverySucceeded(object sender, AsyncEventArgs eventArgs);
 
         Task HandleRecoveringConsumer(object sender, RecoveringConsumerEventArgs recoveringConsumerEvent);
+
+        Task HandleChannelShutdown(object sender, ShutdownEventArgs eventArgs);
+
+        Task HandleBasicChannelCancel(string consumerTag);
+
+        Task HandleBasicChannelCancelOk(string consumerTag);
+
+        Task HandleBasicChannelConsumeOk(string consumerTag);
     }
 }

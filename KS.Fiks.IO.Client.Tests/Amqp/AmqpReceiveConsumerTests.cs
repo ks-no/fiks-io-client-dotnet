@@ -432,10 +432,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var deliveryTag = (ulong)3423423;
 
-            Func<MottattMeldingArgs, Task> handler = messageArgs =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
-                messageArgs.SvarSender.Ack();
-                return Task.CompletedTask;
+                await messageArgs.SvarSender.AckAsync().ConfigureAwait(false);
             };
 
             sut.ReceivedAsync += handler;

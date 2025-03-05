@@ -20,18 +20,18 @@ namespace KS.Fiks.IO.Client.Send
         Task<SendtMelding> Svar(string meldingType, Guid? klientMeldingId = default);
 
         /**
-         * Acknowledges that the message has been consumed
-         */
-        void Ack();
+        * Acknowledges that the message has been consumed
+        */
+        Task AckAsync();
 
         /**
-         * Acknowledges that the message could not be consumed
-         */
-        void Nack();
+        * Acknowledges that the message could not be consumed
+        */
+        Task NackAsync();
 
         /**
-         *  Acknowledges that the message could not be consumed right and puts it back in the queue to be consumed again
-         */
-        void NackWithRequeue();
+        * Acknowledges that the message could not be consumed right and puts it back in the queue to be consumed again
+       */
+        Task NackWithRequeueAsync();
     }
 }

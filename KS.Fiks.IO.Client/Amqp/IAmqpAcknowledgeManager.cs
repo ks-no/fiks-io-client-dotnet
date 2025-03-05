@@ -5,11 +5,11 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     public interface IAmqpAcknowledgeManager
     {
-        Func<Task> Ack();
+        Task AckAsync();
 
-        Func<Task> Nack();
+        Task NackAsync();
 
-        Func<Task> NackWithRequeue();
+        Task NackWithRequeueAsync();
     }
 
     public class AmqpAcknowledgeManager : IAmqpAcknowledgeManager
@@ -20,24 +20,24 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public AmqpAcknowledgeManager(Func<Task> ackAction, Func<Task> nackAction, Func<Task> nackWithRequeueAction)
         {
-            _ackAction = ackAction ?? throw new ArgumentNullException(nameof(ackAction));
-            _nackAction = nackAction ?? throw new ArgumentNullException(nameof(nackAction));
-            _nackWithRequeueAction = nackWithRequeueAction ?? throw new ArgumentNullException(nameof(nackWithRequeueAction));
+            _ackAction = ackAction;
+            _nackAction = nackAction;
+            _nackWithRequeueAction = nackWithRequeueAction;
         }
 
-        public Func<Task> Ack()
+        public async Task AckAsync()
         {
-            return _ackAction;
+            await _ackAction.Invoke().ConfigureAwait(false);
         }
 
-        public Func<Task> Nack()
+        public async Task NackAsync()
         {
-            return _nackAction;
+            await _nackAction.Invoke().ConfigureAwait(false);
         }
 
-        public Func<Task> NackWithRequeue()
+        public async Task NackWithRequeueAsync()
         {
-            return _nackWithRequeueAction;
+            await _nackWithRequeueAction.Invoke().ConfigureAwait(false);
         }
     }
 }

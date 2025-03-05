@@ -30,6 +30,8 @@ namespace KS.Fiks.IO.Client
 {
     public class FiksIOClient : IFiksIOClient
     {
+        private readonly ICatalogHandler _catalogHandler;
+
         private ISendHandler _sendHandler;
 
         private ILoggerFactory _loggerFactory;
@@ -39,8 +41,6 @@ namespace KS.Fiks.IO.Client
         private IDokumentlagerHandler _dokumentlagerHandler;
 
         private IMaskinportenClient _maskinportenClient;
-
-        private readonly ICatalogHandler _catalogHandler;
 
         private FiksIOClient(
             FiksIOConfiguration configuration,
@@ -134,10 +134,11 @@ namespace KS.Fiks.IO.Client
             return client;
         }
 
-        private async Task InitializeAmqpHandlerAsync(FiksIOConfiguration configuration,
+        private async Task InitializeAmqpHandlerAsync(
+            FiksIOConfiguration configuration,
             IAmqpWatcher amqpWatcher = null)
         {
-            _amqpHandler = _amqpHandler ?? await AmqpHandler.CreateAsync(
+            _amqpHandler ??= await AmqpHandler.CreateAsync(
                 _maskinportenClient,
                 _sendHandler,
                 _dokumentlagerHandler,

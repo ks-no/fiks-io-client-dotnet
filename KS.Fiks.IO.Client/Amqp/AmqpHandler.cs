@@ -52,7 +52,6 @@ namespace KS.Fiks.IO.Client.Amqp
                 _connectionFactory.VirtualHost = amqpConfiguration.Vhost;
             }
 
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
 
             if (loggerFactory != null)
             {
@@ -60,6 +59,8 @@ namespace KS.Fiks.IO.Client.Amqp
             }
 
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
+
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _amqpWatcher, _kontoConfiguration);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
