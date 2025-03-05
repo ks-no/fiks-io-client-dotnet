@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -154,9 +155,10 @@ namespace KS.Fiks.IO.Client.Tests
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>()))
                            .ReturnsAsync(_sendtMeldingReturn);
-            AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandler(
-                It.IsAny<EventHandler<MottattMeldingArgs>>(),
-                It.IsAny<EventHandler<ConsumerEventArgs>>()));
+            AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandlerAsync(
+                    It.IsAny<Func<MottattMeldingArgs, Task>>(),
+                    It.IsAny<Func<ConsumerEventArgs, Task>>()))
+                .Returns(Task.CompletedTask);
         }
 
         private void SetupConfiguration(bool withMaskinportenConfig)

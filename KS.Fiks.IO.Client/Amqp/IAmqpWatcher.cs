@@ -10,5 +10,11 @@ namespace KS.Fiks.IO.Client.Amqp
         Task HandleConnectionShutdown(object sender, ShutdownEventArgs eventArgs);
 
         Task HandleConnectionUnblocked(object sender, AsyncEventArgs asyncEventArgs);
+
+        Task HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs eventArgs);
+
+        Task HandleRecoverySucceeded(object sender, AsyncEventArgs eventArgs);
+
+        Task HandleRecoveringConsumer(object sender, RecoveringConsumerEventArgs recoveringConsumerEvent);
     }
 }

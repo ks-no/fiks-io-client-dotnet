@@ -81,27 +81,6 @@ namespace KS.Fiks.IO.Client.Amqp
             return amqpHandler;
         }
 
-        public void AddMessageReceivedHandler(
-            EventHandler<MottattMeldingArgs> receivedEvent,
-            EventHandler<ConsumerEventArgs> cancelledEvent)
-        {
-            AddMessageReceivedHandlerAsync(AsyncReceived, AsyncCancelled)
-                .GetAwaiter().GetResult();
-            return;
-
-            Task AsyncCancelled(ConsumerEventArgs args)
-            {
-                cancelledEvent?.Invoke(this, args);
-                return Task.CompletedTask;
-            }
-
-            Task AsyncReceived(MottattMeldingArgs args)
-            {
-                receivedEvent?.Invoke(this, args);
-                return Task.CompletedTask;
-            }
-        }
-
         public async Task AddMessageReceivedHandlerAsync(
             Func<MottattMeldingArgs, Task> receivedEvent,
             Func<ConsumerEventArgs, Task> cancelledEvent)
@@ -118,37 +97,27 @@ namespace KS.Fiks.IO.Client.Amqp
                 cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
-        public bool IsOpen()
-        {
-            return _channel is { IsOpen: true } && _connection is { IsOpen: true };
-        }
-
         public Task<bool> IsOpenAsync()
         {
-            return Task.FromResult(IsOpen());
-        }
-
-        public void Dispose()
-        {
-            DisposeAsync().GetAwaiter().GetResult();
-            GC.SuppressFinalize(this);
+            return Task.FromResult(_channel is { IsOpen: true } && _connection is { IsOpen: true });
         }
 
         public async ValueTask DisposeAsync()
         {
             try
             {
-                if (_connection is { IsOpen: true })
+                if (_connection != null)
                 {
-                    _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
-                    _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
-                    _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
+                    UnsubscribeConnectionEvents();
+                }
 
-                    if (_channel != null)
-                    {
-                        await _channel.DisposeAsync().ConfigureAwait(false);
-                    }
+                if (_channel != null)
+                {
+                    await _channel.DisposeAsync().ConfigureAwait(false);
+                }
 
+                if (_connection != null)
+                {
                     await _connection.DisposeAsync().ConfigureAwait(false);
                 }
             }
@@ -164,32 +133,78 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
                 _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+
+                SubscribeConnectionEvents();
+
+                _logger?.LogDebug("Connected to AMQP.");
             }
             catch (Exception ex)
             {
+                _logger?.LogError(ex, "Failed to connect to AMQP. Cleaning up resources...");
+
+                if (_connection == null)
+                {
+                    throw new FiksIOAmqpConnectionFailedException("Failed to connect to AMQP.", ex);
+                }
+
+                await _connection.DisposeAsync().ConfigureAwait(false);
+                _connection = null;
+
                 throw new FiksIOAmqpConnectionFailedException("Failed to connect to AMQP.", ex);
             }
-            finally
+        }
+
+        private void SubscribeConnectionEvents()
             {
-                if (_connection == null || !_connection.IsOpen)
-                {
-                    _connection?.Dispose();
-                    _connection = null;
-                }
+                _logger?.LogDebug("Subscribing to connection events.");
+                _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
+                _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
+                _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
+                _connection.RecoverySucceededAsync += _amqpWatcher.HandleRecoverySucceeded;
+                _connection.RecoveringConsumerAsync += _amqpWatcher.HandleRecoveringConsumer;
+                _connection.ConnectionRecoveryErrorAsync += _amqpWatcher.HandleConnectionRecoveryError;
             }
+
+        private void UnsubscribeConnectionEvents()
+        {
+            _logger?.LogDebug("Unsubscribing from connection events.");
+            _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
+            _connection.RecoverySucceededAsync -= _amqpWatcher.HandleRecoverySucceeded;
+            _connection.RecoveringConsumerAsync -= _amqpWatcher.HandleRecoveringConsumer;
+            _connection.ConnectionRecoveryErrorAsync -= _amqpWatcher.HandleConnectionRecoveryError;
         }
 
         private async Task<IChannel> ConnectToChannelAsync(AmqpConfiguration configuration)
         {
-            var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
-            await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
-            return channel;
+            try
+            {
+                var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
+                await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
+                return channel;
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIOAmqpConnectionFailedException("Unable to connect to channel", ex);
+            }
         }
 
         private async Task<IConnection> CreateConnectionAsync(AmqpConfiguration configuration)
         {
-            var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-            return await _connectionFactory.CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName).ConfigureAwait(false);
+            try
+            {
+                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
+                return await _connectionFactory
+                    .CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new FiksIOAmqpConnectionFailedException(
+                    $"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}",
+                    ex);
+            }
         }
 
         private string GetQueueName()

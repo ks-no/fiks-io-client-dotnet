@@ -32,7 +32,7 @@ namespace ExampleApplication.FiksIO
             await Task.CompletedTask;
         }
 
-        private async void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
+        private async Task OnReceivedMelding(MottattMeldingArgs mottatt)
         {
             var receivedMeldingType = mottatt.Melding.MeldingType;
             var konto = await _fiksIoClient.GetKonto(mottatt.Melding.AvsenderKontoId);
@@ -117,7 +117,7 @@ namespace ExampleApplication.FiksIO
         {
             var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
             Log.Information($"FiksIOSubscriber - Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
-            _fiksIoClient.NewSubscription(OnReceivedMelding);
+            _fiksIoClient.NewSubscriptionAsync(OnReceivedMelding);
         }
     }
 }

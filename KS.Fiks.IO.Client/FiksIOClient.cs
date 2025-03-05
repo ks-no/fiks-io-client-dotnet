@@ -191,35 +191,21 @@ namespace KS.Fiks.IO.Client
             return await Send(request, new StreamPayload(payload, filename)).ConfigureAwait(false);
         }
 
-        public void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding)
+        public async Task NewSubscriptionAsync(Func<MottattMeldingArgs, Task> onMottattMelding, Func<ConsumerEventArgs, Task> onCanceled = null)
         {
-            NewSubscription(onMottattMelding, null);
+                await _amqpHandler
+                    .AddMessageReceivedHandlerAsync(onMottattMelding, onCanceled ?? (_ => Task.CompletedTask))
+                    .ConfigureAwait(false);
         }
 
-        public void NewSubscription(
-            EventHandler<MottattMeldingArgs> onMottattMelding,
-            EventHandler<ConsumerEventArgs> onCanceled)
+        public async Task<bool> IsOpenAsync()
         {
-            _amqpHandler.AddMessageReceivedHandler(onMottattMelding, onCanceled);
+            return await _amqpHandler.IsOpenAsync().ConfigureAwait(false);
         }
 
-        public bool IsOpen()
+        public async ValueTask DisposeAsync()
         {
-            return _amqpHandler.IsOpen();
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _amqpHandler?.Dispose();
-            }
+                await _amqpHandler.DisposeAsync().ConfigureAwait(false);
         }
 
         private async Task<SendtMelding> Send(MeldingRequest request, IPayload payload)
