@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -430,7 +431,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public async Task BasicAckIsCalledFromReplySenderAsync()
+        public async Task BasicAckAsyncIsCalledFromReplySenderAsync()
         {
             var sut = await _fixture.CreateSutAsync();
             var data = new[] { default(byte), byte.MaxValue };
@@ -454,6 +455,62 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(_ => _.BasicAckAsync(deliveryTag, false, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task NackAsyncCallsBasicNackAsyncWithoutRequeue()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)5423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.NackAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task NackWithRequeueAsyncCallsBasicNackAsyncWithRequeue()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)7423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.NackWithRequeueAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(deliveryTag, false, true, It.IsAny<CancellationToken>()), 
+                Times.Once);
         }
 
         [Fact]

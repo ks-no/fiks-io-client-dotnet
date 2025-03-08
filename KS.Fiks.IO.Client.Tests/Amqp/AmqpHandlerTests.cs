@@ -169,64 +169,80 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             _fixture.ConnectionMock.Verify(connection => connection.DisposeAsync(), Times.Once);
         }
 
-       [Fact]
-       public async Task DisposeAsyncUnsubscribesConnectionEvents()
-       {
-           var sut = await _fixture.CreateSutAsync();
-           var connectionMock = _fixture.ConnectionMock;
+        [Fact]
+        public async Task DisposeAsync_UnsubscribesAllEvents()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var connectionMock = _fixture.ConnectionMock;
 
-           connectionMock
-               .SetupRemove(connection =>
-                   connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>());
+            Func<MottattMeldingArgs, Task> receivedHandler = _ => Task.CompletedTask;
+            Func<ConsumerEventArgs, Task> cancelledHandler = _ => Task.CompletedTask;
 
-           connectionMock
-               .SetupRemove(connection => connection.ConnectionBlockedAsync -=
-                   It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>());
+            await sut.AddMessageReceivedHandlerAsync(receivedHandler, cancelledHandler);
 
-           connectionMock
-               .SetupRemove(connection =>
-                   connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
+            _fixture.AmqpReceiveConsumerMock.VerifyAdd(
+                consumer => consumer.ReceivedAsync += It.IsAny<Func<MottattMeldingArgs, Task>>(),
+                Times.Once);
 
-           connectionMock
-               .SetupRemove(connection =>
-                   connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
+            _fixture.AmqpReceiveConsumerMock.VerifyAdd(
+                consumer => consumer.ConsumerCancelledAsync += It.IsAny<Func<ConsumerEventArgs, Task>>(),
+                Times.Once);
 
-           connectionMock
-               .SetupRemove(connection => connection.RecoveringConsumerAsync -=
-                   It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>());
+            connectionMock.SetupRemove(connection =>
+                connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>());
 
-           connectionMock
-               .SetupRemove(connection => connection.ConnectionRecoveryErrorAsync -=
-                   It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>());
+            connectionMock.SetupRemove(connection =>
+                connection.ConnectionBlockedAsync -= It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>());
 
-           await sut.DisposeAsync();
+            connectionMock.SetupRemove(connection =>
+                connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
 
-           connectionMock.VerifyRemove(
-               connection => connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>(),
-               Times.AtLeastOnce);
+            connectionMock.SetupRemove(connection =>
+                connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
 
-           connectionMock.VerifyRemove(
-               connection => connection.ConnectionBlockedAsync -=
-                   It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>(),
-               Times.AtLeastOnce);
+            connectionMock.SetupRemove(connection =>
+                connection.RecoveringConsumerAsync -= It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>());
 
-           connectionMock.VerifyRemove(
-               connection => connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
-               Times.AtLeastOnce);
+            connectionMock.SetupRemove(connection =>
+                connection.ConnectionRecoveryErrorAsync -=
+                    It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>());
 
-           connectionMock.VerifyRemove(
-               connection => connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
-               Times.AtLeastOnce);
+            await sut.DisposeAsync();
 
-           connectionMock.VerifyRemove(
-               connection => connection.RecoveringConsumerAsync -=
-                   It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>(),
-               Times.AtLeastOnce);
+            _fixture.AmqpReceiveConsumerMock.VerifyRemove(
+                consumer => consumer.ReceivedAsync -= receivedHandler,
+                Times.Once);
 
-           connectionMock.VerifyRemove(
-               connection => connection.ConnectionRecoveryErrorAsync -=
-                   It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>(),
-               Times.AtLeastOnce);
-       }
+            _fixture.AmqpReceiveConsumerMock.VerifyRemove(
+                consumer => consumer.ConsumerCancelledAsync -= cancelledHandler,
+                Times.Once);
+
+            connectionMock.VerifyRemove(
+                connection => connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>(),
+                Times.AtLeastOnce);
+
+            connectionMock.VerifyRemove(
+                connection => connection.ConnectionBlockedAsync -=
+                    It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>(),
+                Times.AtLeastOnce);
+
+            connectionMock.VerifyRemove(
+                connection => connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
+                Times.AtLeastOnce);
+
+            connectionMock.VerifyRemove(
+                connection => connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
+                Times.AtLeastOnce);
+
+            connectionMock.VerifyRemove(
+                connection => connection.RecoveringConsumerAsync -=
+                    It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>(),
+                Times.AtLeastOnce);
+
+            connectionMock.VerifyRemove(
+                connection => connection.ConnectionRecoveryErrorAsync -=
+                    It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>(),
+                Times.AtLeastOnce);
+        }
     }
 }
