@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.Models;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -22,16 +24,21 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void CreatesModelWhenConstructed()
+        public async Task CreatesConnectionAndChannelWhenConstructed()
         {
-            var sut = _fixture.CreateSutAsync();
+            var sut = await _fixture.CreateSutAsync().ConfigureAwait(false);
 
             _fixture.ConnectionFactoryMock.Verify(
-                factory =>
-                    factory.CreateConnectionAsync(
-                        It.IsAny<IList<AmqpTcpEndpoint>>(),
-                        It.IsAny<string>(),
-                        It.IsAny<CancellationToken>()),
+                factory => factory.CreateConnectionAsync(
+                    It.IsAny<IList<AmqpTcpEndpoint>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _fixture.ConnectionMock.Verify(
+                connection => connection.CreateChannelAsync(
+                    It.IsAny<CreateChannelOptions>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -59,9 +66,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             await sut.AddMessageReceivedHandlerAsync(handler, cancelledHandler);
 
+            _fixture.ConnectionMock.Verify(
+                conn => conn.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+
             _fixture.AmqpConsumerFactoryMock.Verify(
-                consumerFactory =>
-                    consumerFactory.CreateReceiveConsumer(It.IsAny<IChannel>()),
+                consumerFactory => consumerFactory.CreateReceiveConsumer(It.IsAny<IChannel>()),
                 Times.Once);
         }
 
@@ -105,5 +115,118 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             counter.ShouldBe(1);
         }
+
+        [Fact]
+        public async Task IsOpenAsyncReturnsTrueWhenConnectionAndChannelAreOpen()
+        {
+            _fixture.ConnectionMock.Setup(conn => conn.IsOpen).Returns(true);
+            _fixture.ChannelMock.Setup(channel => channel.IsOpen).Returns(true);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            var result = await sut.IsOpenAsync();
+
+            result.ShouldBe(true);
+        }
+
+        [Fact]
+        public async Task IsOpenAsyncReturnsFalseWhenConnectionIsClosed()
+        {
+            _fixture.ConnectionMock.Setup(conn => conn.IsOpen).Returns(false);
+            _fixture.ChannelMock.Setup(channel => channel.IsOpen).Returns(true);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            var result = await sut.IsOpenAsync();
+
+            result.ShouldBe(false);
+        }
+
+        [Fact]
+        public async Task IsOpenAsyncReturnsFalseWhenChannelIsClosed()
+        {
+            _fixture.ConnectionMock.Setup(conn => conn.IsOpen).Returns(true);
+            _fixture.ChannelMock.Setup(channel => channel.IsOpen).Returns(false);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            var result = await sut.IsOpenAsync();
+
+            result.ShouldBe(false);
+        }
+
+        [Fact]
+        public async Task DisposeAsyncDisposesChannelAndConnection()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.ChannelMock.Setup(channel => channel.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _fixture.ConnectionMock.Setup(connection => connection.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            await sut.DisposeAsync();
+
+            _fixture.ChannelMock.Verify(channel => channel.DisposeAsync(), Times.Once);
+            _fixture.ConnectionMock.Verify(connection => connection.DisposeAsync(), Times.Once);
+        }
+
+       [Fact]
+       public async Task DisposeAsyncUnsubscribesConnectionEvents()
+       {
+           var sut = await _fixture.CreateSutAsync();
+           var connectionMock = _fixture.ConnectionMock;
+
+           connectionMock
+               .SetupRemove(connection =>
+                   connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>());
+
+           connectionMock
+               .SetupRemove(connection => connection.ConnectionBlockedAsync -=
+                   It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>());
+
+           connectionMock
+               .SetupRemove(connection =>
+                   connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
+
+           connectionMock
+               .SetupRemove(connection =>
+                   connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>());
+
+           connectionMock
+               .SetupRemove(connection => connection.RecoveringConsumerAsync -=
+                   It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>());
+
+           connectionMock
+               .SetupRemove(connection => connection.ConnectionRecoveryErrorAsync -=
+                   It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>());
+
+           await sut.DisposeAsync();
+
+           connectionMock.VerifyRemove(
+               connection => connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>(),
+               Times.AtLeastOnce);
+
+           connectionMock.VerifyRemove(
+               connection => connection.ConnectionBlockedAsync -=
+                   It.IsAny<AsyncEventHandler<ConnectionBlockedEventArgs>>(),
+               Times.AtLeastOnce);
+
+           connectionMock.VerifyRemove(
+               connection => connection.ConnectionUnblockedAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
+               Times.AtLeastOnce);
+
+           connectionMock.VerifyRemove(
+               connection => connection.RecoverySucceededAsync -= It.IsAny<AsyncEventHandler<AsyncEventArgs>>(),
+               Times.AtLeastOnce);
+
+           connectionMock.VerifyRemove(
+               connection => connection.RecoveringConsumerAsync -=
+                   It.IsAny<AsyncEventHandler<RecoveringConsumerEventArgs>>(),
+               Times.AtLeastOnce);
+
+           connectionMock.VerifyRemove(
+               connection => connection.ConnectionRecoveryErrorAsync -=
+                   It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>(),
+               Times.AtLeastOnce);
+       }
     }
 }

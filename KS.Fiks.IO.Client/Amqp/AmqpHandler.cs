@@ -27,6 +27,8 @@ namespace KS.Fiks.IO.Client.Amqp
         private IConnection _connection;
         private IChannel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
+        private Func<MottattMeldingArgs, Task> _receivedEvent;
+        private Func<ConsumerEventArgs, Task> _cancelledEvent;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -86,6 +88,9 @@ namespace KS.Fiks.IO.Client.Amqp
             Func<MottattMeldingArgs, Task> receivedEvent,
             Func<ConsumerEventArgs, Task> cancelledEvent)
         {
+            _receivedEvent = receivedEvent;
+            _cancelledEvent = cancelledEvent;
+
             _receiveConsumer ??= _amqpConsumerFactory.CreateReceiveConsumer(_channel);
 
             _receiveConsumer.ReceivedAsync += receivedEvent;
@@ -105,59 +110,28 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public async ValueTask DisposeAsync()
         {
-            try
-            {
-                if (_connection != null)
-                {
-                    UnsubscribeConnectionEvents();
-                }
 
-                if (_channel != null)
-                {
-                    await _channel.DisposeAsync().ConfigureAwait(false);
-                }
+                UnsubscribeConsumerEvents();
 
-                if (_connection != null)
-                {
-                    await _connection.DisposeAsync().ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error disposing AmqpHandler resources.");
-            }
+                UnsubscribeConnectionEvents();
+
+                await _channel.DisposeAsync().ConfigureAwait(false);
+
+                await _connection.DisposeAsync().ConfigureAwait(false);
         }
 
         private async Task ConnectAsync(AmqpConfiguration amqpConfiguration)
         {
-            try
-            {
-                _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
-                _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+            _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
+            _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
 
-                SubscribeConnectionEvents();
+            SubscribeConnectionEvents();
 
-                _logger?.LogDebug("Connected to AMQP.");
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Failed to connect to AMQP. Cleaning up resources...");
-
-                if (_connection == null)
-                {
-                    throw new FiksIOAmqpConnectionFailedException("Failed to connect to AMQP.", ex);
-                }
-
-                await _connection.DisposeAsync().ConfigureAwait(false);
-                _connection = null;
-
-                throw new FiksIOAmqpConnectionFailedException("Failed to connect to AMQP.", ex);
-            }
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         private void SubscribeConnectionEvents()
             {
-                _logger?.LogDebug("Subscribing to connection events.");
                 _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
                 _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
                 _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
@@ -168,13 +142,25 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private void UnsubscribeConnectionEvents()
         {
-            _logger?.LogDebug("Unsubscribing from connection events.");
             _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
             _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
             _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
             _connection.RecoverySucceededAsync -= _amqpWatcher.HandleRecoverySucceeded;
             _connection.RecoveringConsumerAsync -= _amqpWatcher.HandleRecoveringConsumer;
             _connection.ConnectionRecoveryErrorAsync -= _amqpWatcher.HandleConnectionRecoveryError;
+        }
+
+        private void UnsubscribeConsumerEvents()
+        {
+            if (_receivedEvent != null)
+            {
+                _receiveConsumer.ReceivedAsync -= _receivedEvent;
+            }
+
+            if (_cancelledEvent != null)
+            {
+                _receiveConsumer.ConsumerCancelledAsync -= _cancelledEvent;
+            }
         }
 
         private async Task<IChannel> ConnectToChannelAsync(AmqpConfiguration configuration)

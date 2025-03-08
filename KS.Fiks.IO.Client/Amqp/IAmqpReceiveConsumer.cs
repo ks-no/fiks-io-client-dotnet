@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
-    public interface IAmqpReceiveConsumer : IAsyncBasicConsumer
+    internal interface IAmqpReceiveConsumer : IAsyncBasicConsumer
     {
         event Func<MottattMeldingArgs, Task> ReceivedAsync;
 

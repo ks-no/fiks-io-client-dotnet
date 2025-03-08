@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Exceptions;
+using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Utility;
+using KS.Fiks.IO.Crypto.Asic;
 using Moq;
 using RabbitMQ.Client;
 using Shouldly;
@@ -18,12 +20,10 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 {
     public class AmqpReceiveConsumerTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
         private AmqpReceiveConsumerFixture _fixture;
 
         public AmqpReceiveConsumerTests(ITestOutputHelper testOutputHelper)
         {
-            _testOutputHelper = testOutputHelper;
             _fixture = new AmqpReceiveConsumerFixture();
         }
 
@@ -127,7 +127,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             var sut = await _fixture.CreateSutAsync();
 
-            IMottattMelding actualMelding = null;
+            IMottattMelding actualMelding = new MottattMelding(
+                hasPayload: true,
+                metadata: _fixture.DefaultMetadata,
+                 () => Task.FromResult<Stream>(new MemoryStream(new byte[1])),
+                decrypter: Mock.Of<IAsicDecrypter>(),
+                fileWriter: Mock.Of<IFileWriter>());
 
             Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
@@ -199,7 +204,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>)null);
             propertiesMock.Setup(_ => _.Expiration)
                 .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
@@ -234,7 +239,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
                 .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));

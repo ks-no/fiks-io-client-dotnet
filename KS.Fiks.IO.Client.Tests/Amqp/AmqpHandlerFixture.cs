@@ -10,6 +10,7 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -60,6 +61,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Mock<IConnection> ConnectionMock { get; } = new Mock<IConnection>();
 
+        public Mock<IChannel> ChannelMock { get; set; } = new Mock<IChannel>();
+
         internal Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; } = new Mock<IAmqpConsumerFactory>();
 
         internal Mock<IAmqpReceiveConsumer> AmqpReceiveConsumerMock { get; } = new Mock<IAmqpReceiveConsumer>();
@@ -96,8 +99,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private void SetupMocks()
         {
             ConnectionMock
-                .Setup(connection => connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Mock<IChannel>().Object);
+                .Setup(connection =>
+                    connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ChannelMock.Object);
             if (_connectionFactoryShouldThrow)
             {
                 ConnectionFactoryMock
@@ -123,14 +127,16 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             if (_connectionShouldThrow)
             {
                 ConnectionMock
-                    .Setup(connection => connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
-                    .ThrowsAsync(new ProtocolViolationException("Simulated channel creation failure"));
+                    .Setup(connection =>
+                        connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new ProtocolViolationException());
             }
             else
             {
                 ConnectionMock
-                    .Setup(connection => connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new Mock<IChannel>().Object);
+                    .Setup(connection =>
+                        connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(ChannelMock.Object);
             }
 
             AmqpConsumerFactoryMock
@@ -141,13 +147,13 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 .Setup(maskinportenClient => maskinportenClient.GetAccessToken(It.IsAny<string>()))
                 .ReturnsAsync(new MaskinportenToken(_token, 100));
 
-            // Mock the async ConsumerCancelledAsync invocation
             AmqpReceiveConsumerMock
-                .SetupAdd(amqpReceiveConsumer => amqpReceiveConsumer.ConsumerCancelledAsync += It.IsAny<Func<ConsumerEventArgs, Task>>());
+                .SetupAdd(amqpReceiveConsumer =>
+                    amqpReceiveConsumer.ConsumerCancelledAsync += It.IsAny<Func<ConsumerEventArgs, Task>>());
 
-            // Mock the async ReceivedAsync event subscription
             AmqpReceiveConsumerMock
-                .SetupAdd(amqpReceiveConsumer => amqpReceiveConsumer.ReceivedAsync += It.IsAny<Func<MottattMeldingArgs, Task>>());
+                .SetupAdd(amqpReceiveConsumer =>
+                    amqpReceiveConsumer.ReceivedAsync += It.IsAny<Func<MottattMeldingArgs, Task>>());
         }
 
         private IntegrasjonConfiguration CreateIntegrationConfiguration()
