@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
@@ -30,7 +31,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public async Task GetCredentialsAsync_ShouldHandleExceptionsGracefully()
+        public async Task GetCredentialsAsyncShouldHandleExceptions()
         {
             var sut = _fixture.WithTokenRetrievalException().CreateSut();
 
@@ -38,24 +39,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public async Task ExpiredToken_ShouldRequestNewTokenAsync()
-        {
-            var expiredToken = "expiredToken";
-            var newToken = "newValidToken";
-
-            var sut = _fixture
-                .WithMaskinportenToken(expiredToken, -10)
-                .WithNewToken(newToken)
-                .CreateSut();
-            await sut.GetCredentialsAsync();
-
-            var credentials = await sut.GetCredentialsAsync();
-
-            Assert.Equal($"{_fixture.IntegrationPassword} {newToken}", credentials.Password);
-        }
-
-        [Fact]
-        public async Task GetCredentialsAsync_ReturnsCorrectCredentials()
+        public async Task GetCredentialsAsyncReturnsCorrectCredentials()
         {
             var password = "myIntegrationPassword";
             var token = "maskinportenExpectedToken";
@@ -65,6 +49,45 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             Assert.Equal($"{password} {token}", credentials.Password);
             Assert.Equal(_fixture.IntegrationId.ToString(), credentials.UserName);
+        }
+
+        [Fact]
+        public async Task ShouldRetrieveNewTokenWhenExpired()
+        {
+            var expiredToken = "expiredToken";
+            var newToken = "newValidToken";
+
+            var sut = _fixture
+                .WithMaskinportenToken(expiredToken, -10)
+                .WithNewMaskinportenToken(newToken)
+                .CreateSut();
+
+            var credentials = await sut.GetCredentialsAsync();
+            Assert.Equal($"{_fixture.IntegrationPassword} {expiredToken}", credentials.Password);
+
+            credentials = await sut.GetCredentialsAsync();
+            Assert.Equal($"{_fixture.IntegrationPassword} {newToken}", credentials.Password);
+
+            _fixture.MaskinportenClientMock.Verify(client => client.GetAccessToken(It.IsAny<string>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task ShouldRetrieveNewTokenWhenRefreshed()
+        {
+            var expiredToken = "expiredToken";
+            var newToken = "newValidToken";
+
+            var sut = _fixture
+                .WithMaskinportenToken(expiredToken)
+                .WithNewMaskinportenToken(newToken)
+                .CreateSut();
+
+            var credentials = await sut.GetCredentialsAsync();
+            Assert.Equal($"{_fixture.IntegrationPassword} {expiredToken}", credentials.Password);
+
+            await sut.RefreshAsync();
+            credentials = await sut.GetCredentialsAsync();
+            Assert.Equal($"{_fixture.IntegrationPassword} {newToken}", credentials.Password);
         }
     }
 }

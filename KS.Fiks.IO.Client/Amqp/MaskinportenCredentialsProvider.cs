@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
@@ -11,13 +10,12 @@ namespace KS.Fiks.IO.Client.Amqp
 {
     public class MaskinportenCredentialsProvider : ICredentialsProvider
     {
-        private const int TokenRetrievalTimeout = 5000;
+        private const int TokenRetrievalTimeout = 5;
         private static ILogger<MaskinportenCredentialsProvider> _logger;
         private readonly IMaskinportenClient _maskinportenClient;
         private readonly IntegrasjonConfiguration _integrasjonConfiguration;
-        private ReaderWriterLock _lock = new ReaderWriterLock();
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private MaskinportenToken _maskinportenToken;
-        private ICredentialsProvider _credentialsProviderImplementation;
 
         public MaskinportenCredentialsProvider(string name, IMaskinportenClient maskinportenClient, IntegrasjonConfiguration integrasjonConfiguration, ILoggerFactory loggerFactory = null)
         {
@@ -32,7 +30,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public async Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default)
         {
-            var token = await CheckState().ConfigureAwait(false);
+            var token = await CheckStateAsync(cancellationToken).ConfigureAwait(false);
             var password = $"{_integrasjonConfiguration.IntegrasjonPassord} {token.Token}";
 
             return new Credentials(Name, UserName, password, ValidUntil);
@@ -40,60 +38,50 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public string Name { get; }
 
-        public string UserName => _integrasjonConfiguration.IntegrasjonId.ToString();
-
+        private string UserName => _integrasjonConfiguration.IntegrasjonId.ToString();
 
         public TimeSpan? ValidUntil { get; }
 
-        public void Refresh()
+        public async Task RefreshAsync()
         {
-            _logger.LogDebug("Refresh start");
-            RetrieveToken();
+            _logger?.LogDebug("Refreshing token...");
+            await RetrieveToken().ConfigureAwait(false);
         }
 
-        private async Task<MaskinportenToken> CheckState()
+        private async Task<MaskinportenToken> CheckStateAsync(CancellationToken cancellationToken)
         {
-            _lock.AcquireReaderLock(TokenRetrievalTimeout);
+            await _lock.WaitAsync(TimeSpan.FromSeconds(TokenRetrievalTimeout), cancellationToken).ConfigureAwait(false);
             try
             {
                 if (_maskinportenToken != null && !_maskinportenToken.IsExpiring())
                 {
                     return _maskinportenToken;
                 }
+
+                return await RetrieveToken().ConfigureAwait(false);
             }
             finally
             {
-                _lock.ReleaseReaderLock();
-            }
-
-            return await RetrieveToken().ConfigureAwait(false);
-        }
-
-        private Task<MaskinportenToken> RetrieveToken()
-        {
-            _lock.AcquireWriterLock(TokenRetrievalTimeout);
-            try
-            {
-                return RequestOrRenewToken();
-            }
-            finally
-            {
-                _lock.ReleaseReaderLock();
+                _lock.Release();
             }
         }
 
-        private async Task<MaskinportenToken> RequestOrRenewToken()
+        private async Task<MaskinportenToken> RetrieveToken()
         {
             try
             {
+                _logger?.LogInformation("Requesting new Maskinporten token...");
                 _maskinportenToken = await _maskinportenClient
                     .GetAccessToken(_integrasjonConfiguration.Scope)
                     .ConfigureAwait(false);
+
+                _logger?.LogInformation("Successfully retrieved new Maskinporten token.");
                 return _maskinportenToken;
             }
             catch (Exception ex)
             {
-                throw new Exception("Token retrieval failed", ex);
+                _logger?.LogError(ex, "Failed to retrieve Maskinporten token.");
+                throw;
             }
         }
     }

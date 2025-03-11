@@ -22,7 +22,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
         private readonly KontoConfiguration _kontoConfiguration;
         private readonly SslOption _sslOption;
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly AmqpConnectionManager _connectionManager;
         private readonly IAmqpWatcher _amqpWatcher;
         private IConnection _connection;
         private IChannel _channel;
@@ -42,23 +42,23 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null,
             IAmqpWatcher amqpWatcher = null)
         {
-            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            _kontoConfiguration = kontoConfiguration;
-            _connectionFactory = connectionFactory ?? new ConnectionFactory
-            {
-                CredentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
-            };
-
-            if (!string.IsNullOrEmpty(amqpConfiguration.Vhost))
-            {
-                _connectionFactory.VirtualHost = amqpConfiguration.Vhost;
-            }
-
-
             if (loggerFactory != null)
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
             }
+
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            _kontoConfiguration = kontoConfiguration;
+            _connectionManager = new AmqpConnectionManager(
+                connectionFactory ?? new ConnectionFactory
+                {
+                    CredentialsProvider = new MaskinportenCredentialsProvider(
+                        "TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
+                },
+                amqpConfiguration,
+                bucketSize: 5,
+                tokenFillRate: TimeSpan.FromSeconds(2),
+                loggerFactory);
 
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
 
@@ -179,19 +179,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task<IConnection> CreateConnectionAsync(AmqpConfiguration configuration)
         {
-            try
-            {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                return await _connectionFactory
-                    .CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new FiksIOAmqpConnectionFailedException(
-                    $"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}",
-                    ex);
-            }
+            return await _connectionManager.CreateConnectionAsync(configuration).ConfigureAwait(false);
         }
 
         private string GetQueueName()
