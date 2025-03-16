@@ -29,22 +29,33 @@ namespace KS.Fiks.IO.Client.Models
             _decrypter = decrypter;
             _fileWriter = fileWriter;
             KlientMeldingId = ExtractKlientMeldingId();
+            KlientKorrelasjonsId = ExtractKlientKorrelasjonsId();
         }
 
         private Guid? ExtractKlientMeldingId()
         {
-            if (Headere == null || !Headere.ContainsKey(headerKlientMeldingId))
+            if (Headere == null || !Headere.ContainsKey(HeaderKlientMeldingId))
             {
                 return null;
             }
 
             var parsed = Guid.Empty;
-            if (Guid.TryParse(Headere[headerKlientMeldingId], out parsed))
+            if (Guid.TryParse(Headere[HeaderKlientMeldingId], out parsed))
             {
                 return parsed;
             }
 
             return parsed;
+        }
+
+        private string ExtractKlientKorrelasjonsId()
+        {
+            if (Headere == null || !Headere.ContainsKey(HeaderKlientKorrelasjonsId))
+            {
+                return null;
+            }
+
+            return Headere[HeaderKlientKorrelasjonsId];
         }
 
         public bool HasPayload { get; }

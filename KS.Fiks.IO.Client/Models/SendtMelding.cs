@@ -9,11 +9,11 @@ namespace KS.Fiks.IO.Client.Models
         public static SendtMelding FromSentMessageApiModel(SendtMeldingApiModel sendtMeldingApiModel)
         {
             Guid? klientMeldingId = null;
-            if (sendtMeldingApiModel.Headere != null && sendtMeldingApiModel.Headere.ContainsKey(headerKlientMeldingId))
+            if (sendtMeldingApiModel.Headere != null && sendtMeldingApiModel.Headere.TryGetValue(HeaderKlientMeldingId, out var klientMeldingIdValue))
             {
                 try
                 {
-                    klientMeldingId = Guid.Parse(sendtMeldingApiModel.Headere[headerKlientMeldingId]);
+                    klientMeldingId = Guid.Parse(klientMeldingIdValue);
                 }
                 catch (Exception e)
                 {
@@ -21,9 +21,16 @@ namespace KS.Fiks.IO.Client.Models
                 }
             }
 
+            string klientKorrelasjonsId = null;
+            if (sendtMeldingApiModel.Headere != null && sendtMeldingApiModel.Headere.TryGetValue(HeaderKlientKorrelasjonsId, out var klientKorrelasjonsIdValue))
+            {
+                klientKorrelasjonsId = klientKorrelasjonsIdValue;
+            }
+
             return new SendtMelding(
                 sendtMeldingApiModel.MeldingId,
                 klientMeldingId,
+                klientKorrelasjonsId,
                 sendtMeldingApiModel.MeldingType,
                 sendtMeldingApiModel.AvsenderKontoId,
                 sendtMeldingApiModel.MottakerKontoId,
@@ -35,13 +42,14 @@ namespace KS.Fiks.IO.Client.Models
         internal SendtMelding(
             Guid meldingId,
             Guid? klientMeldingId,
+            string klientKorrelasjonsId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
             TimeSpan ttl,
             Dictionary<string, string> headere,
             Guid? svarPaMelding=null)
-            : base(meldingId, klientMeldingId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
+            : base(meldingId, klientMeldingId, klientKorrelasjonsId, meldingType, avsenderKontoId, mottakerKontoId, ttl, svarPaMelding: svarPaMelding)
         {
         }
     }

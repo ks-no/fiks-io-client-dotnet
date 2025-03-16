@@ -5,7 +5,8 @@ namespace KS.Fiks.IO.Client.Models
 {
     public abstract class MeldingBase : IMelding
     {
-        public const string headerKlientMeldingId = "klientMeldingId";
+        public const string HeaderKlientMeldingId = "klientMeldingId";
+        public const string HeaderKlientKorrelasjonsId = "klientKorrelasjonsId";
 
         protected MeldingBase()
         {
@@ -14,6 +15,7 @@ namespace KS.Fiks.IO.Client.Models
         protected MeldingBase(
             Guid meldingId,
             Guid? klientMeldingId,
+            string klientKorrelasjonsId,
             string meldingType,
             Guid avsenderKontoId,
             Guid mottakerKontoId,
@@ -24,6 +26,7 @@ namespace KS.Fiks.IO.Client.Models
         {
             MeldingId = meldingId;
             KlientMeldingId = klientMeldingId;
+            KlientKorrelasjonsId = klientKorrelasjonsId;
             MeldingType = meldingType;
             AvsenderKontoId = avsenderKontoId;
             MottakerKontoId = mottakerKontoId;
@@ -37,6 +40,7 @@ namespace KS.Fiks.IO.Client.Models
         {
             MeldingId = melding.MeldingId;
             KlientMeldingId = melding.KlientMeldingId;
+            KlientKorrelasjonsId = melding.KlientKorrelasjonsId;
             MeldingType = melding.MeldingType;
             AvsenderKontoId = melding.AvsenderKontoId;
             MottakerKontoId = melding.MottakerKontoId;
@@ -48,6 +52,8 @@ namespace KS.Fiks.IO.Client.Models
         public Guid MeldingId { get; protected set; }
 
         public Guid? KlientMeldingId { get; protected set; }
+
+        public string KlientKorrelasjonsId { get; protected set; }
 
         public string MeldingType { get; protected set; }
 
