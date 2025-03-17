@@ -22,15 +22,13 @@ namespace KS.Fiks.IO.Client.Amqp
         public AmqpConnectionManager(
             IConnectionFactory connectionFactory,
             AmqpConfiguration amqpConfiguration,
-            int bucketSize = 5,
-            TimeSpan? tokenFillRate = null,
             ILoggerFactory loggerFactory = null)
         {
             _connectionFactory = connectionFactory;
             _sslOption = amqpConfiguration.SslOption;
-            _bucketSize = bucketSize;
-            _tokenFillRate = tokenFillRate ?? TimeSpan.FromSeconds(1);
-            _tokenBucket = new SemaphoreSlim(bucketSize, bucketSize);
+            _bucketSize = amqpConfiguration.RateLimitConfiguration.BucketSize;
+            _tokenFillRate = amqpConfiguration.RateLimitConfiguration.TokenRefillInterval;
+            _tokenBucket = new SemaphoreSlim(_bucketSize, _bucketSize);
             _logger = loggerFactory?.CreateLogger("AmqpConnectionManager");
 
             if (!string.IsNullOrEmpty(amqpConfiguration.Vhost))
@@ -39,13 +37,12 @@ namespace KS.Fiks.IO.Client.Amqp
                 _logger?.LogInformation("Set VirtualHost to {Vhost}", amqpConfiguration.Vhost);
             }
 
-            _logger?.LogInformation("Initializing AmqpConnectionManager with bucketSize={BucketSize} and tokenFillRate={TokenFillRate}", _bucketSize, _tokenFillRate);
             StartTokenRefill();
         }
 
         private void StartTokenRefill()
         {
-            _logger?.LogInformation("Starting token refill process");
+            _logger?.LogInformation("Amqp rate limiting configured: BucketSize={BucketSize}, TokenRefillInterval={RefillInterval}", _bucketSize, _tokenFillRate);
             Task.Run(
                 async () =>
             {
@@ -73,7 +70,13 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             try
             {
-                _logger?.LogInformation("Waiting for token to create connection");
+                _logger?.LogInformation("Waiting for token to create connection...");
+
+                if (_tokenBucket.CurrentCount == 0)
+                {
+                    _logger?.LogWarning("Too many connection attempts. Rate limiting active.");
+                }
+
                 await _tokenBucket.WaitAsync().ConfigureAwait(false);
                 _logger?.LogDebug("Token acquired, proceeding to create connection");
 

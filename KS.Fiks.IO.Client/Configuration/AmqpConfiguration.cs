@@ -8,7 +8,14 @@ namespace KS.Fiks.IO.Client.Configuration
         public const string ProdHost = "io.fiks.ks.no";
         public const string TestHost = "io.fiks.test.ks.no";
 
-        public AmqpConfiguration(string host, int port = 5671, SslOption sslOption = null, string applicationName = "Fiks IO klient (dotnet)", ushort prefetchCount = 10, string vhost = null)
+        public AmqpConfiguration(
+            string host,
+            int port = 5671,
+            SslOption sslOption = null,
+            string applicationName = "Fiks IO klient (dotnet)",
+            ushort prefetchCount = 10,
+            string vhost = null,
+            RateLimitConfiguration rateLimitConfiguration = null)
         {
             Host = host;
             Port = port;
@@ -21,6 +28,7 @@ namespace KS.Fiks.IO.Client.Configuration
             };
             ApplicationName = applicationName;
             PrefetchCount = prefetchCount;
+            RateLimitConfiguration = rateLimitConfiguration ?? new RateLimitConfiguration();
         }
 
         public string Host { get; }
@@ -41,14 +49,16 @@ namespace KS.Fiks.IO.Client.Configuration
          */
         public ushort PrefetchCount { get; }
 
-        public static AmqpConfiguration CreateProdConfiguration(string applicationName = null)
+        public RateLimitConfiguration RateLimitConfiguration { get; }
+
+        public static AmqpConfiguration CreateProdConfiguration(string applicationName = null, RateLimitConfiguration rateLimitConfiguration = null)
         {
-            return new AmqpConfiguration(ProdHost, applicationName: applicationName);
+            return new AmqpConfiguration(ProdHost, applicationName: applicationName, rateLimitConfiguration: rateLimitConfiguration);
         }
 
-        public static AmqpConfiguration CreateTestConfiguration(string applicationName = null)
+        public static AmqpConfiguration CreateTestConfiguration(string applicationName = null, RateLimitConfiguration rateLimitConfiguration = null)
         {
-            return new AmqpConfiguration(TestHost, applicationName: applicationName);
+            return new AmqpConfiguration(TestHost, applicationName: applicationName, rateLimitConfiguration: rateLimitConfiguration);
         }
     }
 }

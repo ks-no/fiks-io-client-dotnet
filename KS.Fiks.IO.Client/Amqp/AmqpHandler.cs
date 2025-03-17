@@ -56,8 +56,6 @@ namespace KS.Fiks.IO.Client.Amqp
                         "TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
                 },
                 amqpConfiguration,
-                bucketSize: 5,
-                tokenFillRate: TimeSpan.FromSeconds(2),
                 loggerFactory);
 
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
