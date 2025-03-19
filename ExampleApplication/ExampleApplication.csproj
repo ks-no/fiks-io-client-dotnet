@@ -35,10 +35,6 @@
       <Content Include="appsettings.Development.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
-      <None Remove="appsettings.Test.json" />
-      <Content Include="appsettings.Test.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
   
     <ItemGroup>
