@@ -30,7 +30,8 @@ public class AmqpConnectionManagerTests
             rateLimitConfiguration: new RateLimitConfiguration(2, TimeSpan.FromSeconds(2)));
 
         _connectionFactoryMock
-            .Setup(cf => cf.CreateConnectionAsync(It.IsAny<List<AmqpTcpEndpoint>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(cf => cf.CreateConnectionAsync(It.IsAny<List<AmqpTcpEndpoint>>(), It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(connectionMock.Object);
     }
 
@@ -40,6 +41,7 @@ public class AmqpConnectionManagerTests
         var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _defaultAmqpConfiguration);
 
         var immediateSuccessCount = 0;
+        var immediateFailCount = 0;
         var tasks = new List<Task>();
 
         for (var i = 0; i < 6; i++)
@@ -51,11 +53,16 @@ public class AmqpConnectionManagerTests
             {
                 immediateSuccessCount++;
             }
+            else
+            {
+                immediateFailCount++;
+            }
         }
 
         await Task.WhenAll(tasks);
 
         Assert.Equal(5, immediateSuccessCount);
+        Assert.Equal(1, immediateFailCount);
     }
 
     [Fact]
@@ -63,6 +70,7 @@ public class AmqpConnectionManagerTests
     {
         var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _customRateLimitConfig);
         var successfulConnections = 0;
+        var failedConnections = 0;
 
         for (var i = 0; i < 2; i++)
         {
@@ -70,6 +78,10 @@ public class AmqpConnectionManagerTests
             if (task.IsCompletedSuccessfully)
             {
                 successfulConnections++;
+            }
+            else
+            {
+                failedConnections++;
             }
         }
 
@@ -85,11 +97,15 @@ public class AmqpConnectionManagerTests
             {
                 successfulConnections++;
             }
+            else
+            {
+                failedConnections++;
+            }
         }
 
         await Task.WhenAll(delayedTasks);
 
-        await Task.Delay(TimeSpan.FromSeconds(4));
+        await Task.Delay(TimeSpan.FromSeconds(5));
 
         for (var i = 0; i < 2; i++)
         {
@@ -98,8 +114,13 @@ public class AmqpConnectionManagerTests
             {
                 successfulConnections++;
             }
+            else
+            {
+                failedConnections++;
+            }
         }
 
         Assert.Equal(4, successfulConnections);
+        Assert.Equal(2, failedConnections);
     }
 }

@@ -27,9 +27,7 @@ namespace ExampleApplication.FiksIO
         {
             Log.Information("FiksIOSubscriber - Application is starting subscribe");
             
-            SubscribeToFiksIOClient();
-
-            await Task.CompletedTask;
+            await SubscribeToFiksIOClient();
         }
 
         private async Task OnReceivedMelding(MottattMeldingArgs mottatt)
@@ -113,11 +111,11 @@ namespace ExampleApplication.FiksIO
             return payloadTxt;
         }
 
-        private void SubscribeToFiksIOClient()
+     private async Task SubscribeToFiksIOClient()
         {
             var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
             Log.Information($"FiksIOSubscriber - Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
-            _fiksIoClient.NewSubscriptionAsync(OnReceivedMelding);
+            await _fiksIoClient.NewSubscriptionAsync(OnReceivedMelding);
         }
     }
 }
