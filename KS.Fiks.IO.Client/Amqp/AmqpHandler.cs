@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Authentication;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -22,13 +22,13 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly IAmqpConsumerFactory _amqpConsumerFactory;
         private readonly KontoConfiguration _kontoConfiguration;
         private readonly SslOption _sslOption;
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly AmqpConnectionManager _connectionManager;
         private readonly IAmqpWatcher _amqpWatcher;
         private IConnection _connection;
-        private IModel _channel;
+        private IChannel _channel;
         private IAmqpReceiveConsumer _receiveConsumer;
-        private EventHandler<MottattMeldingArgs> _receivedEvent;
-        private EventHandler<ConsumerEventArgs> _cancelledEvent;
+        private Func<MottattMeldingArgs, Task> _receivedEvent;
+        private Func<ConsumerEventArgs, Task> _cancelledEvent;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -42,26 +42,25 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null,
             IAmqpWatcher amqpWatcher = null)
         {
-            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
-            _kontoConfiguration = kontoConfiguration;
-            _connectionFactory = connectionFactory ?? new ConnectionFactory
-            {
-                CredentialsProvider = new MaskinportenCredentialsProvider("TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
-            };
-
-            if (!string.IsNullOrEmpty(amqpConfiguration.Vhost))
-            {
-                _connectionFactory.VirtualHost = amqpConfiguration.Vhost;
-            }
-
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _kontoConfiguration);
-
             if (loggerFactory != null)
             {
                 _logger = loggerFactory.CreateLogger<AmqpHandler>();
             }
 
+            _sslOption = amqpConfiguration.SslOption ?? new SslOption();
+            _kontoConfiguration = kontoConfiguration;
+            _connectionManager = new AmqpConnectionManager(
+                connectionFactory ?? new ConnectionFactory
+                {
+                    CredentialsProvider = new MaskinportenCredentialsProvider(
+                        "TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
+                },
+                amqpConfiguration,
+                loggerFactory);
+
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
+
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _amqpWatcher, _kontoConfiguration);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -77,88 +76,97 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpWatcher amqpWatcher = null)
         {
             var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
-            await amqpHandler.Connect(amqpConfiguration).ConfigureAwait(false);
+            await amqpHandler.ConnectAsync(amqpConfiguration).ConfigureAwait(false);
 
-             _logger?.LogDebug("AmqpHandler CreateAsync done");
+            _logger?.LogDebug("AmqpHandler CreateAsync done");
             return amqpHandler;
         }
 
-        public void AddMessageReceivedHandler(
-            EventHandler<MottattMeldingArgs> receivedEvent,
-            EventHandler<ConsumerEventArgs> cancelledEvent)
+        public async Task AddMessageReceivedHandlerAsync(
+            Func<MottattMeldingArgs, Task> receivedEvent,
+            Func<ConsumerEventArgs, Task> cancelledEvent)
         {
-            _cancelledEvent = cancelledEvent;
             _receivedEvent = receivedEvent;
+            _cancelledEvent = cancelledEvent;
 
-            if (_receiveConsumer == null)
+            _receiveConsumer ??= _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+
+            _receiveConsumer.ReceivedAsync += receivedEvent;
+            _receiveConsumer.ConsumerCancelledAsync += cancelledEvent;
+
+            await _channel.BasicConsumeAsync(
+                queue: GetQueueName(),
+                autoAck: false,
+                consumer: _receiveConsumer,
+                cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        }
+
+        public Task<bool> IsOpenAsync()
+        {
+            return Task.FromResult(_channel is { IsOpen: true } && _connection is { IsOpen: true });
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+
+                UnsubscribeConsumerEvents();
+
+                UnsubscribeConnectionEvents();
+
+                await _channel.DisposeAsync().ConfigureAwait(false);
+
+                await _connection.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task ConnectAsync(AmqpConfiguration amqpConfiguration)
+        {
+            _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
+            _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+
+            SubscribeConnectionEvents();
+
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+
+        private void SubscribeConnectionEvents()
             {
-                _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+                _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
+                _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
+                _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
+                _connection.RecoverySucceededAsync += _amqpWatcher.HandleRecoverySucceeded;
+                _connection.RecoveringConsumerAsync += _amqpWatcher.HandleRecoveringConsumer;
+                _connection.ConnectionRecoveryErrorAsync += _amqpWatcher.HandleConnectionRecoveryError;
             }
 
-            _receiveConsumer.Received += receivedEvent;
-            _receiveConsumer.ConsumerCancelled += cancelledEvent;
-
-            _channel.BasicConsume(_receiveConsumer, GetQueueName());
+        private void UnsubscribeConnectionEvents()
+        {
+            _connection.ConnectionShutdownAsync -= _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlockedAsync -= _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblockedAsync -= _amqpWatcher.HandleConnectionUnblocked;
+            _connection.RecoverySucceededAsync -= _amqpWatcher.HandleRecoverySucceeded;
+            _connection.RecoveringConsumerAsync -= _amqpWatcher.HandleRecoveringConsumer;
+            _connection.ConnectionRecoveryErrorAsync -= _amqpWatcher.HandleConnectionRecoveryError;
         }
 
-        public void Dispose()
+        private void UnsubscribeConsumerEvents()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public bool IsOpen()
-        {
-            _logger?.LogDebug($"IsOpen status _channel: {_channel} and _connection: {_connection}");
-            return _channel != null && _channel.IsOpen && _connection != null && _connection.IsOpen;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing)
-            {
-                return;
-            }
-
-            // Unsubscribe consumer events
             if (_receivedEvent != null)
             {
-                _receiveConsumer.Received -= _receivedEvent;
+                _receiveConsumer.ReceivedAsync -= _receivedEvent;
             }
 
             if (_cancelledEvent != null)
             {
-                _receiveConsumer.ConsumerCancelled -= _cancelledEvent;
+                _receiveConsumer.ConsumerCancelledAsync -= _cancelledEvent;
             }
-
-            // Unsubscribe events for logging of RabbitMQ events
-            _connection.ConnectionShutdown -= _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlocked -= _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblocked -= _amqpWatcher.HandleConnectionUnblocked;
-
-            _channel.Dispose();
-            _connection.Dispose();
         }
 
-        private Task Connect(AmqpConfiguration amqpConfiguration)
-        {
-            _connection = CreateConnection(amqpConfiguration);
-            _channel = ConnectToChannel(amqpConfiguration);
-
-            // Handle events for logging of RabbitMQ events
-            _connection.ConnectionShutdown += _amqpWatcher.HandleConnectionShutdown;
-            _connection.ConnectionBlocked += _amqpWatcher.HandleConnectionBlocked;
-            _connection.ConnectionUnblocked += _amqpWatcher.HandleConnectionUnblocked;
-
-            return Task.CompletedTask;
-        }
-
-        private IModel ConnectToChannel(AmqpConfiguration configuration)
+        private async Task<IChannel> ConnectToChannelAsync(AmqpConfiguration configuration)
         {
             try
             {
-                var channel = _connection.CreateModel();
-                channel.BasicQos(0, configuration.PrefetchCount, false);
+                var channel = await _connection.CreateChannelAsync().ConfigureAwait(false);
+                await channel.BasicQosAsync(0, configuration.PrefetchCount, false).ConfigureAwait(false);
                 return channel;
             }
             catch (Exception ex)
@@ -167,18 +175,9 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private IConnection CreateConnection(AmqpConfiguration configuration)
+        private async Task<IConnection> CreateConnectionAsync(AmqpConfiguration configuration)
         {
-            try
-            {
-                var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
-                var connection = _connectionFactory.CreateConnection(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName);
-                return connection;
-            }
-            catch (Exception ex)
-            {
-                throw new FiksIOAmqpConnectionFailedException($"Unable to create connection. Host: {configuration.Host}; Port: {configuration.Port}; UserName:{_connectionFactory.UserName}; SslOption.Enabled: {_sslOption?.Enabled};SslOption.ServerName: {_sslOption?.ServerName}", ex);
-            }
+            return await _connectionManager.CreateConnectionAsync(configuration).ConfigureAwait(false);
         }
 
         private string GetQueueName()

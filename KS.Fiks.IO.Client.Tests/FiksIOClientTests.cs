@@ -175,29 +175,28 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
-        public void NewSubscriptionCallsAmqpHandlerWithOnReceived()
+        public async Task NewSubscriptionAsyncCallsAmqpHandlerWithOnlyOnReceived()
         {
             var sut = _fixture.CreateSut();
 
-            var onReceived = new EventHandler<MottattMeldingArgs>((a, b) => { });
+            var onReceived = new Func<MottattMeldingArgs, Task>(msg => Task.CompletedTask);
 
-            sut.NewSubscription(onReceived);
+            await sut.NewSubscriptionAsync(onReceived);
 
-            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandler(onReceived, null));
+            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandlerAsync(onReceived, It.IsAny<Func<ConsumerEventArgs, Task>>()), Times.Once);
         }
 
         [Fact]
-        public void NewSubscriptionCallsAmqpHandlerWithOnReceivedAndOnCanceled()
+        public async Task NewSubscriptionAsyncCallsAmqpHandlerWithOnReceivedAndOnCanceled()
         {
             var sut = _fixture.CreateSut();
 
-            var onReceived = new EventHandler<MottattMeldingArgs>((a, b) => { });
+            var onReceived = new Func<MottattMeldingArgs, Task>(msg => Task.CompletedTask);
+            var onCanceled = new Func<ConsumerEventArgs, Task>(args => Task.CompletedTask);
 
-            var onCanceled = new EventHandler<ConsumerEventArgs>((a, b) => { });
+            await sut.NewSubscriptionAsync(onReceived, onCanceled);
 
-            sut.NewSubscription(onReceived, onCanceled);
-
-            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandler(onReceived, onCanceled));
+            _fixture.AmqpHandlerMock.Verify(_ => _.AddMessageReceivedHandlerAsync(onReceived, onCanceled), Times.Once);
         }
 
         [Fact]

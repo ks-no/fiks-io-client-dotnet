@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Utility
 
         internal static MottattMeldingMetadata Parse(
             Guid receiverAccountId,
-            IBasicProperties properties,
+            IReadOnlyBasicProperties properties,
             bool resendt)
         {
             var headers = properties?.Headers;

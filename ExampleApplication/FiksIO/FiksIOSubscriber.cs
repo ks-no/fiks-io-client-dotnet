@@ -27,12 +27,10 @@ namespace ExampleApplication.FiksIO
         {
             Log.Information("FiksIOSubscriber - Application is starting subscribe");
             
-            SubscribeToFiksIOClient();
-
-            await Task.CompletedTask;
+            await SubscribeToFiksIOClient();
         }
 
-        private async void OnReceivedMelding(object sender, MottattMeldingArgs mottatt)
+        private async Task OnReceivedMelding(MottattMeldingArgs mottatt)
         {
             var receivedMeldingType = mottatt.Melding.MeldingType;
             var konto = await _fiksIoClient.GetKonto(mottatt.Melding.AvsenderKontoId);
@@ -86,7 +84,7 @@ namespace ExampleApplication.FiksIO
                 }
             }
 
-            mottatt.SvarSender.Ack(); 
+            await mottatt.SvarSender.AckAsync(); 
         }
 
         private static async Task<string> GetDecryptedPayloadTxt(MottattMeldingArgs mottattMeldingArgs)
@@ -113,11 +111,11 @@ namespace ExampleApplication.FiksIO
             return payloadTxt;
         }
 
-        private void SubscribeToFiksIOClient()
+     private async Task SubscribeToFiksIOClient()
         {
             var accountId = _appSettings.FiksIOConfig.FiksIoAccountId;
             Log.Information($"FiksIOSubscriber - Starting FiksIOReceiveAndReplySubscriber subscribe on account {accountId}...");
-            _fiksIoClient.NewSubscription(OnReceivedMelding);
+            await _fiksIoClient.NewSubscriptionAsync(OnReceivedMelding);
         }
     }
 }

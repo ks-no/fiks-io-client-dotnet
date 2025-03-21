@@ -9,7 +9,7 @@ using RabbitMQ.Client.Events;
 
 namespace KS.Fiks.IO.Client
 {
-    public interface IFiksIOClient : IDisposable
+    public interface IFiksIOClient : IAsyncDisposable
     {
         Guid KontoId { get; }
 
@@ -29,10 +29,8 @@ namespace KS.Fiks.IO.Client
 
         Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename);
 
-        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding);
+        Task NewSubscriptionAsync(Func<MottattMeldingArgs, Task> onMottattMelding, Func<ConsumerEventArgs, Task> onCanceled = null);
 
-        void NewSubscription(EventHandler<MottattMeldingArgs> onMottattMelding, EventHandler<ConsumerEventArgs> onCanceled);
-
-        bool IsOpen();
+        Task<bool> IsOpenAsync();
     }
 }

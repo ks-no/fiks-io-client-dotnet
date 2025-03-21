@@ -19,11 +19,14 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private readonly IDokumentlagerHandler _dokumentlagerHandler;
 
+        private readonly IAmqpWatcher _amqpWatcher;
+
         private readonly Guid _accountId;
 
         public AmqpConsumerFactory(
             ISendHandler sendHandler,
             IDokumentlagerHandler dokumentlagerHandler,
+            IAmqpWatcher amqpWatcher,
             KontoConfiguration kontoConfiguration)
         {
             _dokumentlagerHandler = dokumentlagerHandler;
@@ -31,12 +34,13 @@ namespace KS.Fiks.IO.Client.Amqp
             _decrypter = new AsicDecrypter(DecryptionService.Create(kontoConfiguration.PrivatNokler));
 
             _sendHandler = sendHandler;
+            _amqpWatcher = amqpWatcher;
             _accountId = kontoConfiguration.KontoId;
         }
 
-        public IAmqpReceiveConsumer CreateReceiveConsumer(IModel channel)
+        public IAmqpReceiveConsumer CreateReceiveConsumer(IChannel channel)
         {
-            return new AmqpReceiveConsumer(channel, _dokumentlagerHandler, _fileWriter, _decrypter, _sendHandler, _accountId);
+            return new AmqpReceiveConsumer(channel, _dokumentlagerHandler, _fileWriter, _decrypter, _sendHandler, _amqpWatcher, _accountId);
         }
     }
 }

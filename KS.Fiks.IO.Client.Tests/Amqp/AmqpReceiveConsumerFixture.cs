@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Dokumentlager;
@@ -18,17 +19,18 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
     {
         private const string DokumentlagerHeaderName = "dokumentlager-id";
 
-        private Mock<IBasicProperties> _defaultProperties;
+        private Mock<IReadOnlyBasicProperties> _defaultProperties;
 
         private bool _shouldUseDokumentlager = false;
 
         public AmqpReceiveConsumerFixture()
         {
-            ModelMock = new Mock<IModel>();
+            ChannelMock = new Mock<IChannel>();
             DokumentlagerHandler = new Mock<IDokumentlagerHandler>();
             FileWriterMock = new Mock<IFileWriter>();
             AsicDecrypterMock = new Mock<IAsicDecrypter>();
             SendHandlerMock = new Mock<ISendHandler>();
+            AmqpWatcher = new Mock<IAmqpWatcher>();
             DefaultMetadata = new MottattMeldingMetadata(
                 Guid.NewGuid(),
                 "TestType",
@@ -41,11 +43,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public Stream DokumentlagerOutStream => new MemoryStream();
 
-        public Mock<IModel> ModelMock { get; }
+        public Mock<IChannel> ChannelMock { get; }
 
         public MottattMeldingMetadata DefaultMetadata { get; }
 
-        public IBasicProperties DefaultProperties => _defaultProperties.Object;
+        public IReadOnlyBasicProperties DefaultProperties => _defaultProperties.Object;
 
         public AmqpReceiveConsumerFixture WithDokumentlagerHeader()
         {
@@ -67,22 +69,26 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<IDokumentlagerHandler> DokumentlagerHandler { get; }
 
-        internal AmqpReceiveConsumer CreateSut()
+        internal Mock<IAmqpWatcher> AmqpWatcher { get; }
+
+        internal Task<AmqpReceiveConsumer> CreateSutAsync()
         {
             SetProperties();
             SetupMocks();
-            return new AmqpReceiveConsumer(
-                ModelMock.Object,
+            return Task.FromResult(new AmqpReceiveConsumer(
+                ChannelMock.Object,
                 DokumentlagerHandler.Object,
                 FileWriterMock.Object,
                 AsicDecrypterMock.Object,
                 SendHandlerMock.Object,
-                DefaultMetadata.MottakerKontoId);
+                AmqpWatcher.Object,
+                DefaultMetadata.MottakerKontoId));
         }
 
         private void SetProperties()
         {
-            _defaultProperties = new Mock<IBasicProperties>();
+            _defaultProperties = new Mock<IReadOnlyBasicProperties>();
+
             var headers = new Dictionary<string, object>
             {
                 {"avsender-id", Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) },
@@ -97,16 +103,26 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             }
 
             _defaultProperties.Setup(_ => _.Headers).Returns(headers);
-            _defaultProperties.Setup(_ => _.Expiration)
-                              .Returns(value: "100");
+            _defaultProperties.Setup(_ => _.Expiration).Returns("100");
         }
 
         private void SetupMocks()
         {
+            ChannelMock.Setup(c => c.IsOpen).Returns(true);
+
+            ChannelMock.Setup(c => c.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask);
+
+            ChannelMock.Setup(c => c.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask);
+
             FileWriterMock.Setup(_ => _.Write(It.IsAny<Stream>(), It.IsAny<string>()));
+
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Task<Stream>>()))
-                                .Returns((Task<Stream> inStream) => inStream);
-            DokumentlagerHandler.Setup(_ => _.Download(It.IsAny<Guid>())).Returns(Task.FromResult(DokumentlagerOutStream));
+                .Returns((Task<Stream> inStream) => inStream);
+
+            DokumentlagerHandler.Setup(_ => _.Download(It.IsAny<Guid>()))
+                .Returns(Task.FromResult(DokumentlagerOutStream));
         }
     }
 }

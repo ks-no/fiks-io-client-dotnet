@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Exceptions;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Client.Models;
@@ -13,6 +15,7 @@ using Moq;
 using RabbitMQ.Client;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
 {
@@ -20,22 +23,28 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
     {
         private AmqpReceiveConsumerFixture _fixture;
 
-        public AmqpReceiveConsumerTests()
+        public AmqpReceiveConsumerTests(ITestOutputHelper testOutputHelper)
         {
             _fixture = new AmqpReceiveConsumerFixture();
         }
 
         [Fact]
-        public void ReceivedHandler()
+        public async Task ReceivedHandlerAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
             var hasBeenCalled = false;
-            var handler = new EventHandler<MottattMeldingArgs>((a, _) => { hasBeenCalled = true; });
 
-            sut.Received += handler;
+            Func<MottattMeldingArgs, Task> handler = async args =>
+            {
+                hasBeenCalled = true;
+                await Task.CompletedTask.ConfigureAwait(false);
+            };
 
-            sut.HandleBasicDeliver(
+            sut.ReceivedAsync += handler;
+
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -48,40 +57,37 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void ReceivesExpectedMessageMetadata()
+        public async Task ReceivesExpectedMessageMetadataAsync()
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
-                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
-                {ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
+                { "avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
+                { "melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
+                { "type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                { "svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
+                { ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test") }
             };
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
-                          .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var sut = _fixture.CreateSut();
-            IMottattMelding actualMelding = new MottattMelding(
-                true,
-                _fixture.DefaultMetadata,
-                () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
-                Mock.Of<IAsicDecrypter>(),
-                Mock.Of<IFileWriter>());
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            var sut = await _fixture.CreateSutAsync();
+
+            IMottattMelding actualMelding = null;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 actualMelding = messageArgs.Melding;
-            });
+                await Task.CompletedTask.ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -90,51 +96,54 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 propertiesMock.Object,
                 Array.Empty<byte>());
 
+            actualMelding.ShouldNotBeNull();
             actualMelding.MeldingId.ShouldBe(expectedMessageMetadata.MeldingId);
             actualMelding.MeldingType.ShouldBe(expectedMessageMetadata.MeldingType);
             actualMelding.MottakerKontoId.ShouldBe(expectedMessageMetadata.MottakerKontoId);
             actualMelding.AvsenderKontoId.ShouldBe(expectedMessageMetadata.AvsenderKontoId);
             actualMelding.SvarPaMelding.ShouldBe(expectedMessageMetadata.SvarPaMelding);
             actualMelding.Ttl.ShouldBe(expectedMessageMetadata.Ttl);
-            actualMelding.Headere["test"].ToString().ShouldBe("Test");
+            actualMelding.Headere["test"].ShouldBe("Test");
             actualMelding.Resendt.ShouldBeFalse();
         }
 
         [Fact]
-        public void ReceivesExpectedMessageMetadataWithRedeliveredTrue()
+        public async Task ReceivesExpectedMessageMetadataWithRedeliveredTrueAsync()
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
             var headers = new Dictionary<string, object>
             {
-                {"avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
-                {"melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
-                {"type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
-                {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
-                {ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test")}
+                { "avsender-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.AvsenderKontoId.ToString()) },
+                { "melding-id", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingId.ToString()) },
+                { "type", Encoding.UTF8.GetBytes(expectedMessageMetadata.MeldingType) },
+                { "svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) },
+                { ReceivedMessageParser.EgendefinertHeaderPrefix + "test", Encoding.UTF8.GetBytes("Test") }
             };
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
-                          .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
+
             IMottattMelding actualMelding = new MottattMelding(
-                true,
-                _fixture.DefaultMetadata,
-                () => Task.FromResult((Stream)new MemoryStream(new byte[1])),
-                Mock.Of<IAsicDecrypter>(),
-                Mock.Of<IFileWriter>());
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+                hasPayload: true,
+                metadata: _fixture.DefaultMetadata,
+                 () => Task.FromResult<Stream>(new MemoryStream(new byte[1])),
+                decrypter: Mock.Of<IAsicDecrypter>(),
+                fileWriter: Mock.Of<IFileWriter>());
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 actualMelding = messageArgs.Melding;
-            });
+                await Task.CompletedTask.ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 true,
@@ -143,18 +152,19 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 propertiesMock.Object,
                 Array.Empty<byte>());
 
+            actualMelding.ShouldNotBeNull();
             actualMelding.MeldingId.ShouldBe(expectedMessageMetadata.MeldingId);
             actualMelding.MeldingType.ShouldBe(expectedMessageMetadata.MeldingType);
             actualMelding.MottakerKontoId.ShouldBe(expectedMessageMetadata.MottakerKontoId);
             actualMelding.AvsenderKontoId.ShouldBe(expectedMessageMetadata.AvsenderKontoId);
             actualMelding.SvarPaMelding.ShouldBe(expectedMessageMetadata.SvarPaMelding);
             actualMelding.Ttl.ShouldBe(expectedMessageMetadata.Ttl);
-            actualMelding.Headere["test"].ToString().ShouldBe("Test");
+            actualMelding.Headere["test"].ShouldBe("Test");
             actualMelding.Resendt.ShouldBeTrue();
         }
 
         [Fact]
-        public void ThrowsParseExceptionIfMessageIdIsNotValidGuid()
+        public async Task ThrowsParseExceptionIfMessageIdIsNotValidGuidAsync()
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
@@ -166,59 +176,60 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
-                          .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
+            var sut = await _fixture.CreateSutAsync();
 
-            sut.Received += handler;
-            Assert.Throws<FiksIOParseException>(() =>
+            Func<MottattMeldingArgs, Task> handler = _ => Task.CompletedTask;
+
+            sut.ReceivedAsync += handler;
+
+            await Should.ThrowAsync<FiksIOParseException>(async () =>
             {
-                sut.HandleBasicDeliver(
+                await sut.HandleBasicDeliverAsync(
                     "tag",
                     34,
                     false,
                     "exchange",
                     expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
-                    Array.Empty<byte>());
+                    Array.Empty<byte>()).ConfigureAwait(false);
             });
         }
 
         [Fact]
-        public void ThrowsMissingHeaderExceptionExceptionIfHeaderIsNull()
+        public async Task ThrowsMissingHeaderExceptionIfHeaderIsNullAsync()
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns((IDictionary<string, object>)null);
             propertiesMock.Setup(_ => _.Expiration)
-                          .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
+            var sut = await _fixture.CreateSutAsync();
 
-            sut.Received += handler;
-            Assert.Throws<FiksIOMissingHeaderException>(() =>
+            Func<MottattMeldingArgs, Task> handler = _ => Task.CompletedTask;
+            sut.ReceivedAsync += handler;
+
+            await Should.ThrowAsync<FiksIOMissingHeaderException>(async () =>
             {
-                sut.HandleBasicDeliver(
+                await sut.HandleBasicDeliverAsync(
                     "tag",
                     34,
                     false,
                     "exchange",
                     expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
-                    Array.Empty<byte>());
+                    Array.Empty<byte>()).ConfigureAwait(false);
             });
         }
 
         [Fact]
-        public void ThrowsMissingHeaderExceptionExceptionIfMessageIdIsMissing()
+        public async Task ThrowsMissingHeaderExceptionIfMessageIdIsMissingAsync()
         {
             var expectedMessageMetadata = _fixture.DefaultMetadata;
 
@@ -229,45 +240,44 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 {"svar-til", Encoding.UTF8.GetBytes(expectedMessageMetadata.SvarPaMelding.ToString()) }
             };
 
-            var propertiesMock = new Mock<IBasicProperties>();
+            var propertiesMock = new Mock<IReadOnlyBasicProperties>();
             propertiesMock.Setup(_ => _.Headers).Returns(headers);
             propertiesMock.Setup(_ => _.Expiration)
-                          .Returns(
-                              expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+                .Returns(expectedMessageMetadata.Ttl.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var sut = _fixture.CreateSut();
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { });
+            var sut = await _fixture.CreateSutAsync();
+            Func<MottattMeldingArgs, Task> handler = _ => Task.CompletedTask;
+            sut.ReceivedAsync += handler;
 
-            sut.Received += handler;
-            Assert.Throws<FiksIOMissingHeaderException>(() =>
+            await Should.ThrowAsync<FiksIOMissingHeaderException>(async () =>
             {
-                sut.HandleBasicDeliver(
+                await sut.HandleBasicDeliverAsync(
                     "tag",
                     34,
                     false,
                     "exchange",
                     expectedMessageMetadata.MottakerKontoId.ToString(),
                     propertiesMock.Object,
-                    Array.Empty<byte>());
+                    Array.Empty<byte>()).ConfigureAwait(false);
             });
         }
 
         [Fact]
-        public void FileWriterWriteIsCalledWhenWriteEncryptedZip()
+        public async Task FileWriterWriteIsCalledWhenWriteEncryptedZipAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
             var filePath = "/my/path/something.zip";
-            var data = new[] {default(byte) };
+            var data = new[] { default(byte) };
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
-                messageArgs.Melding.WriteEncryptedZip(filePath);
-            });
+                await messageArgs.Melding.WriteEncryptedZip(filePath).ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -280,18 +290,18 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void DokumentlagerHandlerIsUsedWhenHeaderIsSet()
+        public async Task DokumentlagerHandlerIsUsedWhenHeaderIsSetAsync()
         {
-            var sut = _fixture.WithDokumentlagerHeader().CreateSut();
+            var sut = await _fixture.WithDokumentlagerHeader().CreateSutAsync();
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
-                var stream = messageArgs.Melding.EncryptedStream;
-            });
+                await messageArgs.Melding.EncryptedStream.ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -300,24 +310,24 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 null);
 
-            _fixture.DokumentlagerHandler.Verify(_ => _.Download(It.IsAny<Guid>()));
+            _fixture.DokumentlagerHandler.Verify(_ => _.Download(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
-        public void DokumentlagerHandlerIsNotUsedWhenHeaderIsNotSet()
+        public async Task DokumentlagerHandlerIsNotUsedWhenHeaderIsNotSetAsync()
         {
-            var sut = _fixture.WithoutDokumentlagerHeader().CreateSut();
+            var sut = await _fixture.WithoutDokumentlagerHeader().CreateSutAsync();
 
-            var data = new[] {default(byte) };
+            var data = new[] { default(byte) };
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
-                var stream = messageArgs.Melding.EncryptedStream;
-            });
+                await messageArgs.Melding.EncryptedStream.ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -330,21 +340,21 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public async Task DataAsStreamIsReturnedWhenGettingEncryptedStream()
+        public async Task DataAsStreamIsReturnedWhenGettingEncryptedStreamAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
-            var data = new[] {default(byte), byte.MaxValue};
+            var data = new[] { default(byte), byte.MaxValue };
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 actualDataStream = await messageArgs.Melding.EncryptedStream.ConfigureAwait(false);
-            });
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -354,28 +364,28 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             var actualData = new byte[2];
-            await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
+            await actualDataStream.ReadAsync(actualData, 0, 2);
 
             actualData[0].ShouldBe(data[0]);
             actualData[1].ShouldBe(data[1]);
         }
 
         [Fact]
-        public async Task PayloadDecrypterDecryptIsCalledWhenGettingDecryptedStream()
+        public async Task PayloadDecrypterDecryptIsCalledWhenGettingDecryptedStreamAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
-            var data = new[] {default(byte), byte.MaxValue};
+            var data = new[] { default(byte), byte.MaxValue };
 
             Stream actualDataStream = new MemoryStream();
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 actualDataStream = await messageArgs.Melding.DecryptedStream.ConfigureAwait(false);
-            });
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -384,30 +394,31 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(It.IsAny<Task<Stream>>()));
+            _fixture.AsicDecrypterMock.Verify(_ => _.Decrypt(It.IsAny<Task<Stream>>()), Times.Once);
 
             var actualData = new byte[2];
-            await actualDataStream.ReadAsync(actualData, 0, 2).ConfigureAwait(false);
+            await actualDataStream.ReadAsync(actualData, 0, 2);
+
             actualData[0].ShouldBe(data[0]);
             actualData[1].ShouldBe(data[1]);
         }
 
         [Fact]
-        public void PayloadDecrypterAndFileWriterIsCalledWhenWriteDecryptedFile()
+        public async Task PayloadDecrypterAndFileWriterIsCalledWhenWriteDecryptedFileAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
 
-            var data = new[] {default(byte), byte.MaxValue};
+            var data = new[] { default(byte), byte.MaxValue };
             var filePath = "/my/path/something.zip";
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
-                messageArgs.Melding.WriteDecryptedZip(filePath);
-            });
+                await messageArgs.Melding.WriteDecryptedZip(filePath).ConfigureAwait(false);
+            };
 
-            sut.Received += handler;
+            sut.ReceivedAsync += handler;
 
-            sut.HandleBasicDeliver(
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -416,20 +427,25 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(It.IsAny<Task<Stream>>(), filePath));
+            _fixture.AsicDecrypterMock.Verify(_ => _.WriteDecrypted(It.IsAny<Task<Stream>>(), filePath), Times.Once);
         }
 
         [Fact]
-        public void BasicAckIsCalledFromReplySender()
+        public async Task BasicAckAsyncIsCalledFromReplySenderAsync()
         {
-            var sut = _fixture.CreateSut();
-            var data = new[] {default(byte), byte.MaxValue};
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
 
-            var handler = new EventHandler<MottattMeldingArgs>((a, messageArgs) => { messageArgs.SvarSender.Ack(); });
             var deliveryTag = (ulong)3423423;
 
-            sut.Received += handler;
-            sut.HandleBasicDeliver(
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.AckAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 deliveryTag,
                 false,
@@ -438,16 +454,72 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.ModelMock.Verify(_ => _.BasicAck(deliveryTag, false));
+            _fixture.ChannelMock.Verify(_ => _.BasicAckAsync(deliveryTag, false, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public void BasicAckIsNotCalledWithDeliveryTagIfReceiverIsNotSet()
+        public async Task NackAsyncCallsBasicNackAsyncWithoutRequeue()
         {
-            var sut = _fixture.CreateSut();
-            var data = new[] {default(byte), byte.MaxValue};
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)5423423;
 
-            sut.HandleBasicDeliver(
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.NackAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task NackWithRequeueAsyncCallsBasicNackAsyncWithRequeue()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)7423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.NackWithRequeueAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(deliveryTag, false, true, It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task BasicAckIsNotCalledWithDeliveryTagIfReceiverIsNotSetAsync()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 34,
                 false,
@@ -456,31 +528,35 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.ModelMock.Verify(_ => _.BasicAck(It.IsAny<ulong>(), false), Times.Never);
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicAckAsync(It.IsAny<ulong>(), false, It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
-        public void ThrowsExceptionWhenGettingEncryptedStreamWithNoData()
+        public async Task ThrowsExceptionWhenGettingEncryptedStreamWithNoDataAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
             var data = Array.Empty<byte>();
             var correctExceptionThrown = false;
 
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 try
                 {
-                    var stream = await messageArgs.Melding.EncryptedStream;
+                    var stream = await messageArgs.Melding.EncryptedStream.ConfigureAwait(false);
                 }
-                catch (FiksIOMissingDataException ex)
+                catch (FiksIOMissingDataException)
                 {
                     correctExceptionThrown = true;
                 }
-            });
-            var deliveryTag = (ulong) 3423423;
+            };
 
-            sut.Received += handler;
-            sut.HandleBasicDeliver(
+            var deliveryTag = (ulong)3423423;
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 deliveryTag,
                 false,
@@ -493,27 +569,29 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void ThrowsExceptionWhenGettingDecryptedStreamWithNoData()
+        public async Task ThrowsExceptionWhenGettingDecryptedStreamWithNoDataAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
             var data = Array.Empty<byte>();
             var correctExceptionThrown = false;
 
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 try
                 {
-                    var stream = await messageArgs.Melding.DecryptedStream;
+                    var stream = await messageArgs.Melding.DecryptedStream.ConfigureAwait(false);
                 }
-                catch (FiksIOMissingDataException ex)
+                catch (FiksIOMissingDataException)
                 {
                     correctExceptionThrown = true;
                 }
-            });
-            var deliveryTag = (ulong) 3423423;
+            };
 
-            sut.Received += handler;
-            sut.HandleBasicDeliver(
+            var deliveryTag = (ulong)3423423;
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 deliveryTag,
                 false,
@@ -526,27 +604,29 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void ThrowsExceptionWhenWritingDecryptedStreamWithNoData()
+        public async Task ThrowsExceptionWhenWritingDecryptedStreamWithNoDataAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
             var data = Array.Empty<byte>();
             var correctExceptionThrown = false;
 
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 try
                 {
                     await messageArgs.Melding.WriteDecryptedZip("out.zip").ConfigureAwait(false);
                 }
-                catch (FiksIOMissingDataException ex)
+                catch (FiksIOMissingDataException)
                 {
                     correctExceptionThrown = true;
                 }
-            });
-            var deliveryTag = (ulong) 3423423;
+            };
 
-            sut.Received += handler;
-            sut.HandleBasicDeliver(
+            var deliveryTag = (ulong)3423423;
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 deliveryTag,
                 false,
@@ -559,27 +639,29 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         }
 
         [Fact]
-        public void ThrowsExceptionWhenWritingEnryptedStreamWithNoData()
+        public async Task ThrowsExceptionWhenWritingEncryptedStreamWithNoDataAsync()
         {
-            var sut = _fixture.CreateSut();
+            var sut = await _fixture.CreateSutAsync();
             var data = Array.Empty<byte>();
             var correctExceptionThrown = false;
 
-            var handler = new EventHandler<MottattMeldingArgs>(async (a, messageArgs) =>
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 try
                 {
                     await messageArgs.Melding.WriteEncryptedZip("out.zip").ConfigureAwait(false);
                 }
-                catch (FiksIOMissingDataException ex)
+                catch (FiksIOMissingDataException)
                 {
                     correctExceptionThrown = true;
                 }
-            });
-            var deliveryTag = (ulong) 3423423;
+            };
 
-            sut.Received += handler;
-            sut.HandleBasicDeliver(
+            var deliveryTag = (ulong)3423423;
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
                 "tag",
                 deliveryTag,
                 false,

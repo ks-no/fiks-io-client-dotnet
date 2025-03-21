@@ -1,57 +1,43 @@
 using System;
+using System.Threading.Tasks;
 
 namespace KS.Fiks.IO.Client.Amqp
 {
     public interface IAmqpAcknowledgeManager
     {
-        Action Ack();
+        Task AckAsync();
 
-        Action Nack();
+        Task NackAsync();
 
-        Action NackWithRequeue();
+        Task NackWithRequeueAsync();
     }
 
     public class AmqpAcknowledgeManager : IAmqpAcknowledgeManager
     {
-        private readonly Action _ackAction;
-        private readonly Action _nackAction;
-        private readonly Action _nackWithRequeueAction;
+        private readonly Func<Task> _ackAction;
+        private readonly Func<Task> _nackAction;
+        private readonly Func<Task> _nackWithRequeueAction;
 
-        public AmqpAcknowledgeManager(Action ackAction, Action nackAction, Action nackWithRequeueAction)
+        public AmqpAcknowledgeManager(Func<Task> ackAction, Func<Task> nackAction, Func<Task> nackWithRequeueAction)
         {
-            this._ackAction = ackAction;
-            this._nackAction = nackAction;
-            this._nackWithRequeueAction = nackWithRequeueAction;
+            _ackAction = ackAction;
+            _nackAction = nackAction;
+            _nackWithRequeueAction = nackWithRequeueAction;
         }
 
-        public Action Ack()
+        public async Task AckAsync()
         {
-            if (this._ackAction == null)
-            {
-                throw new NotSupportedException("Ack is currently not supported");
-            }
-
-            return this._ackAction;
+            await _ackAction.Invoke().ConfigureAwait(false);
         }
 
-        public Action Nack()
+        public async Task NackAsync()
         {
-            if (this._nackAction == null)
-            {
-                throw new NotSupportedException("Nack is currently not supported");
-            }
-
-            return this._nackAction;
+            await _nackAction.Invoke().ConfigureAwait(false);
         }
 
-        public Action NackWithRequeue()
+        public async Task NackWithRequeueAsync()
         {
-            if (this._nackWithRequeueAction == null)
-            {
-                throw new NotSupportedException("Nack is currently not supported");
-            }
-
-            return this._nackWithRequeueAction;
+            await _nackWithRequeueAction.Invoke().ConfigureAwait(false);
         }
     }
 }

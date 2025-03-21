@@ -1,14 +1,18 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
+using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
 namespace KS.Fiks.IO.Client.Tests.Amqp
@@ -22,7 +26,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";
 
-        public AmqpHandlerFixture WhereConnectionfactoryThrowsException()
+        public AmqpHandlerFixture WhereConnectionFactoryThrowsException()
         {
             _connectionFactoryShouldThrow = true;
             return this;
@@ -52,11 +56,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
-        public Mock<IModel> ModelMock { get; } = new Mock<IModel>();
-
         public Mock<IConnectionFactory> ConnectionFactoryMock { get; } = new Mock<IConnectionFactory>();
 
         public Mock<IConnection> ConnectionMock { get; } = new Mock<IConnection>();
+
+        public Mock<IChannel> ChannelMock { get; set; } = new Mock<IChannel>();
 
         internal Mock<IAmqpConsumerFactory> AmqpConsumerFactoryMock { get; } = new Mock<IAmqpConsumerFactory>();
 
@@ -68,29 +72,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         internal Mock<ISendHandler> SendHandlerMock { get; } = new Mock<ISendHandler>();
 
-        internal IAmqpHandler CreateSut()
+        internal async Task<IAmqpHandler> CreateSutAsync()
         {
             SetupMocks();
             var amqpConfiguration = CreateConfiguration();
-            var amqpHandler = AmqpHandler.CreateAsync(
-                    MaskinportenClientMock.Object,
-                     SendHandlerMock.Object,
-                     DokumentlagerHandlerMock.Object,
-                     amqpConfiguration,
-                     CreateIntegrationConfiguration(),
-                     new KontoConfiguration(_accountId, "dummy"),
-                     null,
-                     ConnectionFactoryMock.Object,
-                     AmqpConsumerFactoryMock.Object).Result;
-
-            return amqpHandler;
-        }
-
-        internal Task<IAmqpHandler> CreateSutAsync()
-        {
-            SetupMocks();
-            var amqpConfiguration = CreateConfiguration();
-            var amqpHandler = AmqpHandler.CreateAsync(
+            var amqpHandler = await AmqpHandler.CreateAsync(
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
@@ -99,7 +85,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 new KontoConfiguration(_accountId, "dummy"),
                 null,
                 ConnectionFactoryMock.Object,
-                AmqpConsumerFactoryMock.Object);
+                AmqpConsumerFactoryMock.Object).ConfigureAwait(false);
 
             return amqpHandler;
         }
@@ -111,34 +97,62 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private void SetupMocks()
         {
+            ConnectionMock
+                .Setup(connection =>
+                    connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ChannelMock.Object);
             if (_connectionFactoryShouldThrow)
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()))
-                                     .Throws<ProtocolViolationException>();
+                ConnectionFactoryMock
+                    .Setup(factory => factory.CreateConnectionAsync(
+                        It.IsAny<IList<AmqpTcpEndpoint>>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()))
+                    .Throws<ProtocolViolationException>();
             }
             else
             {
-                ConnectionFactoryMock.Setup(_ => _.CreateConnection(It.IsAny<IList<AmqpTcpEndpoint>>(), It.IsAny<string>()))
-                                     .Returns(ConnectionMock.Object);
+                ConnectionFactoryMock
+                    .Setup(factory => factory.CreateConnectionAsync(
+                        It.IsAny<IList<AmqpTcpEndpoint>>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(ConnectionMock.Object);
             }
 
-            ConnectionFactoryMock.SetupSet(_ => _.Password = It.IsAny<string>());
-            ConnectionFactoryMock.SetupSet(_ => _.UserName = It.IsAny<string>());
+            ConnectionFactoryMock.SetupSet(connection => connection.Password = It.IsAny<string>());
+            ConnectionFactoryMock.SetupSet(connection => connection.UserName = It.IsAny<string>());
 
             if (_connectionShouldThrow)
             {
-                ConnectionMock.Setup(_ => _.CreateModel()).Throws<ProtocolViolationException>();
+                ConnectionMock
+                    .Setup(connection =>
+                        connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new ProtocolViolationException());
             }
             else
             {
-                ConnectionMock.Setup(_ => _.CreateModel()).Returns(ModelMock.Object);
+                ConnectionMock
+                    .Setup(connection =>
+                        connection.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(ChannelMock.Object);
             }
 
-            AmqpConsumerFactoryMock.Setup(_ => _.CreateReceiveConsumer(It.IsAny<IModel>()))
-                                   .Returns(AmqpReceiveConsumerMock.Object);
+            AmqpConsumerFactoryMock
+                .Setup(consumerFactory => consumerFactory.CreateReceiveConsumer(It.IsAny<IChannel>()))
+                .Returns(AmqpReceiveConsumerMock.Object);
 
-            MaskinportenClientMock.Setup(_ => _.GetAccessToken(It.IsAny<string>()))
-                                  .ReturnsAsync(new MaskinportenToken(_token, 100));
+            MaskinportenClientMock
+                .Setup(maskinportenClient => maskinportenClient.GetAccessToken(It.IsAny<string>()))
+                .ReturnsAsync(new MaskinportenToken(_token, 100));
+
+            AmqpReceiveConsumerMock
+                .SetupAdd(amqpReceiveConsumer =>
+                    amqpReceiveConsumer.ConsumerCancelledAsync += It.IsAny<Func<ConsumerEventArgs, Task>>());
+
+            AmqpReceiveConsumerMock
+                .SetupAdd(amqpReceiveConsumer =>
+                    amqpReceiveConsumer.ReceivedAsync += It.IsAny<Func<MottattMeldingArgs, Task>>());
         }
 
         private IntegrasjonConfiguration CreateIntegrationConfiguration()
