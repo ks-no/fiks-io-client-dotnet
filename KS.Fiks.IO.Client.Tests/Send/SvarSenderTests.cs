@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
@@ -12,6 +13,41 @@ namespace KS.Fiks.IO.Client.Tests.Send
     {
         private SvarSenderFixture _fixture;
 
+        private sealed record MottattMeldingWrapper(
+            MottattMelding MottattMelding,
+            Guid MeldingId,
+            Guid MottakerKonto,
+            Guid AvsenderKonto,
+            Guid? KlientMeldingId,
+            Dictionary<string, string>? Headere);
+
+        private MottattMeldingWrapper GetDefaultMottattMelding(Guid? klientMeldingId = null, Dictionary<string, string>? headere = null)
+        {
+            var meldingId = Guid.NewGuid();
+            var mottakerKonto = Guid.NewGuid();
+            var avsenderKonto = Guid.NewGuid();
+            var melding = new MottattMelding(
+                hasPayload: true,
+                metadata: new MottattMeldingMetadata(
+                    meldingId, "testType",
+                    mottakerKonto,
+                    avsenderKonto,
+                    null,
+                    TimeSpan.FromDays(1),
+                    headere),
+                streamProvider: _fixture.DefaultStreamProvider,
+                decrypter: _fixture.DefaultDecrypter,
+                fileWriter: _fixture.DefaultFileWriter);
+
+            return new MottattMeldingWrapper(
+                melding,
+                meldingId,
+                mottakerKonto,
+                avsenderKonto,
+                klientMeldingId ?? Guid.NewGuid(),
+                headere);
+        }
+
         public SvarSenderTests()
         {
             _fixture = new SvarSenderFixture();
@@ -20,69 +56,60 @@ namespace KS.Fiks.IO.Client.Tests.Send
         [Fact]
         public async Task SendsToAvsenderWithMottakerAsAvsender()
         {
-            var meldingId = Guid.NewGuid();
-            var mottakerKonto = Guid.NewGuid();
-            var avsenderKonto = Guid.NewGuid();
-
-            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), null), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
-
-            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
 
             await sut.Svar("testType").ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto), It.IsAny<IList<IPayload>>()));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == melding.AvsenderKonto && a.AvsenderKontoId == melding.MottakerKonto), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task SendsToAvsenderWithKlientMeldindId()
         {
-            var meldingId = Guid.NewGuid();
-            var mottakerKonto = Guid.NewGuid();
-            var avsenderKonto = Guid.NewGuid();
             var klientMeldingId = Guid.NewGuid();
-
             var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
-
-            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), headere), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
-
-            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
+            var melding = GetDefaultMottattMelding(klientMeldingId, headere);
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
 
             await sut.Svar("testType", klientMeldingId).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == klientMeldingId), It.IsAny<IList<IPayload>>()));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == melding.AvsenderKonto && a.AvsenderKontoId == melding.MottakerKonto && a.KlientMeldingId == klientMeldingId), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task SendsToAvsenderWithMottakerAsAvsenderAndWithKlientMeldingId()
         {
-            var meldingId = Guid.NewGuid();
-            var mottakerKonto = Guid.NewGuid();
-            var avsenderKonto = Guid.NewGuid();
-            var klientMeldingId = Guid.NewGuid();
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
 
-            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), null), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
+            await sut.Svar("testType", "my message", "message.txt", melding.KlientMeldingId).ConfigureAwait(false);
 
-            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
-
-            await sut.Svar("testType", "my message", "message.txt", klientMeldingId).ConfigureAwait(false);
-
-            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto), It.IsAny<IList<IPayload>>()));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == melding.AvsenderKonto && a.AvsenderKontoId == melding.MottakerKonto), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task SendsToAvsenderWithMottakerAsAvsenderAndWithOptionalNullKlientMeldingId()
         {
-            var meldingId = Guid.NewGuid();
-            var mottakerKonto = Guid.NewGuid();
-            var avsenderKonto = Guid.NewGuid();
-
-            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), null), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
-
-            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
 
             await sut.Svar("testType", "my message", "message.txt").ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == null), It.IsAny<IList<IPayload>>()));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == melding.AvsenderKonto && a.AvsenderKontoId == melding.MottakerKonto && a.KlientMeldingId == null), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAllowsCancellation()
+        {
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
+
+            var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+
+            await Assert.ThrowsAsync<TaskCanceledException>(
+                async () => await sut.Svar(string.Empty, null, cts.Token).ConfigureAwait(false));
         }
     }
 }

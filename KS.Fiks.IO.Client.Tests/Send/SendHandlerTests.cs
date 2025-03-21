@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
@@ -30,7 +31,12 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
-            _fixture.FiksIOSenderMock.Verify(_ => _.Send(It.IsAny<MeldingSpesifikasjonApiModel>(), It.IsAny<Stream>()));
+            _fixture.FiksIOSenderMock.Verify(
+                _ => _.Send(
+                    It.IsAny<MeldingSpesifikasjonApiModel>(),
+                    It.IsAny<Stream>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -51,14 +57,17 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
-            _fixture.FiksIOSenderMock.Verify(_ => _.Send(
+            _fixture.FiksIOSenderMock.Verify(
+                _ => _.Send(
                 It.Is<MeldingSpesifikasjonApiModel>(
                     model => model.Ttl == (long)request.Ttl.TotalMilliseconds &&
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
                              model.Headere[MeldingBase.headerKlientMeldingId] == request.KlientMeldingId.ToString()),
-                It.IsAny<Stream>()));
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -78,14 +87,17 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
             await sut.Send(request, payload).ConfigureAwait(false);
 
-            _fixture.FiksIOSenderMock.Verify(_ => _.Send(
+            _fixture.FiksIOSenderMock.Verify(
+                _ => _.Send(
                 It.Is<MeldingSpesifikasjonApiModel>(
                     model => model.Ttl == (long)request.Ttl.TotalMilliseconds &&
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
                              !model.Headere.ContainsKey("klientMeldingId")),
-                It.IsAny<Stream>()));
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]

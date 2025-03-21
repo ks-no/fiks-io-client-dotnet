@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
@@ -77,7 +78,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, payload).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(request, payload));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(request, payload, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -89,7 +90,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(request, It.Is<IList<IPayload>>(x => x.Count == 0)));
+            _fixture.SendHandlerMock.Verify(_ => _.Send(request, It.Is<IList<IPayload>>(x => x.Count == 0), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -104,12 +105,15 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, stream, filename).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(
+            _fixture.SendHandlerMock.Verify(
+                _ => _.Send(
                 request,
                 It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Payload == stream &&
-                    actualPayload.FirstOrDefault().Filename == filename)));
+                    actualPayload.FirstOrDefault().Filename == filename),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -124,12 +128,15 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, payload, filename).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(
+            _fixture.SendHandlerMock.Verify(
+                _ => _.Send(
                 request,
                 It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Payload.Length == payload.Length &&
-                    actualPayload.FirstOrDefault().Filename == filename)));
+                    actualPayload.FirstOrDefault().Filename == filename),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -144,11 +151,14 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, path).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(
+            _fixture.SendHandlerMock.Verify(
+                _ => _.Send(
                 request,
                 It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
-                    actualPayload.FirstOrDefault().Filename == filename)));
+                    actualPayload.FirstOrDefault().Filename == filename),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -211,12 +221,26 @@ namespace KS.Fiks.IO.Client.Tests
 
             var result = await sut.Send(request, stream, filename).ConfigureAwait(false);
 
-            _fixture.SendHandlerMock.Verify(_ => _.Send(
+            _fixture.SendHandlerMock.Verify(
+                _ => _.Send(
                 request,
                 It.Is<IList<IPayload>>(actualPayload =>
                     actualPayload.Count() == 1 &&
                     actualPayload.FirstOrDefault().Payload == stream &&
-                    actualPayload.FirstOrDefault().Filename == filename)));
+                    actualPayload.FirstOrDefault().Filename == filename),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAllowsCancellation()
+        {
+            var sut = _fixture.CreateSut();
+            var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+
+            await Assert.ThrowsAsync<TaskCanceledException>(
+                async () => await sut.Send(_fixture.DefaultRequest, cts.Token).ConfigureAwait(false));
         }
     }
 }
