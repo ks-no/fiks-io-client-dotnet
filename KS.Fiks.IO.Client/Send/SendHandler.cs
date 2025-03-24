@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Asic;
@@ -47,10 +48,10 @@ namespace KS.Fiks.IO.Client.Send
         {
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
+        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload, CancellationToken cancellationToken = default)
         {
             var encryptedPayload = await GetEncryptedPayload(request, payload).ConfigureAwait(false);
-            var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload)
+            var sentMessageApiModel = await _sender.Send(request.ToApiModel(), encryptedPayload, cancellationToken)
                                                    .ConfigureAwait(false);
 
             return SendtMelding.FromSentMessageApiModel(sentMessageApiModel);

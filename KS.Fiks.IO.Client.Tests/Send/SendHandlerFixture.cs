@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Crypto.Asic;
@@ -62,7 +63,8 @@ namespace KS.Fiks.IO.Client.Tests.Send
         {
             FiksIOSenderMock.Setup(_ => _.Send(
                                 It.IsAny<MeldingSpesifikasjonApiModel>(),
-                                It.IsAny<Stream>()))
+                                It.IsAny<Stream>(),
+                                It.IsAny<CancellationToken>()))
                             .ReturnsAsync(new SendtMeldingApiModel());
 
             AsicEncrypterMock.Setup(_ => _.Encrypt(It.IsAny<X509Certificate>(), It.IsAny<IList<IPayload>>()))

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
@@ -153,8 +154,10 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupMocks()
         {
             CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
-            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>()))
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()))
                            .ReturnsAsync(_sendtMeldingReturn);
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.Is<CancellationToken>(x => x.IsCancellationRequested)))
+                .ThrowsAsync(new TaskCanceledException());
             AmqpHandlerMock.Setup(_ => _.AddMessageReceivedHandlerAsync(
                     It.IsAny<Func<MottattMeldingArgs, Task>>(),
                     It.IsAny<Func<ConsumerEventArgs, Task>>()))

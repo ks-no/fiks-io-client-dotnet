@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.Configuration;
@@ -74,13 +75,10 @@ namespace KS.Fiks.IO.Client
                 _maskinportenClient,
                 httpClient);
 
-            if (asicEncrypter == null)
-            {
-                asicEncrypter = new AsicEncrypter(
-                    new AsiceBuilderFactory(),
-                    new EncryptionServiceFactory(),
-                    AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
-            }
+            asicEncrypter ??= new AsicEncrypter(
+                new AsiceBuilderFactory(),
+                new EncryptionServiceFactory(),
+                AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
 
             _sendHandler = sendHandler ??
                            new SendHandler(
@@ -167,29 +165,29 @@ namespace KS.Fiks.IO.Client
             return await _catalogHandler.GetStatus(kontoId).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request)
+        public async Task<SendtMelding> Send(MeldingRequest request, CancellationToken cancellationToken = default)
         {
-            return await Send(request, new List<IPayload>()).ConfigureAwait(false);
+            return await Send(request, new List<IPayload>(), cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload)
+        public async Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload, CancellationToken cancellationToken = default)
         {
-            return await _sendHandler.Send(request, payload).ConfigureAwait(false);
+            return await _sendHandler.Send(request, payload, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request, string pathToPayload)
+        public async Task<SendtMelding> Send(MeldingRequest request, string pathToPayload, CancellationToken cancellationToken = default)
         {
-            return await Send(request, new FilePayload(pathToPayload)).ConfigureAwait(false);
+            return await Send(request, new FilePayload(pathToPayload), cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request, string payload, string filename)
+        public async Task<SendtMelding> Send(MeldingRequest request, string payload, string filename, CancellationToken cancellationToken = default)
         {
-            return await Send(request, new StringPayload(payload, filename)).ConfigureAwait(false);
+            return await Send(request, new StringPayload(payload, filename), cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename)
+        public async Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename, CancellationToken cancellationToken = default)
         {
-            return await Send(request, new StreamPayload(payload, filename)).ConfigureAwait(false);
+            return await Send(request, new StreamPayload(payload, filename), cancellationToken).ConfigureAwait(false);
         }
 
         public async Task NewSubscriptionAsync(Func<MottattMeldingArgs, Task> onMottattMelding, Func<ConsumerEventArgs, Task> onCanceled = null)
@@ -209,9 +207,9 @@ namespace KS.Fiks.IO.Client
                 await _amqpHandler.DisposeAsync().ConfigureAwait(false);
         }
 
-        private async Task<SendtMelding> Send(MeldingRequest request, IPayload payload)
+        private async Task<SendtMelding> Send(MeldingRequest request, IPayload payload, CancellationToken cancellationToken)
         {
-            return await Send(request, new List<IPayload> { payload }).ConfigureAwait(false);
+            return await Send(request, new List<IPayload> {payload}, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
@@ -19,15 +20,15 @@ namespace KS.Fiks.IO.Client
 
         Task<Status> GetKontoStatus(Guid kontoId);
 
-        Task<SendtMelding> Send(MeldingRequest request);
+        Task<SendtMelding> Send(MeldingRequest request, CancellationToken cancellationToken = default);
 
-        Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload);
+        Task<SendtMelding> Send(MeldingRequest request, IList<IPayload> payload, CancellationToken cancellationToken = default);
 
-        Task<SendtMelding> Send(MeldingRequest request, string pathToPayload);
+        Task<SendtMelding> Send(MeldingRequest request, string pathToPayload, CancellationToken cancellationToken = default);
 
-        Task<SendtMelding> Send(MeldingRequest request, string payload, string filename);
+        Task<SendtMelding> Send(MeldingRequest request, string payload, string filename, CancellationToken cancellationToken = default);
 
-        Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename);
+        Task<SendtMelding> Send(MeldingRequest request, Stream payload, string filename, CancellationToken cancellationToken = default);
 
         Task NewSubscriptionAsync(Func<MottattMeldingArgs, Task> onMottattMelding, Func<ConsumerEventArgs, Task> onCanceled = null);
 

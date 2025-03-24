@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
 using KS.Fiks.IO.Client.FileIO;
@@ -68,9 +70,11 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
         private void SetupMocks()
         {
-            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IPayload[]>()))
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IPayload[]>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SendtMelding(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid().ToString(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, null));
+            SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.Is<CancellationToken>(x => x.IsCancellationRequested)))
+                .ThrowsAsync(new TaskCanceledException());
         }
     }
 }
