@@ -64,7 +64,12 @@ The example project starts a console program that listens and subscribes to mess
 It listens to the Enter key in the console, that then triggers it to send a 'ping' message to your Fiks-IO account.
 When the program receives the 'ping' message it will reply to that message with a 'pong' message. 
 
-The program also adds the optional 'klientMeldingId' when sending messages and utilizes the IsOpen() feature to show the connection-status.
+The program also shows the following features:
+- It uses the optional `klientMeldingId` when sending messages 
+- It uses the optional `klientKorrelasjonsId` when sending messages, and shows that it is returned in the response from the receiver of the first message 
+- It utilizes the `IsOpen()` feature to show the connection-status.
+
+
 
 Read more in the [README.md](ExampleApplication/README.md) file for the example application.
 

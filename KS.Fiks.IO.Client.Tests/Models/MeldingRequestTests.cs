@@ -8,7 +8,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
     public class MeldingRequestTests
     {
         [Fact]
-        public void FromMeldingRequestToApiModelNullKlientModelIdShouldBeEmptyHeadere()
+        public void FromMeldingRequestToApiModelShouldBeEmptyHeadere()
         {
             var result = new MeldingRequest(
                 Guid.NewGuid(),
@@ -18,7 +18,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         }
 
         [Fact]
-        public void FromMeldingRequestToApiModelWithKlientModelIdShouldBeInHeadere()
+        public void FromMeldingRequestToApiModelWithKlientMeldingIdShouldBeInHeadere()
         {
             var klientMeldingId = Guid.NewGuid();
             var result = new MeldingRequest(
@@ -27,8 +27,22 @@ namespace KS.Fiks.IO.Client.Tests.Models
                 "meldingType",
                 klientMeldingId: klientMeldingId).ToApiModel();
             result.Headere.ShouldNotBeEmpty();
-            result.Headere.ContainsKey(MeldingBase.headerKlientMeldingId).ShouldBeTrue();
+            result.Headere.ContainsKey(MeldingBase.HeaderKlientMeldingId).ShouldBeTrue();
             result.Headere.ContainsValue(klientMeldingId.ToString()).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void FromMeldingRequestToApiModelWithKlientKorrelasjonsIdShouldBeInHeadere()
+        {
+            var klientKorrelasjonsId = Guid.NewGuid().ToString();
+            var result = new MeldingRequest(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "meldingType",
+                klientKorrelasjonsId: klientKorrelasjonsId).ToApiModel();
+            result.Headere.ShouldNotBeEmpty();
+            result.Headere.ContainsKey(MeldingBase.HeaderKlientKorrelasjonsId).ShouldBeTrue();
+            result.Headere.ContainsValue(klientKorrelasjonsId).ShouldBeTrue();
         }
     }
 }

@@ -9,6 +9,8 @@ namespace KS.Fiks.IO.Client.Models
 
         Guid? KlientMeldingId { get; }
 
+        string KlientKorrelasjonsId { get;  }
+
         string MeldingType { get; }
 
         Guid AvsenderKontoId { get; }

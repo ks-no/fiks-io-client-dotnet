@@ -57,7 +57,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
                     SvarPaMelding = Guid.NewGuid(),
                     AvsenderKontoId = Guid.NewGuid(),
                     DokumentlagerId = Guid.NewGuid(),
-                    Headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }},
+                    Headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId.ToString() }},
                     MeldingId = Guid.NewGuid(),
                     MeldingType = "EnMeldingType",
                     MottakerKontoId = Guid.NewGuid(),

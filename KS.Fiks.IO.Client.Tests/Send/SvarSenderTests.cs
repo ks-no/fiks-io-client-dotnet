@@ -41,7 +41,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             var avsenderKonto = Guid.NewGuid();
             var klientMeldingId = Guid.NewGuid();
 
-            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId.ToString() }};
 
             var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), headere), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
 
@@ -50,6 +50,25 @@ namespace KS.Fiks.IO.Client.Tests.Send
             await sut.Svar("testType", klientMeldingId).ConfigureAwait(false);
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == klientMeldingId), It.IsAny<IList<IPayload>>()));
+        }
+
+        [Fact]
+        public async Task SendsToAvsenderWithKlientKorrelasjonsId()
+        {
+            var meldingId = Guid.NewGuid();
+            var mottakerKonto = Guid.NewGuid();
+            var avsenderKonto = Guid.NewGuid();
+            var klientKorrelasjonsId = Guid.NewGuid().ToString();
+
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientKorrelasjonsId, klientKorrelasjonsId }};
+
+            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), headere), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
+
+            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
+
+            await sut.Svar("testType");
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientKorrelasjonsId == klientKorrelasjonsId), It.IsAny<IList<IPayload>>()));
         }
 
         [Fact]
@@ -83,6 +102,22 @@ namespace KS.Fiks.IO.Client.Tests.Send
             await sut.Svar("testType", "my message", "message.txt").ConfigureAwait(false);
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == null), It.IsAny<IList<IPayload>>()));
+        }
+
+        [Fact]
+        public async Task SendsToAvsenderWithMottakerAsAvsenderAndWithOptionalNullKlientKorrelasjonsId()
+        {
+            var meldingId = Guid.NewGuid();
+            var mottakerKonto = Guid.NewGuid();
+            var avsenderKonto = Guid.NewGuid();
+
+            var motattMelding = new MottattMelding(hasPayload: true, metadata: new MottattMeldingMetadata(meldingId, "testType", mottakerKonto, avsenderKonto, null, TimeSpan.FromDays(1), null), streamProvider: _fixture.DefaultStreamProvider, decrypter: _fixture.DefaultDecrypter, fileWriter: _fixture.DefaultFileWriter);
+
+            var sut = _fixture.WithMottattMelding(motattMelding).CreateSut();
+
+            await sut.Svar("testType", "my message", "message.txt").ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == null && a.KlientKorrelasjonsId == null), It.IsAny<IList<IPayload>>()));
         }
     }
 }
