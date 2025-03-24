@@ -27,9 +27,10 @@ public class MessageSender
         try
         {
             var klientMeldingId = Guid.NewGuid();
-            Log.Information("MessageSender - sending messagetype {MessageType} to account id: {AccountId} with klientMeldingId {KlientMeldingId}", messageType, toAccountId, klientMeldingId);
+            var klientKorrelasjonsId = Guid.NewGuid().ToString();
+            Log.Information("MessageSender - sending messagetype {MessageType} to account id {AccountId} with klientMeldingId {KlientMeldingId} klientKorrelasjonsId {KlientKorrelasjonsid}", messageType, toAccountId, klientMeldingId, klientKorrelasjonsId);
             var sendtMessage = await _fiksIoClient
-                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId), "testfile.txt", cancellationToken)
+                .Send(new MeldingRequest(_appSettings.FiksIOConfig.FiksIoAccountId, toAccountId, messageType, klientMeldingId: klientMeldingId, klientKorrelasjonsId: klientKorrelasjonsId), "testfile.txt", cancellationToken)
                 .ConfigureAwait(false);
             Log.Information("MessageSender - message sendt with messageid: {MessageId}", sendtMessage.MeldingId);
             return sendtMessage.MeldingId;

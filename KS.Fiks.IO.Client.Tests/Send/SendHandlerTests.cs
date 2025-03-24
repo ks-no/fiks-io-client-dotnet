@@ -40,7 +40,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         }
 
         [Fact]
-        public async Task CallsSendWithExpectedMessageSpecificationApiModelWithKlientMeldingId()
+        public async Task CallsSendWithExpectedMessageSpecificationApiModelWithKlientHeaders()
         {
             var sut = _fixture.CreateSut();
 
@@ -48,6 +48,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
                 avsenderKontoId: Guid.NewGuid(),
                 mottakerKontoId: Guid.NewGuid(),
                 klientMeldingId: Guid.NewGuid(),
+                klientKorrelasjonsId: Guid.NewGuid().ToString(),
                 meldingType: "Meldingsprotokoll",
                 ttl: TimeSpan.FromDays(2),
                 headere: null,
@@ -64,14 +65,15 @@ namespace KS.Fiks.IO.Client.Tests.Send
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
-                             model.Headere[MeldingBase.headerKlientMeldingId] == request.KlientMeldingId.ToString()),
+                             model.Headere[MeldingBase.HeaderKlientMeldingId] == request.KlientMeldingId.ToString() &&
+                             model.Headere[MeldingBase.HeaderKlientKorrelasjonsId] == request.KlientKorrelasjonsId),
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task CallsSendWithExpectedMessageSpecificationApiModelAndNullKlientMeldingId()
+        public async Task CallsSendWithExpectedMessageSpecificationApiModelAndNullKlientHeaders()
         {
             var sut = _fixture.CreateSut();
 
@@ -94,7 +96,8 @@ namespace KS.Fiks.IO.Client.Tests.Send
                              model.SvarPaMelding == request.SvarPaMelding &&
                              model.AvsenderKontoId == request.AvsenderKontoId &&
                              model.MottakerKontoId == request.MottakerKontoId &&
-                             !model.Headere.ContainsKey("klientMeldingId")),
+                             !model.Headere.ContainsKey("klientMeldingId") &&
+                             !model.Headere.ContainsKey("klientKorrelasjonsId")),
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()),
                 Times.Once);

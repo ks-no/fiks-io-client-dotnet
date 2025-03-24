@@ -38,9 +38,10 @@ namespace ExampleApplication.FiksIO
             Log.Information("FiksIOSubscriber - Received a message with messagetype '{MessageType}' with following attributes: " +
                             "\n\t messageId : {MeldingId}" +
                             "\n\t klientMeldingId : {KlientMeldingId}" +
+                            "\n\t klientKorrelasjonsId : {KlientKorrelasjonsId}" +
                             "\n\t svarPaMelding : {SvarPaMelding}" + 
                             "\n\t fiksOrgNavn : {FiksOrgNavn}" , 
-                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.SvarPaMelding, konto.FiksOrgNavn);
+                receivedMeldingType, mottatt.Melding.MeldingId, mottatt.Melding.KlientMeldingId, mottatt.Melding.KlientKorrelasjonsId, mottatt.Melding.SvarPaMelding, konto.FiksOrgNavn);
             
             switch (receivedMeldingType)
             {
@@ -55,7 +56,7 @@ namespace ExampleApplication.FiksIO
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksIOPong, klientMeldingId);
                     var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId} and klientKorrelasjonsId: {KlientKorrelasjonsId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId, sendtMelding.KlientKorrelasjonsId);
                     break;
                 }
                 case Program.FiksArkivPing:
@@ -63,7 +64,7 @@ namespace ExampleApplication.FiksIO
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksArkivPong, klientMeldingId);
                     var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId} and klientKorrelasjonsId: {KlientKorrelasjonsId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId, sendtMelding.KlientKorrelasjonsId);
                     break;
                 }
                 case Program.FiksPlanPing:
@@ -71,7 +72,7 @@ namespace ExampleApplication.FiksIO
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksPlanPong, klientMeldingId);
                     var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId} and klientKorrelasjonsId: {KlientKorrelasjonsId}", sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId, sendtMelding.KlientKorrelasjonsId);
                     break;
                 }
                 case Program.FiksMatrikkelfoeringPing:
@@ -79,7 +80,7 @@ namespace ExampleApplication.FiksIO
                     var klientMeldingId = Guid.NewGuid();
                     var sendtMelding = await mottatt.SvarSender.Svar(Program.FiksMatrikkelfoeringPong, klientMeldingId);
                     var payloadTxt = await GetDecryptedPayloadTxt(mottatt);
-                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId}",sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId);
+                    Log.Information("FiksIOSubscriber - Received {receivedMeldingType} with payload text {payload}. Replied messagetype 'ping' with messagetype 'pong' with messageId : {MeldingId} and klientMeldingId: {KlientMeldingId} and klientKorrelasjonsId: {KlientKorrelasjonsId}",sendtMelding.MeldingType, payloadTxt, sendtMelding.MeldingId, sendtMelding.KlientMeldingId, sendtMelding.KlientKorrelasjonsId);
                     break;
                 }
             }

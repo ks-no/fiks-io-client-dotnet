@@ -12,7 +12,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         public void TestKlientMeldingIdIsExtractedFromHeaderWhenGuid()
         {
             var klientMeldingId = Guid.NewGuid();
-            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId.ToString() }};
             var mottattMelding = new MottattMelding(false,
                 new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, headere), null, null, null);
@@ -24,7 +24,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         public void TestKlientMeldingIdIsGuidEmptyWhenNotAGuid()
         {
             var klientMeldingId = "dette er ikke en guid";
-            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId }};
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId }};
             var mottattMelding = new MottattMelding(false,
                 new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, headere), null, null, null);
@@ -47,7 +47,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         public void TestResendtIsDefaultFalse()
         {
             var klientMeldingId = Guid.NewGuid();
-            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId.ToString() }};
             var mottattMelding = new MottattMelding(false,
                 new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, headere), null, null, null);
@@ -60,7 +60,7 @@ namespace KS.Fiks.IO.Client.Tests.Models
         {
             var resendt = true;
             var klientMeldingId = Guid.NewGuid();
-            var headere = new Dictionary<string, string>() {{ MeldingBase.headerKlientMeldingId, klientMeldingId.ToString() }};
+            var headere = new Dictionary<string, string>() {{ MeldingBase.HeaderKlientMeldingId, klientMeldingId.ToString() }};
             var mottattMelding = new MottattMelding(false,
                 new MottattMeldingMetadata(Guid.NewGuid(), "meldingtype", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, headere, resendt), null, null, null);

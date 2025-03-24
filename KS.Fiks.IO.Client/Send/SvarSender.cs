@@ -79,6 +79,7 @@ namespace KS.Fiks.IO.Client.Send
                 avsenderKontoId: _mottattMelding.MottakerKontoId,
                 mottakerKontoId: _mottattMelding.AvsenderKontoId,
                 klientMeldingId: klientMeldingId,
+                klientKorrelasjonsId: _mottattMelding.KlientKorrelasjonsId,
                 meldingType: messageType,
                 ttl: null,
                 headere: null,

@@ -71,7 +71,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         private void SetupMocks()
         {
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IPayload[]>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new SendtMelding(Guid.NewGuid(), Guid.NewGuid(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
+                .ReturnsAsync(new SendtMelding(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid().ToString(), "sendtMelding", Guid.NewGuid(), Guid.NewGuid(),
                     TimeSpan.Zero, null));
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.Is<CancellationToken>(x => x.IsCancellationRequested)))
                 .ThrowsAsync(new TaskCanceledException());
