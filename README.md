@@ -67,7 +67,7 @@ When the program receives the 'ping' message it will reply to that message with 
 The program also shows the following features:
 - It uses the optional `klientMeldingId` when sending messages 
 - It uses the optional `klientKorrelasjonsId` when sending messages, and shows that it is returned in the response from the receiver of the first message 
-- It utilizes the `IsOpen()` feature to show the connection-status.
+- It utilizes the `IsOpenAsync()` feature to show the connection-status.
 
 
 
@@ -77,12 +77,12 @@ Read more in the [README.md](ExampleApplication/README.md) file for the example 
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 meldingRequest = new MeldingRequest(
-                            avsenderKontoId: senderId, // Sender id as Guid
-                            mottakerKontoId: receiverId, // Receiver id as Guid
-                            meldingType: messageType); // Message type as string
-        
+    avsenderKontoId: senderId, // Sender id as Guid
+    mottakerKontoId: receiverId, // Receiver id as Guid
+    meldingType: messageType); // Message type as string
+
 // Sending a file
-await client.Send(meldingRequest, "c:\path\someFile.pdf");
+await client.Send(meldingRequest, @"c:\path\someFile.pdf");
 
 // Sending a string
 await client.Send(meldingRequest, "String to send", "string.txt");
@@ -92,6 +92,9 @@ await client.Send(meldingRequest, someStream, "stream.jpg");
 
 // Sending message without payload
 await client.Send(meldingRequest);
+
+// Optional: using CancellationToken
+await client.Send(meldingRequest, @"c:\path\someFile.pdf", cancellationToken);
 ```
 
 ### Receiving message
@@ -101,34 +104,36 @@ await client.Send(meldingRequest);
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
-                {
-                    if(fileArgs.Melding.HasPayload) { // Verify that message has payload
-                        fileArgs.Melding.WriteDecryptedZip("c:\path\receivedFile.zip");
-                    }
-                    fileArgs.SvarSender.Ack() // Ack message if write succeeded to remove it from the queue
-                    
-                });
+private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+{
+    if (fileArgs.Melding.HasPayload) // Verify that message has payload
+    {
+        await fileArgs.Melding.WriteDecryptedZip(@"c:\path\receivedFile.zip");
+    }
 
-client.NewSubscription(onReceived);
+    await fileArgs.SvarSender.AckAsync(); // Ack message if write succeeded to remove it from the queue
+}
+
+await client.NewSubscriptionAsync(OnReceivedMelding);
 ```
 
 #### Process archive as stream
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
-                {
-                    if(fileArgs.Melding.HasPayload) { // Verify that message has payload
-                        using (var archiveAsStream = fileArgs.Melding.DecryptedStream) 
-                        {
-                            // Process the stream
-                        }
-                    }
-                    fileArgs.SvarSender.Ack() // Ack message if handling of stream succeeded to remove it from the queue
-                });
+private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+{
+    if (fileArgs.Melding.HasPayload)
+    {
+        await using var archiveAsStream = await fileArgs.Melding.DecryptedStream.ConfigureAwait(false);
 
-client.NewSubscription(onReceived);
+        // Process the stream
+    }
+
+    await fileArgs.SvarSender.AckAsync();
+}
+
+await client.NewSubscriptionAsync(OnReceivedMelding);
 ```
 
 #### Reply to message
@@ -136,15 +141,16 @@ You can reply directly to a message using the ReplySender.
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MottattMeldingArgs>((sender, fileArgs) =>
-                {
-                  // Process the message
-                  
-                  await fileArgs.SvarSender.Svar(/* message type */, /* message as string, path or stream */);
-                  fileArgs.SvarSender.Ack() // Ack message to remove it from the queue
-                });
+private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+{
+    // Process the message
 
-client.NewSubscription(onReceived);
+    await fileArgs.SvarSender.Svar(/* message type */, /* message as string, path or stream */);
+    await fileArgs.SvarSender.AckAsync();
+}
+
+await client.NewSubscriptionAsync(OnReceivedMelding);
+
 ```
 ### Lookup
 Using lookup, you can find which Fiks IO account to send a message to, given an organization number, message type and access level needed to read the message.
@@ -166,17 +172,18 @@ Using GetKonto, you can get information about a Fiks IO account, e.g. municipali
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-var onReceived = new EventHandler<MottattMeldingArgs>(async (sender, fileArgs) =>
-                {
-                    var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId); // Get information about the sender account
-                    ...
-                });
+private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+{
+    var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId);
 
-client.NewSubscription(onReceived);
+    // Use konto information here (e.g. logging, validation, etc.)
+}
+
+await client.NewSubscriptionAsync(OnReceivedMelding);
 ```
 
 
-### IsOpen
+### IsOpenAsync
 This method can be used to check if the amqp connection is open.
 
 ### Configuration
