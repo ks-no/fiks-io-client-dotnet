@@ -101,7 +101,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task AcknowledgeMessageAsync(ulong deliveryTag, CancellationToken cancellationToken)
         {
-            if (Channel is { IsOpen: true })
+            if (Channel?.IsOpen == true)
             {
                 await Channel.BasicAckAsync(deliveryTag, false, cancellationToken).ConfigureAwait(false);
             }
@@ -109,7 +109,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         private async Task RejectMessageAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
         {
-            if (Channel is { IsOpen: true })
+            if (Channel?.IsOpen == true)
             {
                 await Channel.BasicNackAsync(deliveryTag, false, requeue, cancellationToken).ConfigureAwait(false);
             }

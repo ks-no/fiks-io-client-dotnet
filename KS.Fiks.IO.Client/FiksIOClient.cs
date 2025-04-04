@@ -75,10 +75,13 @@ namespace KS.Fiks.IO.Client
                 _maskinportenClient,
                 httpClient);
 
-            asicEncrypter ??= new AsicEncrypter(
-                new AsiceBuilderFactory(),
-                new EncryptionServiceFactory(),
-                AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
+            if (asicEncrypter == null)
+            {
+                asicEncrypter = new AsicEncrypter(
+                    new AsiceBuilderFactory(),
+                    new EncryptionServiceFactory(),
+                    AsicSigningCertificateHolderFactory.Create(configuration.AsiceSigningConfiguration));
+            }
 
             _sendHandler = sendHandler ??
                            new SendHandler(
@@ -136,16 +139,19 @@ namespace KS.Fiks.IO.Client
             FiksIOConfiguration configuration,
             IAmqpWatcher amqpWatcher = null)
         {
-            _amqpHandler ??= await AmqpHandler.CreateAsync(
-                _maskinportenClient,
-                _sendHandler,
-                _dokumentlagerHandler,
-                configuration.AmqpConfiguration,
-                configuration.IntegrasjonConfiguration,
-                configuration.KontoConfiguration,
-                _loggerFactory,
-                connectionFactory: null,
-                amqpWatcher: amqpWatcher).ConfigureAwait(false);
+            if (_amqpHandler == null)
+            {
+                _amqpHandler = await AmqpHandler.CreateAsync(
+                    _maskinportenClient,
+                    _sendHandler,
+                    _dokumentlagerHandler,
+                    configuration.AmqpConfiguration,
+                    configuration.IntegrasjonConfiguration,
+                    configuration.KontoConfiguration,
+                    _loggerFactory,
+                    connectionFactory: null,
+                    amqpWatcher: amqpWatcher).ConfigureAwait(false);
+            }
         }
 
         public Guid KontoId { get; }

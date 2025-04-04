@@ -12,7 +12,7 @@ namespace KS.Fiks.IO.Client.Amqp
     public class AmqpConnectionManager
     {
         private readonly IConnectionFactory _connectionFactory;
-        private readonly SslOption? _sslOption;
+        private readonly SslOption _sslOption;
         private readonly SemaphoreSlim _tokenBucket;
         private readonly int _bucketSize;
         private readonly TimeSpan _tokenFillRate;

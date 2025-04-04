@@ -89,7 +89,10 @@ namespace KS.Fiks.IO.Client.Amqp
             _receivedEvent = receivedEvent;
             _cancelledEvent = cancelledEvent;
 
-            _receiveConsumer ??= _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+            if (_receiveConsumer == null)
+            {
+                _receiveConsumer = _amqpConsumerFactory.CreateReceiveConsumer(_channel);
+            }
 
             _receiveConsumer.ReceivedAsync += receivedEvent;
             _receiveConsumer.ConsumerCancelledAsync += cancelledEvent;
@@ -103,7 +106,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public Task<bool> IsOpenAsync()
         {
-            return Task.FromResult(_channel is { IsOpen: true } && _connection is { IsOpen: true });
+            return Task.FromResult(_channel?.IsOpen == true && _connection?.IsOpen == true);
         }
 
         public async ValueTask DisposeAsync()

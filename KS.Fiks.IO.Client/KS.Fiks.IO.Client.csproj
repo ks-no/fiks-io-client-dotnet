@@ -13,7 +13,7 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
 		<VersionPrefix>6.0.1</VersionPrefix>
-		<TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+		<TargetFrameworks>net8.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<AssemblyVersion>5.0.0.0</AssemblyVersion>
@@ -42,7 +42,7 @@
 		<None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.0.4" />
+		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.0.5" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
 		<PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
