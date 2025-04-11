@@ -116,7 +116,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             ChannelMock.Setup(c => c.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(ValueTask.CompletedTask);
 
-            FileWriterMock.Setup(_ => _.Write(It.IsAny<Stream>(), It.IsAny<string>()));
+            FileWriterMock.Setup(_ => _.WriteAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             AsicDecrypterMock.Setup(_ => _.Decrypt(It.IsAny<Task<Stream>>()))
                 .Returns((Task<Stream> inStream) => inStream);
