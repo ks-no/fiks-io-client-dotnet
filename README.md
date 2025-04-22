@@ -37,8 +37,8 @@ Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the R
 We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle).
 
 ### Health
-The client also exposes the status of the connection to RabbitMQ through the [IsOpen()](#isopen) function. 
-We recommend using this for monitoring the health of the client. 
+The client also exposes the status of the connection to RabbitMQ through the`IsOpenAsync()` function. 
+We recommend using this for monitoring the health of the client.
 
 ### Logging
 The Fiks-IO client can provide logging if you pass it a LoggingFactory. 
@@ -53,6 +53,12 @@ These are important events like:
 Using the RabbitMQEventLogger util will show these events in your application log. 
 
 See further down in this README for example on how to use the RabbitMQEventLogger util.
+
+### Use of klientKorrelasjonId
+The client supports the use of klientKorrelasjonId, a custom header that can be used when needed. This makes it easier to identify and track all messages that are part of a specific dialogue.
+Read more about this in [Fiks IO documentation](https://developers.fiks.ks.no/tjenester/fiksprotokoll/fiksio/#:~:text=en%20egendefinert%20header.-,KlientKorrelasjonsID,-Dette%20er%20en).
+There is also an example of how to use this in the example application.
+
 
 ## Examples
 
@@ -214,7 +220,7 @@ _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informa
 // Prod config with public/private key for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -226,7 +232,7 @@ var config = FiksIOConfigurationBuilder
 // Prod config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -237,7 +243,7 @@ var config = FiksIOConfigurationBuilder
 // Test config with public/private key for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -248,7 +254,7 @@ var config = FiksIOConfigurationBuilder
 // Test config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -276,7 +282,6 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     issuer: issuer, // klientid for maskinporten
     maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten
     asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
     applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
 
@@ -289,7 +294,6 @@ var config = FiksIOConfiguration.CreateTestConfiguration(
     issuer: issuer, // klientid for maskinporten
     maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten as a X509Certificate2
     asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
     applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
 );
 ```
@@ -321,13 +325,10 @@ var apiConfig = new ApiConfiguration(
                 port: 443);
 
 // Optional: Use custom amqp host (i.e. for connection to test queue). 
-// Optional: Set keepAlive: true if you want the FiksIOClient to check if amqp connection is open every 5 minutes and automatically reconnect. 
-// another option to using keepAlive is to use the isOpen() method on the FiksIOClient and implement a keepalive strategy yourself 
 var amqp = new AmqpConfiguration(
                 host: "io.fiks.test.ks.no",
                 port: 5671,
-                applicationName: "my-application",
-                keepAlive: false); 
+                applicationName: "my-application"); 
 
 // Configuration for Asice signing. Not optional. Either use a public/private key-pair or a X509Certificate2 that contains the corresponding private key.
 var asiceSigning = new AsiceSigningConfiguration(
@@ -347,9 +348,8 @@ var configuration = new FiksIOConfiguration(
 #### Configuration setting details:
 
 ##### Ampq:
-- **keepAlive**: Optional setting. Set the `keepAlive` to true if you want the client to check every 5 minutes if the amqp connection is open and automatically reconnect
 - **applicationName**: Optional but recomended. Gives the Fiks-IO queue a name that you provide. Makes it easier to identify which queue is yours from a logging and management perspective.
-
+- **rateLimitConfiguration**: is used to limit how often the client attempts to establish connections to the RabbitMQ server. This helps reduce load and prevents excessive connection attempts (known as “connection churn”).
 #### Fiks-IO Konto: 
 - **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. This is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account.
 It is not required to be derived from the Maskinporten certificate. See example on how to convert a PKCS#1 or generate private/public keys further down.
