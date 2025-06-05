@@ -43,13 +43,13 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.0.6" />
-		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
 		<PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="1.0.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.4" />
+		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="2.0.0" />
+		<PackageReference Include="System.Text.Json" Version="9.0.5" />
 	</ItemGroup>
 </Project>
