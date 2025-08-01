@@ -286,7 +286,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 _fixture.DefaultProperties,
                 data);
 
-            _fixture.FileWriterMock.Verify(_ => _.Write(It.IsAny<Stream>(), filePath));
+            _fixture.FileWriterMock.Verify(_ => _.WriteAsync(It.IsAny<Stream>(), filePath, It.IsAny<CancellationToken>()));
         }
 
         [Fact]

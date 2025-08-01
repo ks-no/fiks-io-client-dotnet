@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.FileIO;
 using KS.Fiks.IO.Crypto.Asic;
@@ -64,9 +65,9 @@ namespace KS.Fiks.IO.Client.Models
 
         public Task<Stream> DecryptedStream => _decrypter.Decrypt(_streamProvider());
 
-        public async Task WriteEncryptedZip(string outPath)
+        public async Task WriteEncryptedZip(string outPath, CancellationToken cancellationToken = default)
         {
-            _fileWriter.Write(await _streamProvider().ConfigureAwait(false), outPath);
+            await _fileWriter.WriteAsync(await _streamProvider().ConfigureAwait(false), outPath, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task WriteDecryptedZip(string outPath)
