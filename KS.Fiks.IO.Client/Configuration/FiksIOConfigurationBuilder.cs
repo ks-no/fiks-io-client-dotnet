@@ -20,7 +20,7 @@ namespace KS.Fiks.IO.Client.Configuration
         private ushort amqpPrefetchCount = 10;
         private string maskinportenIssuer = string.Empty;
         private X509Certificate2 maskinportenCertificate;
-        private string keyIdentifier;
+        private string maskinportenKeyIdentifier;
 
         public static FiksIOConfigurationBuilder Init()
         {
@@ -37,7 +37,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, keyIdentifier));
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
         }
 
         public FiksIOConfiguration BuildDevConfiguration(string amqpHost, string apiHost)
@@ -50,7 +50,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, keyIdentifier));
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
         }
 
         public FiksIOConfiguration BuildProdConfiguration()
@@ -63,7 +63,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate, keyIdentifier));
+                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
         }
 
         public FiksIOConfigurationBuilder WithMaskinportenConfiguration(X509Certificate2 certificate, string issuer)
@@ -77,7 +77,7 @@ namespace KS.Fiks.IO.Client.Configuration
         {
             maskinportenIssuer = issuer;
             maskinportenCertificate = certificate;
-            this.keyIdentifier = keyIdentifier;
+            maskinportenKeyIdentifier = keyIdentifier;
             return this;
         }
 
