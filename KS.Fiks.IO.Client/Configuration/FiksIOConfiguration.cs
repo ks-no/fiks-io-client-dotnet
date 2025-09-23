@@ -123,7 +123,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: new AsiceSigningConfiguration(asiceSertifikat));
         }
 
-        public static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate, string keyIdentifier)
+        public static MaskinportenClientConfiguration CreateMaskinportenProdConfig(string issuer, X509Certificate2 certificate, string keyIdentifier = null)
         {
             return new MaskinportenClientConfiguration(
                 audience: maskinportenProdAudience,
@@ -134,7 +134,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 keyIdentifier: keyIdentifier);
         }
 
-        public static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate, string keyIdentifier)
+        public static MaskinportenClientConfiguration CreateMaskinportenTestConfig(string issuer, X509Certificate2 certificate, string keyIdentifier = null)
         {
             return new MaskinportenClientConfiguration(
                 audience: maskinportenTestAudience,
