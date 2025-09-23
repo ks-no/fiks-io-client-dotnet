@@ -27,6 +27,22 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         }
 
         [Fact]
+        public void TestConfigurationWithMaskinportenKeyIdentifierProvidedShouldBeCreatedWithKeyIdentifier()
+        {
+            var keyIdentifier = $"{Guid.NewGuid():N}";
+            var configuration = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("test_app", 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer", keyIdentifier)
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
+                .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
+                .BuildTestConfiguration();
+
+            configuration.MaskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
+        }
+
+        [Fact]
         public void ProdConfigurationWithAllRequiredConfigurations()
         {
             var configuration = FiksIOConfigurationBuilder
@@ -40,6 +56,22 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
 
             configuration.ApiConfiguration.Host.ShouldBe(ApiConfiguration.ProdHost);
             configuration.AmqpConfiguration.Host.ShouldBe(AmqpConfiguration.ProdHost);
+        }
+
+        [Fact]
+        public void ProdConfigurationWithWithMaskinportenKeyIdentifierProvidedShouldBeCreatedWithKeyIdentifier()
+        {
+            var keyIdentifier = $"{Guid.NewGuid():N}";
+            var configuration = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("test_app", 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer", keyIdentifier)
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
+                .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
+                .BuildProdConfiguration();
+
+            configuration.MaskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
         }
 
         [Fact]
