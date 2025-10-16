@@ -54,6 +54,7 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "MaskinPortenCompanyCertificateThumbprint": "<your thumbprint>", // The thumbprint for the certificate used with Maskinporten
         "MaskinPortenCompanyCertificatePath": "", // The path to the certificate used with Maskinporten
         "MaskinPortenCompanyCertificatePassword": "", // The password for the certificate used with Maskinporten
+        "MaskinPortenKeyIdentifier": "", // Maskinporten key identifier
         "MaskinPortenIssuer": "", // Maskinporten issuer
         "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
