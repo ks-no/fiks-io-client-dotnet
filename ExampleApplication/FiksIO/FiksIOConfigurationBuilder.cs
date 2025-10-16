@@ -26,6 +26,7 @@ namespace ExampleApplication.FiksIO
             var asiceSigningPrivateKey = appSettings.FiksIOConfig.AsiceSigningPrivateKey;
             var apiHost = appSettings.FiksIOConfig.ApiHost;
             var apiPort = appSettings.FiksIOConfig.ApiPort;
+            var maskinportenKeyIdentifier = appSettings.FiksIOConfig.MaskinPortenKeyIdentifier; // Not used in this example, but could be passed to WithMaskinportenConfiguration if needed
                 
 
             return FiksIOConfigurationBuilder
