@@ -220,8 +220,7 @@ var config = FiksIOConfigurationBuilder
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
                 .BuildProdConfiguration();
-                
-                
+
 // Prod alternative 2
 // Prod config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
@@ -231,6 +230,17 @@ var config = FiksIOConfigurationBuilder
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
+                .BuildProdConfiguration();
+
+// Prod alternative 3
+// Prod config with maskinporten keyIdentifier
+var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithMaskinportenConfiguration(certificate, issuer, maskinPortenKeyIdentifier) // Use this overload if you have a keyIdentifier for your maskinporten certificate
+                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
+                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
+                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
                 .BuildProdConfiguration();
 
 // Test alternative 1
@@ -260,7 +270,10 @@ var config = FiksIOConfigurationBuilder
 
 Explanations:
 
-`.WithFiksKontoConfiguration(kontoId, privateKey)`: The **privateKey** parameter is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account. The public key uploaded to your account is the public key that other clients will use for encrypting messages when sending messages to your account. The **privateKey** is then used for decrypting messages.   
+`.WithFiksKontoConfiguration(kontoId, privateKey)`: The **privateKey** parameter is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account. The public key uploaded to your account is the public key that other clients will use for encrypting messages when sending messages to your account. The **privateKey** is then used for decrypting messages.  
+
+`maskinportenKeyIdentifier`: This is an optional parameter the client supports if you have a keyIdentifier for your maskinporten certificate. If you do not have this, you can use the overload without this parameter.
+Read more about key identifier [here](https://docs.digdir.no/docs/idporten/oidc/oidc_protocol_access_token.html#:~:text=value-,kid,-%E2%80%9CKey%20identifier%E2%80%9D%20%2D%20unique).
 
 
 #### Create without builder example:
