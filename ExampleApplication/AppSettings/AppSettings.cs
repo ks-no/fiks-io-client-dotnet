@@ -20,6 +20,7 @@ namespace ExampleApplication
         public string FiksIoIntegrationScope { get; set; }
         public string FiksIoPrivateKey { get; set; }
         public string MaskinPortenAudienceUrl { get; set; }
+        public string MaskinPortenKeyIdentifier { get; set; }
         public string MaskinPortenCompanyCertificateThumbprint { get; set; }
         public string MaskinPortenCompanyCertificatePath { get; set; }
         public string MaskinPortenCompanyCertificatePassword { get; set; }
