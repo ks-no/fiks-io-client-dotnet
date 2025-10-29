@@ -29,6 +29,7 @@ namespace KS.Fiks.IO.Client.Amqp
         private IAmqpReceiveConsumer _receiveConsumer;
         private Func<MottattMeldingArgs, Task> _receivedEvent;
         private Func<ConsumerEventArgs, Task> _cancelledEvent;
+        private int _disposed;
 
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
@@ -60,7 +61,8 @@ namespace KS.Fiks.IO.Client.Amqp
 
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
 
-            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(sendHandler, dokumentlagerHandler, _amqpWatcher, _kontoConfiguration);
+            _amqpConsumerFactory = consumerFactory ?? new AmqpConsumerFactory(
+                sendHandler, dokumentlagerHandler, _amqpWatcher, _kontoConfiguration);
         }
 
         public static async Task<IAmqpHandler> CreateAsync(
@@ -75,11 +77,14 @@ namespace KS.Fiks.IO.Client.Amqp
             IAmqpConsumerFactory consumerFactory = null,
             IAmqpWatcher amqpWatcher = null)
         {
-            var amqpHandler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler, amqpConfiguration, integrasjonConfiguration, kontoConfiguration, loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
-            await amqpHandler.ConnectAsync(amqpConfiguration).ConfigureAwait(false);
+            var handler = new AmqpHandler(maskinportenClient, sendHandler, dokumentlagerHandler,
+                amqpConfiguration, integrasjonConfiguration, kontoConfiguration,
+                loggerFactory, connectionFactory, consumerFactory, amqpWatcher);
+
+            await handler.ConnectAsync(amqpConfiguration).ConfigureAwait(false);
 
             _logger?.LogDebug("AmqpHandler CreateAsync done");
-            return amqpHandler;
+            return handler;
         }
 
         public async Task AddMessageReceivedHandlerAsync(
@@ -111,35 +116,50 @@ namespace KS.Fiks.IO.Client.Amqp
 
         public async ValueTask DisposeAsync()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
+            {
+                return;
+            }
 
+            RunSafe(
+                () =>
+            {
                 UnsubscribeConsumerEvents();
+                SafelyUnsubscribeConnectionEvents();
+            }, "Error during event unsubscription in DisposeAsync");
 
-                UnsubscribeConnectionEvents();
-
-                await _channel.DisposeAsync().ConfigureAwait(false);
-
-                await _connection.DisposeAsync().ConfigureAwait(false);
+            await DisposeSafeAsync(_channel, "channel").ConfigureAwait(false);
+            await DisposeSafeAsync(_connection, "connection").ConfigureAwait(false);
         }
 
-        private async Task ConnectAsync(AmqpConfiguration amqpConfiguration)
+        private void SafelyUnsubscribeConnectionEvents()
         {
-            _connection = await CreateConnectionAsync(amqpConfiguration).ConfigureAwait(false);
-            _channel = await ConnectToChannelAsync(amqpConfiguration).ConfigureAwait(false);
+            if (_connection == null || !_connection.IsOpen)
+            {
+                _logger?.LogDebug("Connection is closed, skipping event unsubscription");
+                return;
+            }
+
+            RunSafe(UnsubscribeConnectionEvents, "Error unsubscribing connection events");
+        }
+
+        private async Task ConnectAsync(AmqpConfiguration config)
+        {
+            _connection = await CreateConnectionAsync(config).ConfigureAwait(false);
+            _channel = await ConnectToChannelAsync(config).ConfigureAwait(false);
 
             SubscribeConnectionEvents();
-
-            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         private void SubscribeConnectionEvents()
-            {
-                _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
-                _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
-                _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
-                _connection.RecoverySucceededAsync += _amqpWatcher.HandleRecoverySucceeded;
-                _connection.RecoveringConsumerAsync += _amqpWatcher.HandleRecoveringConsumer;
-                _connection.ConnectionRecoveryErrorAsync += _amqpWatcher.HandleConnectionRecoveryError;
-            }
+        {
+            _connection.ConnectionShutdownAsync += _amqpWatcher.HandleConnectionShutdown;
+            _connection.ConnectionBlockedAsync += _amqpWatcher.HandleConnectionBlocked;
+            _connection.ConnectionUnblockedAsync += _amqpWatcher.HandleConnectionUnblocked;
+            _connection.RecoverySucceededAsync += _amqpWatcher.HandleRecoverySucceeded;
+            _connection.RecoveringConsumerAsync += _amqpWatcher.HandleRecoveringConsumer;
+            _connection.ConnectionRecoveryErrorAsync += _amqpWatcher.HandleConnectionRecoveryError;
+        }
 
         private void UnsubscribeConnectionEvents()
         {
@@ -186,6 +206,44 @@ namespace KS.Fiks.IO.Client.Amqp
         private string GetQueueName()
         {
             return $"{QueuePrefix}{_kontoConfiguration.KontoId}";
+        }
+
+        private void RunSafe(Action action, string warningMessage)
+        {
+            try
+            {
+                action();
+            }
+            catch (ObjectDisposedException ex)
+            {
+                _logger?.LogDebug(ex, $"{warningMessage} (disposed)");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, warningMessage);
+            }
+        }
+
+        private async Task DisposeSafeAsync<T>(T disposable, string name)
+            where T : class, IAsyncDisposable
+        {
+            if (disposable == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await disposable.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                _logger?.LogDebug(ex, $"{name} already disposed.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, $"Error disposing {name} in DisposeAsync");
+            }
         }
     }
 }

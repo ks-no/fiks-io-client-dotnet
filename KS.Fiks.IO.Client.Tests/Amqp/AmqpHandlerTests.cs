@@ -188,6 +188,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 consumer => consumer.ConsumerCancelledAsync += It.IsAny<Func<ConsumerEventArgs, Task>>(),
                 Times.Once);
 
+            _fixture.ConnectionMock.Setup(c => c.IsOpen).Returns(true);
+
             connectionMock.SetupRemove(connection =>
                 connection.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>());
 
@@ -243,6 +245,116 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 connection => connection.ConnectionRecoveryErrorAsync -=
                     It.IsAny<AsyncEventHandler<ConnectionRecoveryErrorEventArgs>>(),
                 Times.AtLeastOnce);
+
+            _fixture.ChannelMock.Verify(c => c.DisposeAsync(), Times.Once);
+            _fixture.ConnectionMock.Verify(c => c.DisposeAsync(), Times.Once); 
+        }
+
+        [Fact]
+        public async Task DisposeAsync_HandlesObjectDisposedExceptionWhenUnsubscribingConnectionEvents()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.ConnectionMock.Setup(c => c.IsOpen).Throws(new ObjectDisposedException("MockedObject"));
+            _fixture.ConnectionMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _fixture.ChannelMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            var exceptionCaught = false;
+
+            try
+            {
+                await sut.DisposeAsync();
+            }
+            catch
+            {
+                exceptionCaught = true;
+            }
+
+            exceptionCaught.ShouldBeFalse("DisposeAsync should handle ObjectDisposedException internally.");
+
+            _fixture.ConnectionMock.Verify(c => c.DisposeAsync(), Times.Once);
+            _fixture.ChannelMock.Verify(c => c.DisposeAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_CanBeCalledMultipleTimesSafely()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.ConnectionMock.Setup(c => c.IsOpen).Returns(true);
+            _fixture.ChannelMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _fixture.ConnectionMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            await sut.DisposeAsync();
+            await sut.DisposeAsync();
+
+            _fixture.ChannelMock.Verify(c => c.DisposeAsync(), Times.Once);
+            _fixture.ConnectionMock.Verify(c => c.DisposeAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_HandlesNullConnectionGracefully()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.SetConnectionToNull();
+            _fixture.ChannelMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            var exceptionCaught = false;
+            try
+            {
+                await sut.DisposeAsync();
+            }
+            catch
+            {
+                exceptionCaught = true;
+            }
+
+            exceptionCaught.ShouldBeFalse("DisposeAsync should handle null connection gracefully.");
+
+            _fixture.ChannelMock.Verify(c => c.DisposeAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_SkipsEventUnsubscriptionWhenConnectionIsClosed()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.ConnectionMock.Setup(c => c.IsOpen).Returns(false);
+            _fixture.ChannelMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _fixture.ConnectionMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            await sut.DisposeAsync();
+
+            _fixture.ConnectionMock.VerifyRemove(
+                c => c.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>(),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_HandlesObjectDisposedExceptionWhenUnsubscribingEvents()
+        {
+            var sut = await _fixture.CreateSutAsync();
+
+            _fixture.ConnectionMock.Setup(c => c.IsOpen).Returns(true);
+            _fixture.ConnectionMock
+                .SetupRemove(c => c.ConnectionShutdownAsync -= It.IsAny<AsyncEventHandler<ShutdownEventArgs>>())
+                .Throws(new ObjectDisposedException("MockedConnection"));
+            _fixture.ChannelMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _fixture.ConnectionMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            var exceptionCaught = false;
+
+            try
+            {
+                await sut.DisposeAsync();
+            }
+            catch
+            {
+                exceptionCaught = true;
+            }
+
+            exceptionCaught.ShouldBeFalse("DisposeAsync should handle ObjectDisposedException internally.");
         }
     }
 }
