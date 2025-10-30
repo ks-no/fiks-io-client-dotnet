@@ -25,6 +25,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private string _token = "testtoken";
         private Guid _integrationId = Guid.NewGuid();
         private string _integrationPassword = "defaultPassword";
+        private IAmqpHandler? _amqpHandler;
 
         public AmqpHandlerFixture WhereConnectionFactoryThrowsException()
         {
@@ -56,6 +57,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             return this;
         }
 
+        public void SetConnectionToNull()
+        {
+            ((AmqpHandler)GetAmqpHandler()).SetConnection(null);
+        }
+
         public Mock<IConnectionFactory> ConnectionFactoryMock { get; } = new Mock<IConnectionFactory>();
 
         public Mock<IConnection> ConnectionMock { get; } = new Mock<IConnection>();
@@ -76,7 +82,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             SetupMocks();
             var amqpConfiguration = CreateConfiguration();
-            var amqpHandler = await AmqpHandler.CreateAsync(
+            _amqpHandler = await AmqpHandler.CreateAsync(
                 MaskinportenClientMock.Object,
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
@@ -87,7 +93,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 ConnectionFactoryMock.Object,
                 AmqpConsumerFactoryMock.Object).ConfigureAwait(false);
 
-            return amqpHandler;
+            return _amqpHandler;
         }
 
         private static AmqpConfiguration CreateConfiguration()
@@ -158,6 +164,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         private IntegrasjonConfiguration CreateIntegrationConfiguration()
         {
             return new IntegrasjonConfiguration(_integrationId, _integrationPassword);
+        }
+
+        private object GetAmqpHandler()
+        {
+            return _amqpHandler ?? throw new InvalidOperationException("SUT is not created yet.");
         }
     }
 }
