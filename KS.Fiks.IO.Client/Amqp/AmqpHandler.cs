@@ -31,6 +31,11 @@ namespace KS.Fiks.IO.Client.Amqp
         private Func<ConsumerEventArgs, Task> _cancelledEvent;
         private int _disposed;
 
+        internal void SetConnection(IConnection connection)
+        {
+            _connection = connection;
+        }
+
         private AmqpHandler(
             IMaskinportenClient maskinportenClient,
             ISendHandler sendHandler,

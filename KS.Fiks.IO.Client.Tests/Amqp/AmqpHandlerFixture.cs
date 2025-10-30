@@ -59,9 +59,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         public void SetConnectionToNull()
         {
-            typeof(AmqpHandler)
-                .GetField("_connection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance) !
-                .SetValue(GetAmqpHandler(), null);
+            ((AmqpHandler)GetAmqpHandler()).SetConnection(null);
         }
 
         public Mock<IConnectionFactory> ConnectionFactoryMock { get; } = new Mock<IConnectionFactory>();
