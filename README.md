@@ -152,19 +152,6 @@ private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
 await client.NewSubscriptionAsync(OnReceivedMelding);
 
 ```
-### Lookup
-Using lookup, you can find which Fiks IO account to send a message to, given an organization number, message type and access level needed to read the message.
-
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
-
-var request = new LookupRequest(
-    identifikator: "ORG_NO.987654321",
-    meldingsprotokoll: "no.ks.test.fagsystem.v1",
-    sikkerhetsniva: 4);
-
-var receiverKontoId = await client.Lookup(request); 
-```
 
 ### GetKonto
 Using GetKonto, you can get information about a Fiks IO account, e.g. municipality number and organization name, given the account id.

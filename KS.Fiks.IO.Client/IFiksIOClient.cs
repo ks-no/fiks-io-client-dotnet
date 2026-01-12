@@ -14,8 +14,6 @@ namespace KS.Fiks.IO.Client
     {
         Guid KontoId { get; }
 
-        Task<Konto> Lookup(LookupRequest request);
-
         Task<Konto> GetKonto(Guid kontoId);
 
         Task<Status> GetKontoStatus(Guid kontoId);
