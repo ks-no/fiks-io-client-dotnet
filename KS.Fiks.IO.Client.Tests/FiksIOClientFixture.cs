@@ -25,7 +25,6 @@ namespace KS.Fiks.IO.Client.Tests
     {
         private FiksIOConfiguration _configuration;
 
-        private Konto _lookupReturn = null;
         private SendtMelding _sendtMeldingReturn = null;
 
         private string _scheme = "http";
@@ -103,12 +102,6 @@ namespace KS.Fiks.IO.Client.Tests
             return this;
         }
 
-        public FiksIOClientFixture WithLookupAccount(Konto konto)
-        {
-            _lookupReturn = konto;
-            return this;
-        }
-
         public FiksIOClientFixture WithScheme(string scheme)
         {
             _scheme = scheme;
@@ -153,7 +146,6 @@ namespace KS.Fiks.IO.Client.Tests
 
         private void SetupMocks()
         {
-            CatalogHandlerMock.Setup(_ => _.Lookup(It.IsAny<LookupRequest>())).ReturnsAsync(_lookupReturn);
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()))
                            .ReturnsAsync(_sendtMeldingReturn);
             SendHandlerMock.Setup(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.Is<CancellationToken>(x => x.IsCancellationRequested)))

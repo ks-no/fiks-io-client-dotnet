@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
-using KS.Fiks.IO.Send.Client.Models;
 using Moq;
 using RabbitMQ.Client.Events;
 using Shouldly;
@@ -30,40 +29,6 @@ namespace KS.Fiks.IO.Client.Tests
             var sut = _fixture.WithAccountId(expectedAccountId).CreateSut();
             var actualAccountId = sut.KontoId;
             actualAccountId.ShouldBe(expectedAccountId);
-        }
-
-        [Fact]
-        public async Task LookupReturnsExpectedAccount()
-        {
-            var expectedAccount = new Konto
-            {
-                KontoId = Guid.NewGuid(),
-                KontoNavn = "testName",
-                IsGyldigAvsender = true,
-                IsGyldigMottaker = false,
-                FiksOrgId = Guid.NewGuid(),
-                FiksOrgNavn = "testOrgName"
-            };
-            var lookup = new LookupRequest(
-                "testIdentifier",
-                "testType",
-                3);
-            var sut = _fixture.WithLookupAccount(expectedAccount).CreateSut();
-            var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
-            actualAccount.ShouldBe(expectedAccount);
-        }
-
-        [Fact]
-        public async Task LookupCallsCatalogHandlerWithExpectedLookup()
-        {
-            var lookup = new LookupRequest(
-                "testIdentifier",
-                "testType",
-                 3);
-            var sut = _fixture.WithLookupAccount(new Konto()).CreateSut();
-            var actualAccount = await sut.Lookup(lookup).ConfigureAwait(false);
-
-            _fixture.CatalogHandlerMock.Verify(_ => _.Lookup(lookup));
         }
 
         [Fact]

@@ -156,11 +156,6 @@ namespace KS.Fiks.IO.Client
 
         public Guid KontoId { get; }
 
-        public async Task<Konto> Lookup(LookupRequest request)
-        {
-            return await _catalogHandler.Lookup(request).ConfigureAwait(false);
-        }
-
         public async Task<Konto> GetKonto(Guid kontoId)
         {
             return await _catalogHandler.GetKonto(kontoId).ConfigureAwait(false);
