@@ -50,6 +50,6 @@
 		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
 		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="2.0.0" />
-		<PackageReference Include="System.Text.Json" Version="10.0.0" />
+		<PackageReference Include="System.Text.Json" Version="10.0.2" />
 	</ItemGroup>
 </Project>
