@@ -42,8 +42,8 @@
 		<None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.0.7" />
-		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.6" />	
+		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.0.9" />
+		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.7" />	
 		<PackageReference Include="RabbitMQ.Client" Version="7.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
