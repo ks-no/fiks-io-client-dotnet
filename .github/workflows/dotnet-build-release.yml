@@ -30,7 +30,9 @@ on:
         required: false
         default: 'No review required'
   push:
-    branches: [main]
+    branches:
+      - main
+      - '**'
   pull_request:
     branches: [main]
 

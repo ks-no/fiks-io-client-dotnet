@@ -31,5 +31,7 @@ namespace KS.Fiks.IO.Client
         Task NewSubscriptionAsync(Func<MottattMeldingArgs, Task> onMottattMelding, Func<ConsumerEventArgs, Task> onCanceled = null);
 
         Task<bool> IsOpenAsync();
+
+        Task<bool> ValidatePublicKeyAgainstPrivateKeyAsync();
     }
 }
