@@ -43,12 +43,14 @@ namespace KS.Fiks.IO.Client
 
         private IMaskinportenClient _maskinportenClient;
 
+        private KeyValidatorHandler _keyValidatorHandler;
+
         private FiksIOClient(
             FiksIOConfiguration configuration,
             ILoggerFactory loggerFactory = null,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null)
-            : this(configuration, loggerFactory, null, null, null, null, null, httpClient, publicKeyProvider)
+            : this(configuration, loggerFactory, null, null, null, null, null, httpClient, publicKeyProvider, null, null)
         {
         }
 
@@ -62,7 +64,8 @@ namespace KS.Fiks.IO.Client
             IAmqpHandler amqpHandler = null,
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
-            IAsicEncrypter asicEncrypter = null)
+            IAsicEncrypter asicEncrypter = null,
+            KeyValidatorHandler keyValidatorHandler = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -104,6 +107,8 @@ namespace KS.Fiks.IO.Client
             _amqpHandler = amqpHandler;
 
             _loggerFactory = loggerFactory;
+
+            _keyValidatorHandler = keyValidatorHandler ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
         }
 
         public static async Task<FiksIOClient> CreateAsync(
@@ -129,7 +134,8 @@ namespace KS.Fiks.IO.Client
                 amqpHandler,
                 httpClient,
                 publicKeyProvider,
-                asicEncrypter);
+                asicEncrypter,
+                null);
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
@@ -201,6 +207,11 @@ namespace KS.Fiks.IO.Client
         public async Task<bool> IsOpenAsync()
         {
             return await _amqpHandler.IsOpenAsync().ConfigureAwait(false);
+        }
+
+        public Task<bool> ValidatePublicKeyAgainstPrivateKeyAsync()
+        {
+            return _keyValidatorHandler.ValidatePublicKeyAgainstPrivateKeyAsync();
         }
 
         public async ValueTask DisposeAsync()
