@@ -68,9 +68,6 @@ jobs:
     needs: initialize
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    concurrency:
-      group: integration-tests
-      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v6
@@ -136,71 +133,50 @@ jobs:
           ks_github_app_id: ${{ vars.KS_RUNNER_APP_ID }}
           ks_github_app_private_key: ${{ secrets.KS_RUNNER_PRIVATE_KEY }}
 
-      - name: Trigger and Wait for Integration Tests
+      - name: Trigger Integration Tests
         uses: actions/github-script@v8
         with:
           github-token: ${{ steps.setup-github-app.outputs.app_token }}
           script: |
-            const owner = 'ks-no';
-            const repo = 'fiks-io-client-dotnet-integration-tests';
+            const intOwner = 'ks-no';
+            const intRepo = 'fiks-io-client-dotnet-integration-tests';
             const workflowId = 'dotnet-component-test-pipeline-windows.yml';
             const componentVersion = '${{ needs.initialize.outputs.full-version }}';
+            const clientOwner = context.repo.owner;
+            const clientRepo  = context.repo.repo;
+            const clientSha   = context.sha;
 
-            const dispatchedAt = new Date();
-            console.log(`Triggering integration tests with version: ${componentVersion}`);
+            // Create a pending check run on the triggering commit
+            const { data: checkRun } = await github.rest.checks.create({
+              owner: clientOwner,
+              repo:  clientRepo,
+              name:  'Integration Tests',
+              head_sha:   clientSha,
+              status:     'in_progress',
+              started_at: new Date().toISOString(),
+              output: {
+                title:   'Integration Tests',
+                summary: `Running integration tests with version ${componentVersion}`
+              }
+            });
+            console.log(`Created check run #${checkRun.id}`);
+
+            // Dispatch — pass check run metadata so the int-test workflow can update it
             await github.rest.actions.createWorkflowDispatch({
-              owner, repo,
+              owner: intOwner,
+              repo:  intRepo,
               workflow_id: workflowId,
               ref: 'master',
               inputs: {
                 componentVersion,
-                componentPackageName: 'KS.Fiks.IO.Client'
+                componentPackageName: 'KS.Fiks.IO.Client',
+                clientOwner,
+                clientRepo,
+                clientSha,
+                checkRunId: String(checkRun.id)
               }
             });
-
-            // Wait for the run to appear
-            await new Promise(r => setTimeout(r, 10000));
-            let runId = null, runUrl = null;
-            for (let i = 0; i < 18; i++) {
-              const { data } = await github.rest.actions.listWorkflowRuns({
-                owner, repo, workflow_id: workflowId,
-                created: `>=${dispatchedAt.toISOString()}`,
-                per_page: 5
-              });
-              if (data.workflow_runs.length > 0) {
-                runId = data.workflow_runs[0].id;
-                runUrl = data.workflow_runs[0].html_url;
-                console.log(`Found run: ${runUrl}`);
-                break;
-              }
-              console.log(`Run not found yet, retrying... (${i + 1}/18)`);
-              await new Promise(r => setTimeout(r, 10000));
-            }
-            if (!runId) {
-              core.setFailed('Could not find the triggered workflow run after 3 minutes');
-              return;
-            }
-
-            // Poll until completed
-            const maxWaitMs = 15 * 60 * 1000;
-            const pollIntervalMs = 30 * 1000;
-            const startTime = Date.now();
-            while (Date.now() - startTime < maxWaitMs) {
-              const { data: run } = await github.rest.actions.getWorkflowRun({
-                owner, repo, run_id: runId
-              });
-              const elapsed = Math.round((Date.now() - startTime) / 1000);
-              console.log(`Status: ${run.status} (elapsed: ${elapsed}s)`);
-              if (run.status === 'completed') {
-                console.log(`Conclusion: ${run.conclusion} — ${run.html_url}`);
-                if (run.conclusion !== 'success') {
-                  core.setFailed(`Integration tests failed: ${run.conclusion}. See ${run.html_url}`);
-                }
-                return;
-              }
-              await new Promise(r => setTimeout(r, pollIntervalMs));
-            }
-            core.setFailed(`Integration tests did not complete within 15 minutes. See ${runUrl}`);
+            console.log(`Integration tests triggered (check run #${checkRun.id})`);
 
   build-windows:
     name: Build (Windows)
