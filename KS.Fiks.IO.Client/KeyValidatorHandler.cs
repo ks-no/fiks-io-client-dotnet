@@ -39,7 +39,11 @@ namespace KS.Fiks.IO.Client
 
             var certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
 
-            var randomBytes = RandomNumberGenerator.GetBytes(256);
+            var randomBytes = new byte[256];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
 
             try
             {
