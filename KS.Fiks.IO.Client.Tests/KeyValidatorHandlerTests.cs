@@ -22,7 +22,7 @@ namespace KS.Fiks.IO.Client.Tests
         {
             _matchingCertificate = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
             _matchingPrivateKeyPem = File.ReadAllText("fiks_demo_private.pem");
-            _nonMatchingPrivateKeyPem = File.ReadAllText("fiks_demo_invalid_private.pem");
+            _nonMatchingPrivateKeyPem = File.ReadAllText("fiks_demo_nomatching_private.pem");
         }
 
         [Fact]

@@ -50,8 +50,8 @@
       <Content Include="fiks_demo_public.pem">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <None Remove="fiks_demo_invalid_private.pem" />
-      <Content Include="fiks_demo_invalid_private.pem">
+      <None Remove="fiks_demo_nomatching_private.pem" />
+      <Content Include="fiks_demo_nomatching_private.pem">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
