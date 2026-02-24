@@ -30,9 +30,9 @@ on:
         required: false
         default: 'No review required'
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - main
+      - '**'
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -48,7 +48,7 @@ jobs:
       next-version: ${{ steps.version.outputs.next-version }}
       full-version: ${{ steps.version.outputs.full-version }}
       build-opts: ${{ steps.version.outputs.build-opts }}
-    
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -67,8 +67,11 @@ jobs:
     name: Build (Linux)
     needs: initialize
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    
+    timeout-minutes: 90
+    concurrency:
+      group: integration-tests
+      cancel-in-progress: false
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -133,29 +136,78 @@ jobs:
           ks_github_app_id: ${{ vars.KS_RUNNER_APP_ID }}
           ks_github_app_private_key: ${{ secrets.KS_RUNNER_PRIVATE_KEY }}
 
-      - name: Trigger Test Suite
+      - name: Trigger and Wait for Integration Tests
         uses: actions/github-script@v8
         with:
           github-token: ${{ steps.setup-github-app.outputs.app_token }}
           script: |
-            console.log('Triggering test in fiks-io-integration-tests-dotnet repository...');
+            const owner = 'ks-no';
+            const repo = 'fiks-io-client-dotnet-integration-tests';
+            const workflowId = 'dotnet-component-test-pipeline-windows.yml';
+            const componentVersion = '${{ needs.initialize.outputs.full-version }}';
+
+            const dispatchedAt = new Date();
+            console.log(`Triggering integration tests with version: ${componentVersion}`);
             await github.rest.actions.createWorkflowDispatch({
-              owner: 'ks-no',
-              repo: 'fiks-io-client-dotnet-integration-tests',
-              workflow_id: 'dotnet-component-test-pipeline-windows.yml',
+              owner, repo,
+              workflow_id: workflowId,
               ref: 'master',
               inputs: {
-                componentVersion: ''
+                componentVersion,
+                componentPackageName: 'KS.Fiks.IO.Client'
               }
             });
-            console.log('Test suite triggered successfully');
+
+            // Wait for the run to appear
+            await new Promise(r => setTimeout(r, 10000));
+            let runId = null, runUrl = null;
+            for (let i = 0; i < 18; i++) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner, repo, workflow_id: workflowId,
+                created: `>=${dispatchedAt.toISOString()}`,
+                per_page: 5
+              });
+              if (data.workflow_runs.length > 0) {
+                runId = data.workflow_runs[0].id;
+                runUrl = data.workflow_runs[0].html_url;
+                console.log(`Found run: ${runUrl}`);
+                break;
+              }
+              console.log(`Run not found yet, retrying... (${i + 1}/18)`);
+              await new Promise(r => setTimeout(r, 10000));
+            }
+            if (!runId) {
+              core.setFailed('Could not find the triggered workflow run after 3 minutes');
+              return;
+            }
+
+            // Poll until completed
+            const maxWaitMs = 15 * 60 * 1000;
+            const pollIntervalMs = 30 * 1000;
+            const startTime = Date.now();
+            while (Date.now() - startTime < maxWaitMs) {
+              const { data: run } = await github.rest.actions.getWorkflowRun({
+                owner, repo, run_id: runId
+              });
+              const elapsed = Math.round((Date.now() - startTime) / 1000);
+              console.log(`Status: ${run.status} (elapsed: ${elapsed}s)`);
+              if (run.status === 'completed') {
+                console.log(`Conclusion: ${run.conclusion} — ${run.html_url}`);
+                if (run.conclusion !== 'success') {
+                  core.setFailed(`Integration tests failed: ${run.conclusion}. See ${run.html_url}`);
+                }
+                return;
+              }
+              await new Promise(r => setTimeout(r, pollIntervalMs));
+            }
+            core.setFailed(`Integration tests did not complete within 15 minutes. See ${runUrl}`);
 
   build-windows:
     name: Build (Windows)
     needs: initialize
     runs-on: windows-latest
     timeout-minutes: 60
-    
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -185,10 +237,10 @@ jobs:
     name: Push to NuGet.org
     needs: [initialize, build-linux, build-windows]
     if: |
-      (github.event.inputs.isRelease == 'true' || github.event.inputs.pushToNugetOrg == 'true') && 
+      (github.event.inputs.isRelease == 'true' || github.event.inputs.pushToNugetOrg == 'true') &&
       !startsWith(github.ref, 'refs/heads/dependabot/')
     runs-on: windows-latest
-    
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -209,7 +261,7 @@ jobs:
     needs: [initialize, build-linux, build-windows, push-nuget-org]
     if: github.event.inputs.isRelease == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v6
         with:
