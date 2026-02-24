@@ -147,7 +147,8 @@ jobs:
               workflow_id: 'dotnet-component-test-pipeline-windows.yml',
               ref: 'master',
               inputs: {
-                componentVersion: ''
+                componentVersion: '${{ needs.initialize.outputs.full-version }}',
+                componentPackageName: 'KS.Fiks.IO.Client'
               }
             });
             console.log('Test suite triggered successfully');
