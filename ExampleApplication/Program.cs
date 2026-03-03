@@ -157,6 +157,7 @@ namespace ExampleApplication
             var keyValidation = await _fiksIoClient.ValidatePublicKeyAgainstPrivateKeyAsync().ConfigureAwait(false);
             Log.Information($"FiksIOSubscriber status check - FiksIOClient Konto - antallkonsumenter  : {konto.AntallKonsumenter}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antallkonsumenter : {status.AntallKonsumenter}");
+            Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antall uavhentede meldinger : {status.AntallUavhentedeMeldinger}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient Key Validation - does the public key from catalog match the private key configured in client: {keyValidation}");
         }
     }
