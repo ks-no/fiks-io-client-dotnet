@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
+using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,6 +34,8 @@ namespace ExampleApplication
         private static AppSettings appSettings;
         private static Guid _toAccountId;
         private static ILogger _logger;
+        private static MaskinportenClient _maskinportenClient;
+        private static string _scope;
         public const string FiksIOPing = "ping";
         public const string FiksIOPong = "pong";
         public const string FiksArkivPing = "no.ks.fiks.arkiv.v1.ping";
@@ -54,7 +56,10 @@ namespace ExampleApplication
             var loggerFactory = InitSerilogConfiguration();
             appSettings = AppSettingsBuilder.CreateAppSettings(configurationRoot);
             var configuration = FiksIoConfigurationBuilder.CreateTestConfiguration(appSettings);
-
+            
+            _maskinportenClient = new MaskinportenClient(configuration.MaskinportenConfiguration);
+            _scope = configuration.IntegrasjonConfiguration.Scope;
+            
             _fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             
@@ -91,6 +96,7 @@ namespace ExampleApplication
             _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
             _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
             _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+            _logger.Information("Press T-key for generating a Maskinporten token");
             _logger.Information("Press L-key for printing status information in console");
 
 
@@ -123,12 +129,23 @@ namespace ExampleApplication
                 {
                     await WriteHeartBeatConnectionStatusToLog();
                     await WriteStatusFromApiToLog();
-                }
+                } else if (key == ConsoleKey.T)
+                {
+                    _logger.Information("T-key pressed. Generating a Maskinporten token");
+                    await WriteMaskinportenToken();
+                } 
     
                 // Wait for an ESC
             } while (cki.Key != ConsoleKey.Escape);
         }
-        
+
+        private static async Task WriteMaskinportenToken()
+        {
+            MaskinportenToken token = await _maskinportenClient.GetAccessToken(_scope);
+            Log.Information("New Maskinporten token, expires in {ExpirationTime} seconds", 120);
+            Log.Information(token.Token);
+        }
+
         private static ILoggerFactory InitSerilogConfiguration()
         {
             var loggerConfiguration = new LoggerConfiguration()
