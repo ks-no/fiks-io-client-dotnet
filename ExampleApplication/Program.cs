@@ -2,6 +2,8 @@
 using System.Diagnostics.Tracing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
@@ -71,13 +73,12 @@ namespace ExampleApplication
 
             _logger = Log.ForContext(MethodBase.GetCurrentMethod()?.DeclaringType);
 
-            var consoleKeyTask = Task.Run(() => { MonitorKeypress(); });
+            var tokenSource = new CancellationTokenSource();
+
+            Task.Run(() => { MonitorKeypress(tokenSource); });
             
             await new HostBuilder()
-                .ConfigureHostConfiguration((configHost) =>
-                {
-                    configHost.AddEnvironmentVariables("DOTNET_");
-                })
+                .ConfigureHostConfiguration(configHost => { configHost.AddEnvironmentVariables("DOTNET_"); })
                 .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton(appSettings);
@@ -85,19 +86,18 @@ namespace ExampleApplication
                     services.AddSingleton<IFiksIOClient>(_fiksIoClient);
                     services.AddHostedService<FiksIOSubscriber>();
                 })
-                .RunConsoleAsync();
-            
-            await consoleKeyTask;
+                .RunConsoleAsync(tokenSource.Token);
         }
 
-        private static async Task MonitorKeypress()
+        private static async Task MonitorKeypress(CancellationTokenSource tokenSource)
         {
             _logger.Information("Press Enter-key for sending a Fiks-IO 'ping' message");
             _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
             _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
             _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
-            _logger.Information("Press T-key for generating a Maskinporten token");
             _logger.Information("Press L-key for printing status information in console");
+            _logger.Information("Press T-key for generating a Maskinporten token");
+            _logger.Information("Press Q-key to exit");
 
 
             ConsoleKeyInfo cki;
@@ -108,6 +108,7 @@ namespace ExampleApplication
                 cki = Console.ReadKey(true);
 
                 var key = cki.Key;
+                
 
                 if (key == ConsoleKey.Enter)
                 {
@@ -135,8 +136,11 @@ namespace ExampleApplication
                     await WriteMaskinportenToken();
                 } 
     
-                // Wait for an ESC
-            } while (cki.Key != ConsoleKey.Escape);
+                // Wait for a Q
+            } while (cki.Key != ConsoleKey.Q);
+            
+            _logger.Information("Q-key pressed. Closing application");
+            await tokenSource.CancelAsync();
         }
 
         private static async Task WriteMaskinportenToken()
