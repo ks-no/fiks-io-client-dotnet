@@ -12,7 +12,9 @@ The application listens to different keys for different types of ping-messages. 
 - A-key - Fiks-Arkiv protocol 'ping'-message
 - P-key - Fiks-Plan protocol 'ping'-message
 - M-key - Fiks-Matrikkelfoering protocol 'ping'-message
-- L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services 
+- L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
+- T-key - Fetch and print Maskinporten access token
+- Q-key - Quit the application 
 
 The L-key will write status of the _IsOpen()_ method can be used for health checking. The _IsOpen()_ shows the connection status based on the RabbitMQ heartbeat.
 It writes also the status of "antallKonsumenter" (number of subscribers) from the Fiks IO API, that also can be used for health checking. The status property "antallKonsumenter" is the registered number of subscribers in RabbitMQ.
@@ -80,4 +82,30 @@ But you can also use a private key linked to the Maskinporten certificate if you
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
 
+## Maskinporten Token and API Calls
+
+Fiks IO uses Maskinporten for authentication. Press the **T-key** in this example application to fetch a Maskinporten access token and verify that your Maskinporten configuration is working correctly.
+
+The Maskinporten token is a JWT (JSON Web Token) that is generated based on your organization's company certificate and private key. This token is required for authenticating API calls to Fiks IO services.
+
+**Important:** Maskinporten tokens have a limited lifespan of **2 minutes**. If you make manual API calls using a token from the T-key command, you must fetch a new token if more than 2 minutes have passed.
+
+### Example API Call with curl
+
+Here is an example of how to fetch account information using a Maskinporten token:
+
+```bash
+curl -X 'GET' \
+  'https://api.fiks.test.ks.no/fiks-protokoll/katalog/api/v1/kontoer/<FiksIoAccountId>' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer <maskinporten-token>' \
+  -H 'IntegrasjonId: <FiksIoIntegrationId>' \
+  -H 'IntegrasjonPassord: <FiksIoIntegrationPassword>'
+```
+
+**Parameters to replace:**
+- `<FiksIoAccountId>`: The account ID you want to fetch information for
+- `<maskinporten-token>`: The Maskinporten access token from the T-key command
+- `<FiksIoIntegrationId>`: Your integration ID
+- `<FiksIoIntegrationPassword>`: Your integration password
 

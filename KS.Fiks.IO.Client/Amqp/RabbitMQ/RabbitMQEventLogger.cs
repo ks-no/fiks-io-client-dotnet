@@ -9,7 +9,7 @@ namespace KS.Fiks.IO.Client.Amqp.RabbitMQ
 {
     public class RabbitMQEventLogger : EventListener
     {
-        private const string RabbitMQEventSourceName = "rabbitmq-dotnet-client";
+        private const string RabbitMQEventSourceName = "rabbitmq-client";
         private static ILogger<RabbitMQEventLogger> _logger;
         private readonly EventLevel _eventLevel;
 
