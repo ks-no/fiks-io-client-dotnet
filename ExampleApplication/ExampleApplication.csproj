@@ -46,7 +46,7 @@
       </Content>
     </ItemGroup>
   
-  <Target Name="NSwag" AfterTargets="BeforeBuild">
+  <Target Name="NSwag" AfterTargets="BeforeCompile">
     <Exec WorkingDirectory="$(ProjectDir)" Command="$(NSwagExe_Net80) run nswag/fiks-protokoll-konfigurasjon-api-v1.nswag /variables:Configuration=$(Configuration)" />
   </Target>
 
