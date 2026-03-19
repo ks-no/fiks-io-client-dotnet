@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -9,6 +10,7 @@ using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
 using Ks.Fiks.Maskinporten.Client;
+using Ks.Fiks.Protokoll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,6 +35,7 @@ namespace ExampleApplication
     {
         private static MessageSender _messageSender;
         private static FiksIOClient _fiksIoClient;
+        private static FiksProtokollKonfigurasjonApiClient _fiksProtokollKonfigurasjonApiClient;
         private static AppSettings appSettings;
         private static Guid _toAccountId;
         private static ILogger _logger;
@@ -67,6 +70,8 @@ namespace ExampleApplication
             
             // Creating messageSender as a local instance
             _messageSender = new MessageSender(_fiksIoClient, appSettings);
+            
+            _fiksProtokollKonfigurasjonApiClient = await InitializeFiksProtokollKonfigurasjonApiClient(appSettings);
             
             // Setting the account to send messages to. In this case the same as sending account
             _toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
@@ -135,7 +140,6 @@ namespace ExampleApplication
                     _logger.Information("T-key pressed. Generating a Maskinporten token");
                     await WriteMaskinportenToken();
                 } 
-    
                 // Wait for a Q
             } while (cki.Key != ConsoleKey.Q);
             
@@ -180,6 +184,38 @@ namespace ExampleApplication
             Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antallkonsumenter : {status.AntallKonsumenter}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antall uavhentede meldinger : {status.AntallUavhentedeMeldinger}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient Key Validation - does the public key from catalog match the private key configured in client: {keyValidation}");
+        }
+
+        private static async Task<FiksProtokollKonfigurasjonApiClient> InitializeFiksProtokollKonfigurasjonApiClient(AppSettings appSettingsParam)
+        {
+            var apiScheme = appSettingsParam.FiksIOConfig.ApiScheme;
+            var apiHost = appSettingsParam.FiksIOConfig.ApiHost;
+            var apiPort = appSettingsParam.FiksIOConfig.ApiPort;
+            var baseUrl = $"{apiScheme}://{apiHost}:{apiPort}";
+            
+            var integrasjonId = appSettingsParam.FiksIOConfig.FiksIoIntegrationId;
+            var integrasjonPassword = appSettingsParam.FiksIOConfig.FiksIoIntegrationPassword;
+            
+            // Create an HttpClientHandler that adds required headers
+            var handler = new HttpClientHandler();
+            var httpClient = new HttpClient(handler);
+            httpClient.BaseAddress = new Uri(baseUrl);
+            
+            // Add default request headers for integration credentials
+            var credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{integrasjonId}:{integrasjonPassword}"));
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {credentials}");
+            
+            // Add Maskinporten token header
+            var maskinportenToken = await _maskinportenClient.GetAccessToken(_scope);
+            httpClient.DefaultRequestHeaders.Add("X-Access-Token", maskinportenToken.Token);
+            
+            // Add request ID header
+            httpClient.DefaultRequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
+            
+            return new FiksProtokollKonfigurasjonApiClient(httpClient)
+            {
+                BaseUrl = baseUrl
+            };
         }
     }
 }
