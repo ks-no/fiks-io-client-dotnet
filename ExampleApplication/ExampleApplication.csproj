@@ -45,9 +45,12 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
-  
-  <Target Name="NSwag" AfterTargets="BeforeCompile">
+
+  <Target Name="NSwag" BeforeTargets="BeforeCompile">
     <Exec WorkingDirectory="$(ProjectDir)" Command="$(NSwagExe_Net80) run nswag/fiks-protokoll-konfigurasjon-api-v1.nswag /variables:Configuration=$(Configuration)" />
+    <ItemGroup>
+      <Compile Include="Generated/**/*.cs" />
+    </ItemGroup>
   </Target>
 
 </Project>
