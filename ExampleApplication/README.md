@@ -6,14 +6,25 @@ This application starts a simple console application that starts a subscription 
 
 It also listens to key-press to send a message to it self, through it's own Fiks-IO or Fiks-Protokoll account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubcriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
 
-The application listens to different keys for different types of ping-messages. There is one for Fiks-IO and one for each protocol.
+The application listens to different keys for sending messages, managing accounts, and accessing information:
 
+#### Messages
 - Enter-key - Fiks-IO 'ping'-message
 - A-key - Fiks-Arkiv protocol 'ping'-message
 - P-key - Fiks-Plan protocol 'ping'-message
 - M-key - Fiks-Matrikkelfoering protocol 'ping'-message
+
+#### Account and Status
 - L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
 - T-key - Fetch and print Maskinporten access token
+
+#### Fiks Arkiv Account Management
+- N-key - Create a Fiks Arkiv account as archive
+- C-key - Send access request to created account
+- V-key - View all access requests
+- R-key - Approve all access requests
+
+#### System
 - Q-key - Quit the application 
 
 The L-key will write status of the _IsOpen()_ method can be used for health checking. The _IsOpen()_ shows the connection status based on the RabbitMQ heartbeat.
@@ -22,6 +33,17 @@ It writes also the status of "antallKonsumenter" (number of subscribers) from th
 This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages. It sends the `testfile.txt` file as payload, and prints the text inside the file when it receives the message.
 
 If you're using a Fiks-Protokoll account, please remember to add yourself as an approved sending account. This is only necessary for Fiks-Protokoll accounts.
+
+### Fiks Arkiv Account - Creation Workflow
+
+To create a Fiks Arkiv account, follow these steps:
+
+1. **Create Fiks Arkiv account (N-key)**: Create a new Fiks Arkiv account on the system ID specified in the appsettings.json file
+2. **Send access request (C-key)**: Send an access request to the created account
+3. **View access requests (V-key)**: View all received access requests
+4. **Approve access requests (R-key)**: Approve all access requests
+
+Each account can only be created once. If you try to create it again, the application will inform you that it has already been created.
 
 ## Getting started
 
