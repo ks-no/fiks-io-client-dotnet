@@ -163,7 +163,7 @@ jobs:
               owner: intOwner,
               repo:  intRepo,
               workflow_id: workflowId,
-              ref: 'master',
+              ref: 'main',
               inputs: {
                 componentVersion,
                 componentPackageName: 'KS.Fiks.IO.Client',
