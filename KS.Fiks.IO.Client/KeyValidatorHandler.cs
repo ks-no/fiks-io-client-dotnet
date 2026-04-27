@@ -7,10 +7,11 @@ using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Catalog;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client
 {
-    internal class KeyValidatorHandler
+    internal class KeyValidatorHandler : IKeyValidator
     {
         private readonly ICatalogHandler _catalogHandler;
         private readonly KontoConfiguration _kontoConfiguration;
@@ -38,37 +39,43 @@ namespace KS.Fiks.IO.Client
             }
 
             var certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
+            return ValidateCertificateAgainstPrivateKeys(certificate);
+        }
 
+        public bool ValidateCertificateAgainstPrivateKeys(X509Certificate certificate)
+        {
             var randomBytes = new byte[256];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomBytes);
             }
 
-            try
+            return _kontoConfiguration.PrivatNokler.Any(privateKey =>
             {
-                using (var plainStream = new MemoryStream(randomBytes))
-                using (var encryptedStream = new MemoryStream())
+                try
                 {
-                    EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
-
-                    encryptedStream.Position = 0;
-                    using (var decryptedStream = DecryptionService.Create(_kontoConfiguration.PrivatNokler[0]).Decrypt(encryptedStream))
-                    using (var resultStream = new MemoryStream())
+                    using (var plainStream = new MemoryStream(randomBytes))
+                    using (var encryptedStream = new MemoryStream())
                     {
-                        decryptedStream.CopyTo(resultStream);
-                        return resultStream.ToArray().SequenceEqual(randomBytes);
+                        EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
+                        encryptedStream.Position = 0;
+                        using (var decryptedStream = DecryptionService.Create(privateKey).Decrypt(encryptedStream))
+                        using (var resultStream = new MemoryStream())
+                        {
+                            decryptedStream.CopyTo(resultStream);
+                            return resultStream.ToArray().SequenceEqual(randomBytes);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(
-                    ex,
-                    "Validation failed for account {KontoId}. The private key does not match the public key from Fiks-IO catalog api.",
-                    _kontoConfiguration.KontoId);
-                return false;
-            }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(
+                        ex,
+                        "Validation failed for account {KontoId}. The private key does not match the public key from Fiks-IO catalog api.",
+                        _kontoConfiguration.KontoId);
+                    return false;
+                }
+            });
         }
     }
 }

@@ -14,7 +14,6 @@ using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
-using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client.Events;
@@ -75,7 +74,7 @@ namespace KS.Fiks.IO.Client.Tests
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
                 AmqpHandlerMock.Object,
-                asicEncrypter: AsicEncrypterMock.Object).Result;
+                AsicEncrypterMock.Object).Result;
         }
 
         public FiksIOClient CreateSutWithoutMaskinportenConfig()
@@ -93,7 +92,7 @@ namespace KS.Fiks.IO.Client.Tests
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
                 AmqpHandlerMock.Object,
-                asicEncrypter: AsicEncrypterMock.Object).Result;
+                AsicEncrypterMock.Object).Result;
         }
 
         public FiksIOClientFixture WithAccountId(Guid id)

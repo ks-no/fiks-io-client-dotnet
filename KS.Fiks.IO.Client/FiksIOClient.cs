@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
@@ -136,6 +137,15 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter,
                 null);
+
+            var synchronizer = new PublicKeySynchronizer(
+                client._catalogHandler,
+                client._keyValidatorHandler,
+                loggerFactory);
+
+            await synchronizer.SynchronizePublicKeyAsync(
+                configuration.KontoConfiguration.KontoId,
+                configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
