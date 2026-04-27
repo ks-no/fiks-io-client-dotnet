@@ -108,7 +108,7 @@ jobs:
 
       - name: SBOM Upload and Report
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: ks-no/github-actions/sbom-upload-and-report@main
+        uses: ks-no/github-actions-public/sbom-upload-and-report@main
         with:
           dependency_track_api_key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
 
