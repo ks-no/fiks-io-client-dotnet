@@ -31,7 +31,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
             if (!PrivatNokler.Any())
             {
-                throw new ArgumentNullException(nameof(privatNokler), "Must provide atleast one private key");
+                throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
             }
         }
 
@@ -47,7 +47,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
             if (!PrivatNokler.Any())
             {
-                throw new ArgumentNullException(nameof(privatNokler), "Must provide atleast one private key");
+                throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
             }
 
             OffentligNokkel = offentligNokkel;

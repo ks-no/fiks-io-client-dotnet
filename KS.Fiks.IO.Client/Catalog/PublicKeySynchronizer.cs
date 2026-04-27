@@ -65,14 +65,15 @@ namespace KS.Fiks.IO.Client.Catalog
                 return;
             }
 
-            var certToValidate = catalogCert ?? configuredCert;
-            if (!_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(certToValidate))
+            if (catalogCert != null && !_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
-                _logger?.LogWarning(
-                    catalogCert != null
-                        ? "Catalog public key for account {KontoId} does not belong to this client's key ring. Skipping upload."
-                        : "Configured public key for account {KontoId} does not match any configured private key. Skipping upload.",
-                    kontoId);
+                _logger?.LogWarning("Catalog public key for account {KontoId} does not belong to this client's key ring. Skipping upload.", kontoId);
+                return;
+            }
+
+            if (!_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(configuredCert))
+            {
+                _logger?.LogWarning("Configured public key for account {KontoId} does not match any configured private key. Skipping upload.", kontoId);
                 return;
             }
 

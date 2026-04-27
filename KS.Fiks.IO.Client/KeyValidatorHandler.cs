@@ -69,9 +69,9 @@ namespace KS.Fiks.IO.Client
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogWarning(
+                    _logger?.LogDebug(
                         ex,
-                        "Validation failed for account {KontoId}. The private key does not match the public key from Fiks-IO catalog api.",
+                        "Private key candidate did not match certificate for account {KontoId}.",
                         _kontoConfiguration.KontoId);
                     return false;
                 }

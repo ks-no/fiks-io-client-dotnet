@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Catalog;
@@ -117,16 +119,35 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         public async Task UploadsWhenCatalogKeyBelongsToOurKeyring()
         {
             var kontoId = Guid.NewGuid();
-            var newCertPem = CertToPem(GenerateSelfSignedCert());
+            var (newCert, newPrivKeyPem) = GenerateKeyPair();
+            var newCertPem = CertToPem(newCert);
 
             var catalogMock = new Mock<ICatalogHandler>();
             catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync(_publicKeyCert);
 
-            var sut = CreateSut(catalogMock);
+            // Keyring has old key (matches catalog) AND new key (matches configured cert)
+            var sut = CreateSut(catalogMock, additionalPrivateKeys: new[] { newPrivKeyPem });
 
             await sut.SynchronizePublicKeyAsync(kontoId, newCertPem);
 
             catalogMock.Verify(_ => _.UploadPublicKey(kontoId, newCertPem), Times.Once);
+        }
+
+        [Fact]
+        public async Task SkipsUploadWhenConfiguredKeyDoesNotMatchPrivateKeyDuringRotation()
+        {
+            var kontoId = Guid.NewGuid();
+            var unrelatedConfiguredCertPem = CertToPem(GenerateSelfSignedCert());
+
+            var catalogMock = new Mock<ICatalogHandler>();
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync(_publicKeyCert);
+
+            // Keyring matches catalog cert (first check passes), but not the configured cert (second fails)
+            var sut = CreateSut(catalogMock);
+
+            await sut.SynchronizePublicKeyAsync(kontoId, unrelatedConfiguredCertPem);
+
+            catalogMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -222,10 +243,14 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         private PublicKeySynchronizer CreateSut(
             Mock<ICatalogHandler> catalogMock,
             bool useNonMatchingPrivateKey = false,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory loggerFactory = null,
+            IEnumerable<string> additionalPrivateKeys = null)
         {
-            var privateKey = useNonMatchingPrivateKey ? _nonMatchingPrivateKeyPem : _matchingPrivateKeyPem;
-            var kontoConfig = new KontoConfiguration(Guid.NewGuid(), privateKey);
+            var primaryKey = useNonMatchingPrivateKey ? _nonMatchingPrivateKeyPem : _matchingPrivateKeyPem;
+            var allKeys = additionalPrivateKeys != null
+                ? new[] { primaryKey }.Concat(additionalPrivateKeys)
+                : new[] { primaryKey };
+            var kontoConfig = new KontoConfiguration(Guid.NewGuid(), allKeys);
             var keyValidator = new KeyValidatorHandler(catalogMock.Object, kontoConfig);
             return new PublicKeySynchronizer(catalogMock.Object, keyValidator, loggerFactory);
         }
@@ -237,6 +262,30 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             sb.AppendLine(Convert.ToBase64String(cert.GetEncoded(), Base64FormattingOptions.InsertLineBreaks));
             sb.AppendLine("-----END CERTIFICATE-----");
             return sb.ToString();
+        }
+
+        private static (X509Certificate cert, string privateKeyPem) GenerateKeyPair()
+        {
+            var random = new SecureRandom();
+            var keypairGen = new RsaKeyPairGenerator();
+            keypairGen.Init(new Org.BouncyCastle.Crypto.KeyGenerationParameters(random, 2048));
+            var keypair = keypairGen.GenerateKeyPair();
+
+            var gen = new X509V3CertificateGenerator();
+            gen.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
+            var name = new Org.BouncyCastle.Asn1.X509.X509Name("CN=TestCert");
+            gen.SetSubjectDN(name);
+            gen.SetIssuerDN(name);
+            gen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            gen.SetNotAfter(DateTime.UtcNow.AddDays(365));
+            gen.SetPublicKey(keypair.Public);
+
+            var signer = new Asn1SignatureFactory("SHA256WithRSA", keypair.Private, random);
+            var cert = gen.Generate(signer);
+
+            using var sw = new StringWriter();
+            new Org.BouncyCastle.OpenSsl.PemWriter(sw).WriteObject(keypair.Private);
+            return (cert, sw.ToString());
         }
 
         private static X509Certificate GenerateSelfSignedCert()

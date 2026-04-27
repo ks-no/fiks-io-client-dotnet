@@ -143,9 +143,18 @@ namespace KS.Fiks.IO.Client
                 client._keyValidatorHandler,
                 loggerFactory);
 
-            await synchronizer.SynchronizePublicKeyAsync(
-                configuration.KontoConfiguration.KontoId,
-                configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
+            try
+            {
+                await synchronizer.SynchronizePublicKeyAsync(
+                    configuration.KontoConfiguration.KontoId,
+                    configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                loggerFactory?.CreateLogger<FiksIOClient>()?.LogWarning(ex,
+                    "Public key synchronization failed for account {KontoId}. Client will start without uploading the configured key.",
+                    configuration.KontoConfiguration.KontoId);
+            }
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
