@@ -39,6 +39,12 @@ namespace KS.Fiks.IO.Client
             }
 
             var certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
+            if (certificate == null)
+            {
+                _logger?.LogWarning("No public key registered in catalog for account {KontoId}, cannot validate key pair.", _kontoConfiguration.KontoId);
+                return false;
+            }
+
             return ValidateCertificateAgainstPrivateKeys(certificate);
         }
 
@@ -50,7 +56,7 @@ namespace KS.Fiks.IO.Client
                 rng.GetBytes(randomBytes);
             }
 
-            return _kontoConfiguration.PrivatNokler.Any(privateKey =>
+            var matched = _kontoConfiguration.PrivatNokler.Any(privateKey =>
             {
                 try
                 {
@@ -76,6 +82,13 @@ namespace KS.Fiks.IO.Client
                     return false;
                 }
             });
+
+            if (!matched)
+            {
+                _logger?.LogWarning("No configured private key matched the certificate for account {KontoId}.", _kontoConfiguration.KontoId);
+            }
+
+            return matched;
         }
     }
 }
