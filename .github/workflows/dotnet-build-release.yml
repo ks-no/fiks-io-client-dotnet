@@ -106,6 +106,12 @@ jobs:
           path: bom.json
           if-no-files-found: ignore
 
+      - name: SBOM Upload and Report
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: ks-no/github-actions/sbom-upload-and-report@main
+        with:
+          dependency_track_api_key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+
       - name: Sign Packages
         uses: ks-no/github-actions-public/dotnet-sign-nuget-packages@main
         with:
