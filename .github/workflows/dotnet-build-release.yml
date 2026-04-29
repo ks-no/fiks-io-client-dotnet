@@ -43,19 +43,7 @@ jobs:
       specified-version: ${{ github.event.inputs.specifiedVersion || '' }}
       release-notes: ${{ github.event.inputs.releaseNotes || 'No changes specified' }}
       reviewer: ${{ github.event.inputs.reviewer || 'No review required' }}
-      fetch-submodules: true
-      run-windows-build: true
-      windows-restore-args: '--disable-parallel --verbosity detailed'
-      windows-test-verbosity: 'detailed'
       integration-test-repo: 'fiks-io-client-dotnet-integration-tests'
       integration-test-workflow: 'dotnet-component-test-pipeline-windows.yml'
       integration-test-package-name: 'KS.Fiks.IO.Client'
-      ks-runner-app-id: ${{ vars.KS_RUNNER_APP_ID }}
-    secrets:
-      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-      CODE_SIGN_CERT_BASE64: ${{ secrets.CODE_SIGN_CERT_BASE64 }}
-      CODE_SIGN_PFX_PASS: ${{ secrets.CODE_SIGN_PFX_PASS }}
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      KS_RUNNER_PRIVATE_KEY: ${{ secrets.KS_RUNNER_PRIVATE_KEY }}
-      DEPENDENCY_TRACK_API_KEY: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+    secrets: inherit
