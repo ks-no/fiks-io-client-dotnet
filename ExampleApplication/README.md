@@ -12,6 +12,7 @@ The application listens to different keys for different types of ping-messages. 
 - A-key - Fiks-Arkiv protocol 'ping'-message
 - P-key - Fiks-Plan protocol 'ping'-message
 - M-key - Fiks-Matrikkelfoering protocol 'ping'-message
+- K-key - Create a protokoll-konto via the Protokoll Konfigurasjon API
 - L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
 - T-key - Fetch and print Maskinporten access token
 - Q-key - Quit the application 
@@ -60,7 +61,9 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "MaskinPortenIssuer": "", // Maskinporten issuer
         "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
-        "AsiceSigningPublicKey": "" // The path to the public key for verification of AsiceSigning of the payloads.
+        "AsiceSigningPublicKey": "", // The path to the public key for verification of AsiceSigning of the payloads.
+        "FiksOrgId": "<your fiks-org id>", // Your FiksOrg id, used when creating a protokoll-konto (K-key)
+        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (K-key)
     }
   }
 }
@@ -81,6 +84,26 @@ But you can also use a private key linked to the Maskinporten certificate if you
 
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
+
+## Building locally
+
+ExampleApplication references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` as a NuGet package. The repository includes a `nuget.config` that adds a local folder feed (`local-nuget/`) as a package source, so the package can be used without publishing to Artifactory.
+
+Before building for the first time, or after making changes to `KS.Fiks.IO.ProtokollKonfigurasjon.Client`, pack it into the local feed:
+
+```bash
+dotnet pack ../KS.Fiks.IO.ProtokollKonfigurasjon.Client \
+  -c Release /p:CI=true /p:SignAssembly=false \
+  -o ../local-nuget
+```
+
+Then build and test the solution as normal:
+
+```bash
+dotnet test ../KS.Fiks.IO.Client.sln /p:CI=true /p:SignAssembly=false
+```
+
+> `/p:SignAssembly=false` is needed locally on Linux because the `.snk` strong-name key format uses SHA-1, which is rejected by OpenSSL 3 (used on Fedora 38+). CI runs on Ubuntu where this is not an issue.
 
 ## Maskinporten Token and API Calls
 
