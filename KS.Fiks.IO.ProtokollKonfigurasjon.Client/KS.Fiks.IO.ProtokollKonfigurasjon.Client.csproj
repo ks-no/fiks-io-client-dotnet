@@ -30,7 +30,7 @@
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
   </PropertyGroup>
 
-  <Target Name="NSwag" BeforeTargets="Build">
+  <Target Name="NSwag" BeforeTargets="Build" Condition="'$(CI)' != 'true'">
     <MakeDir Directories="Generated" />
     <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
   </Target>

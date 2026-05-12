@@ -20,8 +20,6 @@ nupkg/
 *.userosscache
 *.sln.docstates
 
-# NSwag-generated client code (regenerated at build time)
-KS.Fiks.IO.ProtokollKonfigurasjon.Client/Generated/
 
 # Build results
 [Dd]ebug/
