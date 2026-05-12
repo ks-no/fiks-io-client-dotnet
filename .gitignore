@@ -10,6 +10,7 @@ project.lock.json
 .DS_Store
 *.pyc
 nupkg/
+local-nuget/
 
 # Visual Studio Code
 .vscode
