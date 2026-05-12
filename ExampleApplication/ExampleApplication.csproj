@@ -21,6 +21,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj" />
+      <ProjectReference Include="..\KS.Fiks.IO.ProtokollKonfigurasjon.Client\KS.Fiks.IO.ProtokollKonfigurasjon.Client.csproj" />
     </ItemGroup>
 
 

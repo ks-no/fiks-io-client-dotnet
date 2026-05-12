@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
+using KS.Fiks.IO.ProtokollKonfigurasjon.Client;
+using KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +49,7 @@ namespace ExampleApplication
         public const string FiksMatrikkelfoeringPing = "no.ks.fiks.matrikkelfoering.v2.ping";
         public const string FiksMatrikkelfoeringPong = "no.ks.fiks.matrikkelfoering.v2.pong";
         private static RabbitMQEventLogger _rabbitMqEventLogger;
+        private static IProtokollKonfigurasjonClient _protokollKonfigurasjonClient;
         
         public static async Task Main(string[] args)
         {
@@ -61,7 +64,13 @@ namespace ExampleApplication
             
             _maskinportenClient = new MaskinportenClient(configuration.MaskinportenConfiguration);
             _scope = configuration.IntegrasjonConfiguration.Scope;
-            
+
+            _protokollKonfigurasjonClient = KontoKonfigurasjonKlient.CreateKlient(
+                $"{appSettings.FiksIOConfig.ApiScheme}://{appSettings.FiksIOConfig.ApiHost}:{appSettings.FiksIOConfig.ApiPort}",
+                appSettings.FiksIOConfig.FiksIoIntegrationId,
+                appSettings.FiksIOConfig.FiksIoIntegrationPassword,
+                async () => (await _maskinportenClient.GetAccessToken(_scope)).Token);
+
             _fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             

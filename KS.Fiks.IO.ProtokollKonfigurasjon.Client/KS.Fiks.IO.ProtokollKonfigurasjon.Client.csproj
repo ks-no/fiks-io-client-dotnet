@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KS.Fiks.IO.ProtokollKonfigurasjon.Client</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>KS FIKS IO Protokoll Konfigurasjon Client</Title>
+    <Authors>Ks-Kommunesektorens Organisasjon</Authors>
+    <Copyright>Ks-Kommunesektorens Organisasjon</Copyright>
+    <PackageProjectUrl>https://github.com/ks-no/fiks-io-client-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>FIKS</PackageTags>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NSwag.MSBuild" Version="14.7.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Defaults to Net80 (matches TargetFramework). Override locally with /p:NSwagRuntime=Net100 on .NET 10-only machines. -->
+    <NSwagRuntime Condition="'$(NSwagRuntime)' == ''">Net80</NSwagRuntime>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net80'">$(NSwagExe_Net80)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net90'">$(NSwagExe_Net90)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
+  </PropertyGroup>
+
+  <Target Name="NSwag" BeforeTargets="Build">
+    <MakeDir Directories="Generated" />
+    <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
+  </Target>
+
+</Project>
