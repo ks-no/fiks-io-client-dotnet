@@ -104,6 +104,7 @@ namespace ExampleApplication
             _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
             _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
             _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+            _logger.Information("Press K-key for creating a protokoll-konto");
             _logger.Information("Press L-key for printing status information in console");
             _logger.Information("Press T-key for generating a Maskinporten token");
             _logger.Information("Press Q-key to exit");
@@ -135,6 +136,9 @@ namespace ExampleApplication
                 {
                     _logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", _toAccountId);
                     await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
+                } else if (key == ConsoleKey.K)
+                {
+                    await CreateKonto();
                 } else if (key == ConsoleKey.L)
                 {
                     await WriteHeartBeatConnectionStatusToLog();
@@ -150,6 +154,24 @@ namespace ExampleApplication
             
             _logger.Information("Q-key pressed. Closing application");
             await tokenSource.CancelAsync();
+        }
+
+        private static async Task CreateKonto()
+        {
+            _logger.Information("K-key pressed. Creating protokoll-konto");
+            var request = new CreateProtokollKontoRequest
+            {
+                Navn = "Example konto",
+                Beskrivelse = "Opprettet av ExampleApplication",
+                StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
+                Parts = new[] { new PartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+                OffentligNokkel = appSettings.FiksIOConfig.AsiceSigningPublicKey
+            };
+            var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
+                appSettings.FiksIOConfig.FiksOrgId,
+                appSettings.FiksIOConfig.SystemId,
+                request);
+            _logger.Information("Opprettet protokoll-konto med id: {KontoId}, navn: {KontoNavn}", konto.Id, konto.Navn);
         }
 
         private static async Task WriteMaskinportenToken()
