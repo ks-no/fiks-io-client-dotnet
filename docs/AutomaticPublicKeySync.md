@@ -46,7 +46,58 @@ After synchronization, `CreateAsync` verifies that the effective catalog key (th
 
 ## Flow Diagram
 
-See [AutomaticPublicKeySync.puml](AutomaticPublicKeySync.puml) for the full sequence diagram.
+```mermaid
+flowchart TD
+    classDef error   fill:#b91c1c,stroke:#b91c1c,color:#fff
+    classDef warn    fill:#b45309,stroke:#b45309,color:#fff
+    classDef info    fill:#1d4ed8,stroke:#1d4ed8,color:#fff
+    classDef success fill:#15803d,stroke:#15803d,color:#fff
+
+    START(["FiksIOClient.CreateAsync"]) --> A
+
+    subgraph SYNC ["PublicKeySynchronizer"]
+        A{OffentligNokkel\nconfigured?}
+        A -->|no| SKIP["sync disabled"]:::info
+        A -->|yes| B{Valid PEM?}
+
+        B -->|no| ERR1(["throw: invalid certificate"]):::error
+        B -->|yes| C["GetPublicKey(kontoId)"]
+
+        C -->|Exception| W1["LogWarning: fetch failed"]:::warn
+        C -->|success| D
+        W1 --> D
+
+        D{Already\nup to date?}
+        D -->|yes| SKIP2["no change"]:::info
+        D -->|no| E{Catalog key\nexists?}
+
+        E -->|yes| F{Belongs to\nour key ring?}
+        E -->|no| G
+
+        F -->|no| W2["LogWarning: not our key\nskipping upload"]:::warn
+        F -->|yes| G
+
+        G{Configured key\nbelongs to us?}
+        G -->|no| ERR2(["throw: misconfigured key"]):::error
+        G -->|yes| H["UploadPublicKey(kontoId, pem)"]
+
+        H -->|Exception| ERR3(["throw: upload failed"]):::error
+        H -->|HTTP 2xx| OK["key uploaded"]:::info
+    end
+
+    SKIP  --> VAL
+    SKIP2 --> VAL
+    W2    --> VAL
+    OK    --> VAL
+
+    VAL["Verify catalog key\nis decryptable ¹"]
+    VAL -->|false| ERR4(["throw: no private key\ncan decrypt messages"]):::error
+    VAL -->|true| AMQP["InitializeAmqpHandlerAsync()"]
+    AMQP --> DONE(["return FiksIOClient ✓"]):::success
+
+    note["¹ Encrypts 256 random bytes with the certificate\nand decrypts with each configured private key"]
+    style note fill:#78350f,stroke:#78350f,color:#fff
+```
 
 ---
 
@@ -221,7 +272,7 @@ ERROR [<catalog exception>] Upload failed for account {KontoId}.
        newPublicCertPem)
    ```
 3. **Deploy and restart** — the client uploads the new public key to the catalog on startup
-4. **Wait** until you are confident the queue is drained of messages encrypted with the old key (24–48 hours is a reasonable default)
+4. **Wait** until you are confident the queue is drained of messages encrypted with the old key
 5. **Remove the old private key** from the configuration and redeploy:
    ```csharp
    .WithFiksKontoConfiguration(kontoId, newPrivateKeyPem, newPublicCertPem)
