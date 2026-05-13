@@ -11,25 +11,25 @@ namespace KS.Fiks.IO.Client.Catalog
     internal class PublicKeySynchronizer
     {
         private readonly ICatalogHandler _catalogHandler;
-        private readonly IKeyValidator _keyValidatorHandler;
+        private readonly IKeyValidator _keyValidator;
         private readonly ILogger<PublicKeySynchronizer> _logger;
 
         public PublicKeySynchronizer(
             ICatalogHandler catalogHandler,
-            IKeyValidator keyValidatorHandler,
+            IKeyValidator keyValidator,
             ILoggerFactory loggerFactory = null)
         {
             _catalogHandler = catalogHandler;
-            _keyValidatorHandler = keyValidatorHandler;
+            _keyValidator = keyValidator;
             _logger = loggerFactory?.CreateLogger<PublicKeySynchronizer>();
         }
 
-        public async Task SynchronizePublicKeyAsync(Guid kontoId, string configuredPublicKeyPem)
+        public async Task<X509Certificate> SynchronizePublicKeyAsync(Guid kontoId, string configuredPublicKeyPem)
         {
             if (string.IsNullOrWhiteSpace(configuredPublicKeyPem))
             {
                 _logger?.LogDebug("No public key configured for account {KontoId}, skipping upload.", kontoId);
-                return;
+                return null;
             }
 
             var configuredCert = ParseConfiguredCertificate(kontoId, configuredPublicKeyPem);
@@ -37,12 +37,12 @@ namespace KS.Fiks.IO.Client.Catalog
 
             if (IsAlreadyUpToDate(kontoId, catalogCert, configuredCert))
             {
-                return;
+                return catalogCert;
             }
 
             if (catalogCert != null && !CatalogKeyBelongsToUs(kontoId, catalogCert))
             {
-                return;
+                return catalogCert;
             }
 
             EnsureConfiguredCertIsOurs(kontoId, configuredCert);
@@ -50,6 +50,7 @@ namespace KS.Fiks.IO.Client.Catalog
             _logger?.LogInformation("Uploading public key for account {KontoId}.", kontoId);
             await _catalogHandler.UploadPublicKey(kontoId, configuredPublicKeyPem).ConfigureAwait(false);
             _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
+            return configuredCert;
         }
 
         private X509Certificate ParseConfiguredCertificate(Guid kontoId, string pem)
@@ -94,7 +95,7 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private bool CatalogKeyBelongsToUs(Guid kontoId, X509Certificate catalogCert)
         {
-            if (_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
+            if (_keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
                 return true;
             }
@@ -107,7 +108,7 @@ namespace KS.Fiks.IO.Client.Catalog
 
         private void EnsureConfiguredCertIsOurs(Guid kontoId, X509Certificate configuredCert)
         {
-            if (!_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(configuredCert))
+            if (!_keyValidator.ValidateCertificateAgainstPrivateKeys(configuredCert))
             {
                 throw new InvalidOperationException(
                     $"Configured public key for account {kontoId} does not match any configured private key.");

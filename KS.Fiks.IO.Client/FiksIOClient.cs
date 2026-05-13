@@ -44,7 +44,7 @@ namespace KS.Fiks.IO.Client
 
         private IMaskinportenClient _maskinportenClient;
 
-        private KeyValidatorHandler _keyValidatorHandler;
+        private IKeyValidator _keyValidator;
 
         private FiksIOClient(
             FiksIOConfiguration configuration,
@@ -66,7 +66,7 @@ namespace KS.Fiks.IO.Client
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null,
-            KeyValidatorHandler keyValidatorHandler = null)
+            IKeyValidator keyValidator = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -109,7 +109,7 @@ namespace KS.Fiks.IO.Client
 
             _loggerFactory = loggerFactory;
 
-            _keyValidatorHandler = keyValidatorHandler ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
+            _keyValidator = keyValidator ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
         }
 
         public static async Task<FiksIOClient> CreateAsync(
@@ -140,17 +140,17 @@ namespace KS.Fiks.IO.Client
 
             var synchronizer = new PublicKeySynchronizer(
                 client._catalogHandler,
-                client._keyValidatorHandler,
+                client._keyValidator,
                 loggerFactory);
 
-            await synchronizer.SynchronizePublicKeyAsync(
+            var effectiveCert = await synchronizer.SynchronizePublicKeyAsync(
                 configuration.KontoConfiguration.KontoId,
                 configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
 
-            var catalogCert = await client._catalogHandler
+            var catalogCert = effectiveCert ?? await client._catalogHandler
                 .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
             if (catalogCert != null
-                && !client._keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
+                && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
                 throw new InvalidOperationException(
                     $"No configured private key can decrypt messages for account {configuration.KontoConfiguration.KontoId}. " +
@@ -231,7 +231,7 @@ namespace KS.Fiks.IO.Client
 
         public Task<bool> ValidatePublicKeyAgainstPrivateKeyAsync()
         {
-            return _keyValidatorHandler.ValidatePublicKeyAgainstPrivateKeyAsync();
+            return _keyValidator.ValidatePublicKeyAgainstPrivateKeyAsync();
         }
 
         public async ValueTask DisposeAsync()

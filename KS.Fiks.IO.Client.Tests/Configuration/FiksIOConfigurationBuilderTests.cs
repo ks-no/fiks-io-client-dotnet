@@ -218,5 +218,19 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
 
             config.KontoConfiguration.OffentligNokkel.ShouldBeNull();
         }
+
+        [Fact]
+        public void KontoConfigurationThrowsOnWhitespacePrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), new[] { "validKey", "   " }));
+        }
+
+        [Fact]
+        public void KontoConfigurationThrowsOnNullPrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), new[] { "validKey", null }));
+        }
     }
 }

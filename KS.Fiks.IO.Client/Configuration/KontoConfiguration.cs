@@ -33,6 +33,11 @@ namespace KS.Fiks.IO.Client.Configuration
             {
                 throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
             }
+
+            if (PrivatNokler.Any(string.IsNullOrWhiteSpace))
+            {
+                throw new ArgumentException("Private keys must not be null or whitespace.", nameof(privatNokler));
+            }
         }
 
         public KontoConfiguration(Guid kontoId, IEnumerable<string> privatNokler, string offentligNokkel)
@@ -48,6 +53,11 @@ namespace KS.Fiks.IO.Client.Configuration
             if (!PrivatNokler.Any())
             {
                 throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
+            }
+
+            if (PrivatNokler.Any(k => string.IsNullOrWhiteSpace(k)))
+            {
+                throw new ArgumentException("Private keys must not be null or whitespace.", nameof(privatNokler));
             }
 
             OffentligNokkel = offentligNokkel;

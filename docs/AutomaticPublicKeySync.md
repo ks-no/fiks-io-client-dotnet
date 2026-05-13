@@ -40,7 +40,7 @@ FiksIOConfigurationBuilder
 4. Validates ownership before uploading (see scenarios below)
 5. Uploads if needed, then proceeds with normal startup
 
-A synchronization failure never prevents the client from starting — errors are logged as warnings and the client starts in normal mode without having uploaded the key.
+After synchronization, `CreateAsync` verifies that the effective catalog key (the key now registered in the catalog) can be decrypted by at least one configured private key. If not, `CreateAsync` throws `InvalidOperationException` and the client does not start. Misconfiguration and catalog unavailability that prevents the key from being set up correctly are treated as fatal startup errors.
 
 ---
 
@@ -143,13 +143,15 @@ INFO  Public key uploaded for account {KontoId}.
 2. Keys differ → upload candidate
 3. Synchronizer validates the **catalog cert** against the private key ring → no match → rotation not authorized
 4. Upload skipped
+5. `CreateAsync` validates the catalog cert against the private key ring → no match → **throws `InvalidOperationException`**
 
-**Result:** The existing key is preserved. No data is overwritten.
+**Result:** The client does not start. Messages in the queue are encrypted with a key the client cannot decrypt. The operator must either configure the matching private key or manually replace the catalog key.
 
 **Logs:**
 ```
 WARN  No configured private key matched the certificate for account {KontoId}.
 WARN  Catalog public key for account {KontoId} does not belong to this client's key ring. Skipping upload.
+ERROR [InvalidOperationException] No configured private key can decrypt messages for account {KontoId}.
 ```
 
 ---
@@ -161,14 +163,14 @@ WARN  Catalog public key for account {KontoId} does not belong to this client's 
 **Flow:**
 1. Catalog returns `null` (no existing key)
 2. Synchronizer validates `OffentligNokkel` against the private key ring → no match
-3. Upload skipped
+3. **Throws `InvalidOperationException`**
 
-**Result:** No key is uploaded. Messages sent to this account cannot be decrypted by this client. The warning in the logs makes the misconfiguration visible.
+**Result:** The client does not start. The exception message clearly identifies the misconfiguration.
 
 **Logs:**
 ```
 WARN  No configured private key matched the certificate for account {KontoId}.
-WARN  Configured public key for account {KontoId} does not match any configured private key. Skipping upload.
+ERROR [InvalidOperationException] Configured public key for account {KontoId} does not match any configured private key.
 ```
 
 ---
@@ -180,15 +182,14 @@ WARN  Configured public key for account {KontoId} does not match any configured 
 **Flow:**
 1. `GetPublicKey` throws an exception
 2. Synchronizer logs a warning and attempts to upload anyway
-3. `UploadPublicKey` also fails (catalog still unreachable)
-4. Exception is caught in `FiksIOClient.CreateAsync` — client continues startup
+3. `UploadPublicKey` also fails (catalog still unreachable) → exception propagates out of `CreateAsync`
 
-**Result:** The client starts normally and can send and receive messages. The key is not uploaded on this startup. It will be retried on the next restart.
+**Result:** The client does not start. Catalog availability is required at startup to ensure the key registration state is known. Retry on the next restart.
 
 **Logs:**
 ```
 WARN  Failed to retrieve public key from catalog for account {KontoId}. Attempting upload.
-WARN  Public key synchronization failed for account {KontoId}. Client will start without uploading the configured key.
+ERROR [<catalog exception>] Upload failed for account {KontoId}.
 ```
 
 ---

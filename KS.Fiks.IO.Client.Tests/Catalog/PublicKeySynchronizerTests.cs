@@ -9,12 +9,14 @@ using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Catalog;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
-using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Catalog
@@ -236,10 +238,18 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
+                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("Uploading public key")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
-                Times.Exactly(2));
+                Times.Once);
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("Public key uploaded")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
+                Times.Once);
         }
 
         private PublicKeySynchronizer CreateSut(
@@ -259,23 +269,21 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
         private static string CertToPem(X509Certificate cert)
         {
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine("-----BEGIN CERTIFICATE-----");
-            sb.AppendLine(Convert.ToBase64String(cert.GetEncoded(), Base64FormattingOptions.InsertLineBreaks));
-            sb.AppendLine("-----END CERTIFICATE-----");
-            return sb.ToString();
+            using var sw = new StringWriter();
+            new Org.BouncyCastle.OpenSsl.PemWriter(sw).WriteObject(cert);
+            return sw.ToString();
         }
 
         private static (X509Certificate cert, string privateKeyPem) GenerateKeyPair()
         {
             var random = new SecureRandom();
             var keypairGen = new RsaKeyPairGenerator();
-            keypairGen.Init(new Org.BouncyCastle.Crypto.KeyGenerationParameters(random, 2048));
+            keypairGen.Init(new KeyGenerationParameters(random, 2048));
             var keypair = keypairGen.GenerateKeyPair();
 
             var gen = new X509V3CertificateGenerator();
             gen.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
-            var name = new Org.BouncyCastle.Asn1.X509.X509Name("CN=TestCert");
+            var name = new X509Name("CN=TestCert");
             gen.SetSubjectDN(name);
             gen.SetIssuerDN(name);
             gen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
@@ -286,28 +294,14 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             var cert = gen.Generate(signer);
 
             using var sw = new StringWriter();
-            new Org.BouncyCastle.OpenSsl.PemWriter(sw).WriteObject(keypair.Private);
+            new PemWriter(sw).WriteObject(keypair.Private);
             return (cert, sw.ToString());
         }
 
         private static X509Certificate GenerateSelfSignedCert()
         {
-            var random = new SecureRandom();
-            var keypairGen = new RsaKeyPairGenerator();
-            keypairGen.Init(new Org.BouncyCastle.Crypto.KeyGenerationParameters(random, 2048));
-            var keypair = keypairGen.GenerateKeyPair();
-
-            var gen = new X509V3CertificateGenerator();
-            gen.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
-            var name = new Org.BouncyCastle.Asn1.X509.X509Name("CN=TestCert");
-            gen.SetSubjectDN(name);
-            gen.SetIssuerDN(name);
-            gen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
-            gen.SetNotAfter(DateTime.UtcNow.AddDays(365));
-            gen.SetPublicKey(keypair.Public);
-
-            var signer = new Asn1SignatureFactory("SHA256WithRSA", keypair.Private, random);
-            return gen.Generate(signer);
+            var (cert, _) = GenerateKeyPair();
+            return cert;
         }
     }
 }
