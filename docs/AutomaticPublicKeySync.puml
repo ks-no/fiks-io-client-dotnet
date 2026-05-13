@@ -1,0 +1,88 @@
+@startuml
+title Fiks-IO - Automatisk nokkelsynkronisering ved oppstart
+
+|FiksIOClient|
+start
+:CreateAsync(config);
+
+|PublicKeySynchronizer|
+if (OffentligNokkel satt?) then (nei)
+  #lightgrey:LogDebug\nsynk deaktivert;
+  stop
+endif
+
+if (Gyldig PEM-sertifikat?) then (nei)
+  #tomato:throw InvalidOperationException;
+  stop
+endif
+
+|KatalogAPI|
+:GET /kontoer/kontoId/offentligNokkel;
+
+|PublicKeySynchronizer|
+if (Exception fra GET?) then (ja)
+  :LogWarning - henting feilet\nneedsUpload = true;
+  note right
+    catalogCert forblir null.
+    Katalog-validering hoppes over.
+    Vi kjenner ikke katalogstatus,
+    men hvis konfigurert nokkel
+    matcher var private nokkel
+    tar vi eierskap og laster opp.
+    Idempotent hvis nokkel allerede
+    er korrekt i katalog.
+  end note
+else (nei)
+  if (DER-bytes identiske?) then (ja)
+    #lightgrey:LogDebug\nnokkel er allerede oppdatert;
+    stop
+  else (nei)
+  endif
+endif
+
+if (Katalog returnerte en nokkel?) then (ja)
+  |KeyValidatorHandler|
+  :ValidateCertificateAgainstPrivateKeys\n(catalogCert)\nKrypter/dekrypter med hver privatNokkel;
+
+  |PublicKeySynchronizer|
+  if (Katalognokkel tilhorer var nokkelring?) then (nei)
+    #orange:LogWarning\nkatalognokkel er ikke var\nhopper over opplasting;
+    stop
+  endif
+endif
+
+|KeyValidatorHandler|
+:ValidateCertificateAgainstPrivateKeys\n(configuredCert)\nKrypter/dekrypter med hver privatNokkel;
+
+|PublicKeySynchronizer|
+if (Konfigurert nokkel matcher\nprivat nokkel?) then (nei)
+  #tomato:throw InvalidOperationException\nfeilkonfigurasjon;
+  stop
+endif
+
+:LogInformation - laster opp;
+
+|KatalogAPI|
+:PUT /kontoer/kontoId/offentligNokkel\nnokkel: PEM-streng;
+
+|PublicKeySynchronizer|
+if (HTTP 2xx?) then (ja)
+  :LogInformation - nokkel lastet opp;
+else (nei)
+  #tomato:throw FiksIOUnexpectedResponseException;
+  stop
+endif
+
+|FiksIOClient|
+:GET /kontoer/kontoId/offentligNokkel;
+
+if (Katalognokkel finnes og\ningen privat nokkel dekrypterer?) then (ja)
+  #tomato:throw InvalidOperationException\nkan ikke dekryptere innkommende meldinger;
+  stop
+endif
+
+:InitializeAmqpHandlerAsync();
+#lightgreen:FiksIOClient klar til bruk;
+stop
+
+@enduml

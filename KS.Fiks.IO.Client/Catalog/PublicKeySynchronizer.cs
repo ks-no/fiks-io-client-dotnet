@@ -32,54 +32,86 @@ namespace KS.Fiks.IO.Client.Catalog
                 return;
             }
 
-            X509Certificate configuredCert;
+            var configuredCert = ParseConfiguredCertificate(kontoId, configuredPublicKeyPem);
+            var catalogCert = await FetchCatalogCertificateAsync(kontoId).ConfigureAwait(false);
+
+            if (IsAlreadyUpToDate(kontoId, catalogCert, configuredCert))
+            {
+                return;
+            }
+
+            if (catalogCert != null && !CatalogKeyBelongsToUs(kontoId, catalogCert))
+            {
+                return;
+            }
+
+            EnsureConfiguredCertIsOurs(kontoId, configuredCert);
+
+            _logger?.LogInformation("Uploading public key for account {KontoId}.", kontoId);
+            await _catalogHandler.UploadPublicKey(kontoId, configuredPublicKeyPem).ConfigureAwait(false);
+            _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
+        }
+
+        private X509Certificate ParseConfiguredCertificate(Guid kontoId, string pem)
+        {
             try
             {
-                configuredCert = X509CertificateReader.ExtractCertificate(configuredPublicKeyPem);
+                return X509CertificateReader.ExtractCertificate(pem);
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
                     $"Public key configured for account {kontoId} is not a valid X.509 certificate.", ex);
             }
+        }
 
-            X509Certificate catalogCert = null;
-            bool needsUpload;
+        private async Task<X509Certificate> FetchCatalogCertificateAsync(Guid kontoId)
+        {
             try
             {
-                catalogCert = await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
-                needsUpload = catalogCert == null ||
-                              !catalogCert.GetEncoded().SequenceEqual(configuredCert.GetEncoded());
+                return await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex,
+                _logger?.LogWarning(
+                    ex,
                     "Failed to retrieve public key from catalog for account {KontoId}. Attempting upload.",
                     kontoId);
-                needsUpload = true;
+                return null;
             }
+        }
 
-            if (!needsUpload)
+        private bool IsAlreadyUpToDate(Guid kontoId, X509Certificate catalogCert, X509Certificate configuredCert)
+        {
+            if (catalogCert == null || !catalogCert.GetEncoded().SequenceEqual(configuredCert.GetEncoded()))
             {
-                _logger?.LogDebug("Public key for account {KontoId} is already up to date, skipping upload.", kontoId);
-                return;
+                return false;
             }
 
-            if (catalogCert != null && !_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
+            _logger?.LogDebug("Public key for account {KontoId} is already up to date, skipping upload.", kontoId);
+            return true;
+        }
+
+        private bool CatalogKeyBelongsToUs(Guid kontoId, X509Certificate catalogCert)
+        {
+            if (_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
-                _logger?.LogWarning("Catalog public key for account {KontoId} does not belong to this client's key ring. Skipping upload.", kontoId);
-                return;
+                return true;
             }
 
+            _logger?.LogWarning(
+                "Catalog public key for account {KontoId} does not belong to this client's key ring. Skipping upload.",
+                kontoId);
+            return false;
+        }
+
+        private void EnsureConfiguredCertIsOurs(Guid kontoId, X509Certificate configuredCert)
+        {
             if (!_keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(configuredCert))
             {
-                _logger?.LogWarning("Configured public key for account {KontoId} does not match any configured private key. Skipping upload.", kontoId);
-                return;
+                throw new InvalidOperationException(
+                    $"Configured public key for account {kontoId} does not match any configured private key.");
             }
-
-            _logger?.LogInformation("Uploading public key for account {KontoId}.", kontoId);
-            await _catalogHandler.UploadPublicKey(kontoId, configuredPublicKeyPem).ConfigureAwait(false);
-            _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
         }
     }
 }

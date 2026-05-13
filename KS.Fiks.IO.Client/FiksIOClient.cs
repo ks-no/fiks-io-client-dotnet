@@ -143,17 +143,18 @@ namespace KS.Fiks.IO.Client
                 client._keyValidatorHandler,
                 loggerFactory);
 
-            try
+            await synchronizer.SynchronizePublicKeyAsync(
+                configuration.KontoConfiguration.KontoId,
+                configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
+
+            var catalogCert = await client._catalogHandler
+                .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
+            if (catalogCert != null
+                && !client._keyValidatorHandler.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
-                await synchronizer.SynchronizePublicKeyAsync(
-                    configuration.KontoConfiguration.KontoId,
-                    configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                loggerFactory?.CreateLogger<FiksIOClient>()?.LogWarning(ex,
-                    "Public key synchronization failed for account {KontoId}. Client will start without uploading the configured key.",
-                    configuration.KontoConfiguration.KontoId);
+                throw new InvalidOperationException(
+                    $"No configured private key can decrypt messages for account {configuration.KontoConfiguration.KontoId}. " +
+                    "The public key in catalog does not match any configured private key.");
             }
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);

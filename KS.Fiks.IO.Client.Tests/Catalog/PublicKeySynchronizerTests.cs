@@ -134,7 +134,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         }
 
         [Fact]
-        public async Task SkipsUploadWhenConfiguredKeyDoesNotMatchPrivateKeyDuringRotation()
+        public async Task ThrowsWhenConfiguredKeyDoesNotMatchPrivateKeyDuringRotation()
         {
             var kontoId = Guid.NewGuid();
             var unrelatedConfiguredCertPem = CertToPem(GenerateSelfSignedCert());
@@ -145,13 +145,14 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
             // Keyring matches catalog cert (first check passes), but not the configured cert (second fails)
             var sut = CreateSut(catalogMock);
 
-            await sut.SynchronizePublicKeyAsync(kontoId, unrelatedConfiguredCertPem);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                sut.SynchronizePublicKeyAsync(kontoId, unrelatedConfiguredCertPem));
 
             catalogMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
-        public async Task SkipsUploadWhenConfiguredKeyDoesNotMatchPrivateKey()
+        public async Task ThrowsWhenConfiguredKeyDoesNotMatchPrivateKey()
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
@@ -159,7 +160,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 
             var sut = CreateSut(catalogMock, useNonMatchingPrivateKey: true);
 
-            await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem));
 
             catalogMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }

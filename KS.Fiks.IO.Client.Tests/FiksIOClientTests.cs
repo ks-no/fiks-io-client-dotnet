@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
 using Moq;
+using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
 using Shouldly;
 using Xunit;
@@ -207,6 +209,37 @@ namespace KS.Fiks.IO.Client.Tests
 
             await Assert.ThrowsAsync<TaskCanceledException>(
                 async () => await sut.Send(_fixture.DefaultRequest, cts.Token).ConfigureAwait(false));
+        }
+
+        [Fact]
+        public async Task CreateAsyncSucceedsWhenCatalogHasNoKey()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            sut.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task CreateAsyncThrowsWhenCatalogKeyDoesNotMatchPrivateKey()
+        {
+            var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(cert);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _fixture.CreateSutAsync());
+        }
+
+        [Fact]
+        public async Task CreateAsyncThrowsWhenUploadFailsAndCatalogHasNoKey()
+        {
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_private.pem"))
+                .WithOffentligNokkel(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Upload failed"));
+
+            await Assert.ThrowsAsync<Exception>(() => _fixture.CreateSutAsync());
         }
     }
 }
