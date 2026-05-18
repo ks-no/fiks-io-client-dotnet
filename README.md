@@ -5,7 +5,7 @@
 
 
 ## About this library
-This is a .NET library compatible with _[.Net Standard 2.1](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1)_ and _[.Net Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
+This is a .NET library compatible with _[.NET 8](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-8/overview)_, _[.Net Standard 2.1](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1)_ and _[.Net Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
@@ -18,7 +18,7 @@ The package assemblies are also [strong-named](https://learn.microsoft.com/en-us
 ### Simplifying Fiks-IO
 This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
 For example Fiks-IO requires that certain [headers](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere) are set in the messages. 
-Using this client means that these details are hidden and simpflifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere).
+Using this client means that these details are hidden and simplifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere).
 
 #### RabbitMQ
 Fiks-IO is using RabbitMQ and this Fiks-IO-Client is using its client for connecting and receiving messages. Sending messages goes through the Fiks-IO Rest-API.
@@ -30,7 +30,7 @@ Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nu
 ## Prerequisites
 To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
 
-## Usage recomendations
+## Usage recommendations
 We recommend having a long-lived Fiks-IO-Client and connection to Fiks-IO. Creating a new Fiks-IO-Client on demand, meaning creating a new Fiks-IO-Client e.g. many times pr hour, is not recommended.
 Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the RabbitMQ server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). 
 
@@ -251,8 +251,6 @@ var config = FiksIOConfigurationBuilder
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
                 .BuildTestConfiguration();
-                
-);
 ```
 
 Explanations:
