@@ -48,7 +48,16 @@ namespace KS.Fiks.IO.Client.Catalog
             EnsureConfiguredCertIsOurs(kontoId, configuredCert);
 
             _logger?.LogInformation("Uploading public key for account {KontoId}.", kontoId);
-            await _catalogHandler.UploadPublicKey(kontoId, configuredPublicKeyPem).ConfigureAwait(false);
+            try
+            {
+                await _catalogHandler.UploadPublicKey(kontoId, configuredPublicKeyPem).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to upload public key for account {KontoId}.", kontoId);
+                throw;
+            }
+
             _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
             return configuredCert;
         }

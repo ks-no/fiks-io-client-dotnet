@@ -2,7 +2,7 @@
 
 ## Background
 
-Setting up a Fiks-IO account traditionally required a vendor and a municipality employee to coordinate manually: the vendor generates a key pair, sends the public key to the employee, who then uploads it via Fiks-konfigurasjon. Both parties had to be available at the same time.
+Setting up a Fiks-IO account traditionally was uploaded by the municipality employee Fiks Forvaltning. But this manual process can lead to coordination issues, especially when vendors need to rotate keys or set up accounts independently. To streamline this, we have introduced an **automatic public key synchronization** feature in the Fiks-IO .NET client.
 
 With automatic public key synchronization, the client uploads the configured public key to the Fiks-IO catalog on startup — eliminating the need for manual coordination. The municipality employee can set up the account independently and share the account details with the vendor afterward. The first time the vendor starts their client, the key is registered automatically.
 
@@ -240,12 +240,12 @@ ERROR [InvalidOperationException] Configured public key for account {KontoId} do
 **Logs:**
 ```
 WARN  Failed to retrieve public key from catalog for account {KontoId}. Attempting upload.
-ERROR [<catalog exception>] Upload failed for account {KontoId}.
+ERROR Failed to upload public key for account {KontoId}.
 ```
 
 ---
 
-### Scenario 7 — Feature not configured (backward-compatible)
+### Scenario 7 — Feature not configured
 
 **Precondition:** `WithFiksKontoConfiguration` is called without `offentligNokkel`.
 
@@ -255,9 +255,24 @@ ERROR [<catalog exception>] Upload failed for account {KontoId}.
 
 **Flow:**
 1. `OffentligNokkel` is `null`
-2. Synchronizer exits immediately — no catalog call is made
+2. Synchronizer exits immediately — no catalog write is performed
+3. `CreateAsync` fetches the current catalog key directly
+4. If the catalog is unreachable → **throws `InvalidOperationException`**
+5. If the catalog has a registered key that does not match the configured private key → **throws `InvalidOperationException`**
+6. If the catalog has no registered key, or the registered key matches → proceeds to AMQP setup
 
-**Result:** Behavior is identical to the client before this feature was introduced. No breaking change.
+**Result:** No key upload is performed, but startup key validation still runs. This is a **breaking change** from earlier versions: mismatches that previously surfaced only at message-receive time now cause a fail-fast error at startup.
+
+**Logs (mismatch):**
+```
+WARN  No configured private key matched the certificate for account {KontoId}.
+ERROR [InvalidOperationException] No configured private key can decrypt messages for account {KontoId}.
+```
+
+**Logs (catalog unreachable):**
+```
+ERROR [InvalidOperationException] Unable to validate key configuration for account {KontoId}: failed to retrieve the public key from catalog.
+```
 
 ---
 

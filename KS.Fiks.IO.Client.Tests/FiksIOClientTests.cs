@@ -230,6 +230,16 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
+        public async Task CreateAsyncThrowsWhenCatalogIsUnreachableAndOffentligNokkelIsNotSet()
+        {
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ThrowsAsync(new Exception("Catalog unreachable"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _fixture.CreateSutAsync());
+        }
+
+        [Fact]
         public async Task CreateAsyncThrowsWhenUploadFailsAndCatalogHasNoKey()
         {
             _fixture

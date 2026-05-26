@@ -18,6 +18,7 @@ using KS.Fiks.IO.Send.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
 
 [assembly:
@@ -147,8 +148,26 @@ namespace KS.Fiks.IO.Client
                 configuration.KontoConfiguration.KontoId,
                 configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
 
-            var catalogCert = effectiveCert ?? await client._catalogHandler
-                .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
+            X509Certificate catalogCert;
+            if (effectiveCert != null)
+            {
+                catalogCert = effectiveCert;
+            }
+            else
+            {
+                try
+                {
+                    catalogCert = await client._catalogHandler
+                        .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to validate key configuration for account {configuration.KontoConfiguration.KontoId}: " +
+                        "failed to retrieve the public key from catalog.", ex);
+                }
+            }
+
             if (catalogCert != null
                 && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {

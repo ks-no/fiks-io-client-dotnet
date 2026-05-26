@@ -14,6 +14,11 @@ namespace KS.Fiks.IO.Client.Configuration
 
         public KontoConfiguration(Guid kontoId, string privatNokkel, string offentligNokkel)
         {
+            if (string.IsNullOrWhiteSpace(privatNokkel))
+            {
+                throw new ArgumentException("Private key must not be null or whitespace.", nameof(privatNokkel));
+            }
+
             KontoId = kontoId;
             PrivatNokler = new List<string> {privatNokkel};
             OffentligNokkel = offentligNokkel;
