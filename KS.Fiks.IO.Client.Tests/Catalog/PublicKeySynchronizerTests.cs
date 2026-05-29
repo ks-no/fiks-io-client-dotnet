@@ -213,7 +213,7 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains(kontoId.ToString())),
+                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("Failed to retrieve public key")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
                 Times.Once);
