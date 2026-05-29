@@ -59,6 +59,22 @@ namespace KS.Fiks.IO.Client.Catalog
             }
 
             _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
+
+            try
+            {
+                var storedCert = await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
+                if (storedCert == null || !storedCert.GetEncoded().SequenceEqual(configuredCert.GetEncoded()))
+                {
+                    _logger?.LogWarning(
+                        "Catalog public key for account {KontoId} does not match the key just uploaded (may be eventual consistency).",
+                        kontoId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Could not confirm catalog public key for account {KontoId} after upload.", kontoId);
+            }
+
             return configuredCert;
         }
 
