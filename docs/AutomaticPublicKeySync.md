@@ -300,3 +300,31 @@ ERROR [InvalidOperationException] Unable to validate key configuration for accou
 - **No expiry awareness:** The synchronizer does not check certificate validity dates (`NotBefore`/`NotAfter`). An expired certificate in the catalog will not be replaced automatically unless the configured `OffentligNokkel` differs from it.
 - **No rotation drain indicator:** There is no built-in signal for when it is safe to remove an old private key. This is left to the operator.
 - **Sync is startup-only:** Synchronization runs once when the client is created. If the catalog key changes while the client is running, it will not be detected until the next restart.
+- **Catalog read failures are treated as "no key":** A transient failure reading the catalog key at startup is treated the same as "no key registered" — the client will attempt to upload the configured key. If the catalog is genuinely unavailable, the upload also fails and that error aborts startup. The synchronizer cannot reliably distinguish "not found" from "temporarily unavailable" because that contract is not strongly typed in the underlying `KS.Fiks.IO.Send.Client` package.
+
+---
+
+## Release Notes Draft
+
+> The repository has no `CHANGELOG`/`PackageReleaseNotes` convention; releases are published via GitHub Releases.
+> The text below is a draft to paste into the GitHub Release body for the next version. The exact version string
+> is decided by the team at release time (`VersionPrefix` is currently `7.0.3`).
+
+```markdown
+## <next version> — Automatic public key synchronization
+
+### Added
+- Optional automatic upload of the account's public key to the Fiks-IO catalog on client startup.
+  Configure via `WithFiksKontoConfiguration(kontoId, privateKey(s), offentligNokkel)`. Omitting the
+  public key disables the feature (backward compatible). Supports key rotation with multiple private
+  keys. See docs/AutomaticPublicKeySync.md.
+
+### Changed / Breaking
+- `FiksIOClient.CreateAsync` now validates that a configured private key can decrypt the catalog's
+  registered public key, and requires the catalog to be reachable at startup. A mismatch or an
+  unreachable catalog throws `InvalidOperationException` (previously surfaced only at message-receive
+  time). This applies even when the public-key-upload feature is not used.
+- `KontoConfiguration` constructors now reject null/whitespace private keys consistently (the
+  single-private-key constructor previously skipped this check). An empty key list now throws
+  `ArgumentException` (previously `ArgumentNullException`).
+```

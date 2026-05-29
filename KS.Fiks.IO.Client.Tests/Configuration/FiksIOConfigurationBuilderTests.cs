@@ -232,5 +232,37 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             Assert.Throws<ArgumentException>(() =>
                 new KontoConfiguration(Guid.NewGuid(), new[] { "validKey", null }));
         }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationThrowsOnWhitespacePrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), "   "));
+        }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationThrowsOnNullPrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), (string)null));
+        }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationAcceptsValidPrivateKey()
+        {
+            var kontoId = Guid.NewGuid();
+            var config = new KontoConfiguration(kontoId, "validKey");
+
+            config.KontoId.ShouldBe(kontoId);
+            config.PrivatNokler.Single().ShouldBe("validKey");
+            config.OffentligNokkel.ShouldBeNull();
+        }
+
+        [Fact]
+        public void EmptyPrivateKeyListThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), Enumerable.Empty<string>()));
+        }
     }
 }

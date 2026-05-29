@@ -251,5 +251,23 @@ namespace KS.Fiks.IO.Client.Tests
 
             await Assert.ThrowsAsync<Exception>(() => _fixture.CreateSutAsync());
         }
+
+        [Fact]
+        public async Task CreateAsyncDoesNotUploadWhenCatalogKeyAlreadyMatchesConfiguredKey()
+        {
+            var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_private.pem"))
+                .WithOffentligNokkel(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(cert);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            sut.ShouldNotBeNull();
+            _fixture.CatalogHandlerMock.Verify(
+                _ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
     }
 }
