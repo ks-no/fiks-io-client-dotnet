@@ -56,21 +56,24 @@ namespace KS.Fiks.IO.Client
                 rng.GetBytes(randomBytes);
             }
 
+            byte[] encryptedBytes;
+            using (var plainStream = new MemoryStream(randomBytes))
+            using (var encryptedStream = new MemoryStream())
+            {
+                EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
+                encryptedBytes = encryptedStream.ToArray();
+            }
+
             var matched = _kontoConfiguration.PrivatNokler.Any(privateKey =>
             {
                 try
                 {
-                    using (var plainStream = new MemoryStream(randomBytes))
-                    using (var encryptedStream = new MemoryStream())
+                    using (var encryptedStream = new MemoryStream(encryptedBytes))
+                    using (var decryptedStream = DecryptionService.Create(privateKey).Decrypt(encryptedStream))
+                    using (var resultStream = new MemoryStream())
                     {
-                        EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
-                        encryptedStream.Position = 0;
-                        using (var decryptedStream = DecryptionService.Create(privateKey).Decrypt(encryptedStream))
-                        using (var resultStream = new MemoryStream())
-                        {
-                            decryptedStream.CopyTo(resultStream);
-                            return resultStream.ToArray().SequenceEqual(randomBytes);
-                        }
+                        decryptedStream.CopyTo(resultStream);
+                        return resultStream.ToArray().SequenceEqual(randomBytes);
                     }
                 }
                 catch (Exception ex)

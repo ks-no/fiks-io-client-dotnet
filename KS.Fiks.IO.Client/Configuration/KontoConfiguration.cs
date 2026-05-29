@@ -7,42 +7,18 @@ namespace KS.Fiks.IO.Client.Configuration
     public class KontoConfiguration
     {
         public KontoConfiguration(Guid kontoId, string privatNokkel)
+            : this(kontoId, new[] { privatNokkel }, null)
         {
-            KontoId = kontoId;
-            PrivatNokler = new List<string> {privatNokkel};
         }
 
         public KontoConfiguration(Guid kontoId, string privatNokkel, string offentligNokkel)
+            : this(kontoId, new[] { privatNokkel }, offentligNokkel)
         {
-            if (string.IsNullOrWhiteSpace(privatNokkel))
-            {
-                throw new ArgumentException("Private key must not be null or whitespace.", nameof(privatNokkel));
-            }
-
-            KontoId = kontoId;
-            PrivatNokler = new List<string> {privatNokkel};
-            OffentligNokkel = offentligNokkel;
         }
 
         public KontoConfiguration(Guid kontoId, IEnumerable<string> privatNokler)
+            : this(kontoId, privatNokler, null)
         {
-            KontoId = kontoId;
-            if (privatNokler == null)
-            {
-                throw new ArgumentNullException(nameof(privatNokler));
-            }
-
-            PrivatNokler = privatNokler.ToList();
-
-            if (!PrivatNokler.Any())
-            {
-                throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
-            }
-
-            if (PrivatNokler.Any(string.IsNullOrWhiteSpace))
-            {
-                throw new ArgumentException("Private keys must not be null or whitespace.", nameof(privatNokler));
-            }
         }
 
         public KontoConfiguration(Guid kontoId, IEnumerable<string> privatNokler, string offentligNokkel)
@@ -60,7 +36,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 throw new ArgumentException("Must provide at least one private key.", nameof(privatNokler));
             }
 
-            if (PrivatNokler.Any(k => string.IsNullOrWhiteSpace(k)))
+            if (PrivatNokler.Any(string.IsNullOrWhiteSpace))
             {
                 throw new ArgumentException("Private keys must not be null or whitespace.", nameof(privatNokler));
             }
