@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         {
             var sut = _fixture.WithTokenRetrievalException().CreateSut();
 
-            await Assert.ThrowsAsync<Exception>(() => sut.GetCredentialsAsync());
+            await Assert.ThrowsAsync<FiksIOMaskinportenTokenException>(() => sut.GetCredentialsAsync());
         }
 
         [Fact]
