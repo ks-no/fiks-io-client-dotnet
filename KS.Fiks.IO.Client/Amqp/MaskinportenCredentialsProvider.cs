@@ -81,7 +81,7 @@ namespace KS.Fiks.IO.Client.Amqp
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Failed to retrieve Maskinporten token.");
-                throw;
+                throw new FiksIOMaskinportenTokenException("Failed to retrieve Maskinporten token.", ex);
             }
         }
     }
