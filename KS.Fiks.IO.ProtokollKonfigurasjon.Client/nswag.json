@@ -1,0 +1,43 @@
+{
+  "runtime": "$(NSwagRuntime)",
+  "defaultVariables": "NSwagRuntime=Net80",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "https://developers.fiks.ks.no/api/fiks-protokoll-konfigurasjon-integrasjon-api-v1.json",
+      "output": null,
+      "newLineBehavior": "Auto"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "clientBaseClass": null,
+      "generateClientClasses": true,
+      "generateClientInterfaces": true,
+      "injectHttpClient": true,
+      "disposeHttpClient": false,
+      "generateExceptionClasses": true,
+      "exceptionClass": "ProtokollKonfigurasjonApiException",
+      "wrapDtoExceptions": true,
+      "useHttpClientCreationMethod": false,
+      "httpClientType": "System.Net.Http.HttpClient",
+      "useHttpRequestMessageCreationMethod": false,
+      "useBaseUrl": true,
+      "generateBaseUrlProperty": true,
+      "generateSyncMethods": false,
+      "clientClassAccessModifier": "public",
+      "typeAccessModifier": "public",
+      "jsonLibrary": "NewtonsoftJson",
+      "requiredPropertiesMustBeDefined": false,
+      "classStyle": "Poco",
+      "generateDefaultValues": true,
+      "generateDataAnnotations": false,
+      "handleReferences": false,
+      "generateDtoTypes": true,
+      "operationGenerationMode": "SingleClientFromOperationId",
+      "className": "ProtokollKonfigurasjonClient",
+      "namespace": "KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated",
+      "additionalNamespaceUsages": [],
+      "output": "Generated/ProtokollKonfigurasjonClient.g.cs"
+    }
+  }
+}

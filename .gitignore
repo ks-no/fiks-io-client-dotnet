@@ -20,6 +20,7 @@ nupkg/
 *.userosscache
 *.sln.docstates
 
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
