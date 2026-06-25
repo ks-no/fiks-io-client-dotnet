@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
@@ -17,6 +18,7 @@ using KS.Fiks.IO.Send.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
 
 [assembly:
@@ -43,7 +45,7 @@ namespace KS.Fiks.IO.Client
 
         private IMaskinportenClient _maskinportenClient;
 
-        private KeyValidatorHandler _keyValidatorHandler;
+        private IKeyValidator _keyValidator;
 
         private FiksIOClient(
             FiksIOConfiguration configuration,
@@ -65,7 +67,7 @@ namespace KS.Fiks.IO.Client
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null,
-            KeyValidatorHandler keyValidatorHandler = null)
+            IKeyValidator keyValidator = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
 
@@ -108,7 +110,7 @@ namespace KS.Fiks.IO.Client
 
             _loggerFactory = loggerFactory;
 
-            _keyValidatorHandler = keyValidatorHandler ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
+            _keyValidator = keyValidator ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
         }
 
         public static async Task<FiksIOClient> CreateAsync(
@@ -136,6 +138,43 @@ namespace KS.Fiks.IO.Client
                 publicKeyProvider,
                 asicEncrypter,
                 null);
+
+            var synchronizer = new PublicKeySynchronizer(
+                client._catalogHandler,
+                client._keyValidator,
+                loggerFactory);
+
+            var effectiveCert = await synchronizer.SynchronizePublicKeyAsync(
+                configuration.KontoConfiguration.KontoId,
+                configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
+
+            X509Certificate catalogCert;
+            if (effectiveCert != null)
+            {
+                catalogCert = effectiveCert;
+            }
+            else
+            {
+                try
+                {
+                    catalogCert = await client._catalogHandler
+                        .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to validate key configuration for account {configuration.KontoConfiguration.KontoId}: " +
+                        "failed to retrieve the public key from catalog.", ex);
+                }
+            }
+
+            if (catalogCert != null
+                && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
+            {
+                throw new InvalidOperationException(
+                    $"No configured private key can decrypt messages for account {configuration.KontoConfiguration.KontoId}. " +
+                    "The public key in catalog does not match any configured private key.");
+            }
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
@@ -211,7 +250,7 @@ namespace KS.Fiks.IO.Client
 
         public Task<bool> ValidatePublicKeyAgainstPrivateKeyAsync()
         {
-            return _keyValidatorHandler.ValidatePublicKeyAgainstPrivateKeyAsync();
+            return _keyValidator.ValidatePublicKeyAgainstPrivateKeyAsync();
         }
 
         public async ValueTask DisposeAsync()
