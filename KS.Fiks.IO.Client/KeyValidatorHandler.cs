@@ -55,6 +55,11 @@ namespace KS.Fiks.IO.Client
 
         public bool ValidateCertificateAgainstPrivateKeys(X509Certificate certificate)
         {
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
+
             var randomBytes = new byte[256];
             using (var rng = RandomNumberGenerator.Create())
             {

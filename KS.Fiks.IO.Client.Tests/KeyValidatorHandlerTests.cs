@@ -98,6 +98,16 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
+        public void ValidateCertificateAgainstPrivateKeysThrowsWhenCertificateIsNull()
+        {
+            var catalogMock = new Mock<ICatalogHandler>();
+            var kontoConfig = new KontoConfiguration(Guid.NewGuid(), _matchingPrivateKeyPem);
+            var sut = new KeyValidatorHandler(catalogMock.Object, kontoConfig);
+
+            Assert.Throws<ArgumentNullException>(() => sut.ValidateCertificateAgainstPrivateKeys(null));
+        }
+
+        [Fact]
         public async Task ThrowsWhenNoPrivateKeysAreConfigured()
         {
             var catalogMock = new Mock<ICatalogHandler>();

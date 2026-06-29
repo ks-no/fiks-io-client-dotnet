@@ -221,7 +221,8 @@ namespace KS.Fiks.IO.Client
         /// <summary>
         /// True when automatic public key upload is enabled for this client, i.e. when
         /// <see cref="Configuration.KontoConfiguration.OffentligNokkel"/> was configured. When false,
-        /// the client never writes to the catalog and only validates the existing key.
+        /// the client never writes to the catalog; it still performs best-effort startup key validation,
+        /// which is skipped when no key is registered or the catalog is temporarily unavailable.
         /// </summary>
         public bool AutomaticPublicKeyUploadEnabled { get; }
 

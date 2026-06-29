@@ -2,7 +2,7 @@
 
 ## Background
 
-Setting up a Fiks-IO account traditionally was uploaded by the municipality employee Fiks Forvaltning. But this manual process can lead to coordination issues, especially when vendors need to rotate keys or set up accounts independently. To streamline this, we have introduced an **automatic public key synchronization** feature in the Fiks-IO .NET client.
+Setting up a Fiks-IO account traditionally required the account's public key to be registered in the catalog manually by Fiks Forvaltning. This manual step can lead to coordination issues, especially when vendors need to rotate keys or set up accounts independently. To streamline this, we have introduced an **automatic public key synchronization** feature in the Fiks-IO .NET client.
 
 With automatic public key synchronization, the client uploads the configured public key to the Fiks-IO catalog on startup — eliminating the need for manual coordination. The municipality employee can set up the account independently and share the account details with the vendor afterward. The first time the vendor starts their client, the key is registered automatically.
 
