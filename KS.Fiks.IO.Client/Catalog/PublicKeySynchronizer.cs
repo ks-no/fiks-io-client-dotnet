@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Send.Client.Catalog;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.X509;
 
@@ -63,7 +64,7 @@ namespace KS.Fiks.IO.Client.Catalog
             try
             {
                 var storedCert = await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
-                if (storedCert == null || !storedCert.GetEncoded().SequenceEqual(configuredCert.GetEncoded()))
+                if (!HasSamePublicKey(storedCert, configuredCert))
                 {
                     _logger?.LogWarning(
                         "Catalog public key for account {KontoId} does not match the key just uploaded (may be eventual consistency).",
@@ -97,25 +98,43 @@ namespace KS.Fiks.IO.Client.Catalog
             {
                 return await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (FiksIOSendPublicKeyNotFoundException)
             {
-                _logger?.LogWarning(
-                    ex,
-                    "Failed to retrieve public key from catalog for account {KontoId}. Attempting upload.",
+                _logger?.LogDebug(
+                    "No public key registered in catalog for account {KontoId}. The configured key will be uploaded.",
                     kontoId);
                 return null;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(
+                    ex,
+                    "Failed to read public key from catalog for account {KontoId}; cannot safely synchronize. Aborting startup.",
+                    kontoId);
+                throw;
             }
         }
 
         private bool IsAlreadyUpToDate(Guid kontoId, X509Certificate catalogCert, X509Certificate configuredCert)
         {
-            if (catalogCert == null || !catalogCert.GetEncoded().SequenceEqual(configuredCert.GetEncoded()))
+            if (!HasSamePublicKey(catalogCert, configuredCert))
             {
                 return false;
             }
 
             _logger?.LogDebug("Public key for account {KontoId} is already up to date, skipping upload.", kontoId);
             return true;
+        }
+
+        private static bool HasSamePublicKey(X509Certificate first, X509Certificate second)
+        {
+            if (first == null || second == null)
+            {
+                return false;
+            }
+
+            return first.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded()
+                .SequenceEqual(second.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded());
         }
 
         private bool CatalogKeyBelongsToUs(Guid kontoId, X509Certificate catalogCert)

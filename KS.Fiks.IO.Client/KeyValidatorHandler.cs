@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Catalog;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.X509;
 
@@ -38,8 +39,12 @@ namespace KS.Fiks.IO.Client
                     $"Cannot validate key pair for konto {_kontoConfiguration.KontoId}: no private keys are configured in KontoConfiguration.");
             }
 
-            var certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
-            if (certificate == null)
+            X509Certificate certificate;
+            try
+            {
+                certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
+            }
+            catch (FiksIOSendPublicKeyNotFoundException)
             {
                 _logger?.LogWarning("No public key registered in catalog for account {KontoId}, cannot validate key pair.", _kontoConfiguration.KontoId);
                 return false;
@@ -57,11 +62,22 @@ namespace KS.Fiks.IO.Client
             }
 
             byte[] encryptedBytes;
-            using (var plainStream = new MemoryStream(randomBytes))
-            using (var encryptedStream = new MemoryStream())
+            try
             {
-                EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
-                encryptedBytes = encryptedStream.ToArray();
+                using (var plainStream = new MemoryStream(randomBytes))
+                using (var encryptedStream = new MemoryStream())
+                {
+                    EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
+                    encryptedBytes = encryptedStream.ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(
+                    ex,
+                    "Could not encrypt the validation payload with the certificate for account {KontoId}; treating it as not matching.",
+                    _kontoConfiguration.KontoId);
+                return false;
             }
 
             var matched = _kontoConfiguration.PrivatNokler.Any(privateKey =>

@@ -15,6 +15,7 @@ using KS.Fiks.IO.Crypto.Asic;
 using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
@@ -70,6 +71,8 @@ namespace KS.Fiks.IO.Client
             IKeyValidator keyValidator = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
+            AutomaticPublicKeyUploadEnabled =
+                !string.IsNullOrWhiteSpace(configuration.KontoConfiguration.OffentligNokkel);
 
             _maskinportenClient = maskinportenClient ??
                                   new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
@@ -139,13 +142,21 @@ namespace KS.Fiks.IO.Client
                 asicEncrypter,
                 null);
 
+            var logger = loggerFactory?.CreateLogger<FiksIOClient>();
+            var kontoId = configuration.KontoConfiguration.KontoId;
+
+            logger?.LogInformation(
+                "Automatic public key upload is {State} for account {KontoId}.",
+                client.AutomaticPublicKeyUploadEnabled ? "ENABLED" : "DISABLED",
+                kontoId);
+
             var synchronizer = new PublicKeySynchronizer(
                 client._catalogHandler,
                 client._keyValidator,
                 loggerFactory);
 
             var effectiveCert = await synchronizer.SynchronizePublicKeyAsync(
-                configuration.KontoConfiguration.KontoId,
+                kontoId,
                 configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
 
             X509Certificate catalogCert;
@@ -157,14 +168,20 @@ namespace KS.Fiks.IO.Client
             {
                 try
                 {
-                    catalogCert = await client._catalogHandler
-                        .GetPublicKey(configuration.KontoConfiguration.KontoId).ConfigureAwait(false);
+                    catalogCert = await client._catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
+                }
+                catch (FiksIOSendPublicKeyNotFoundException)
+                {
+                    // No key registered and the upload feature is not enabled: nothing to validate.
+                    catalogCert = null;
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidOperationException(
-                        $"Unable to validate key configuration for account {configuration.KontoConfiguration.KontoId}: " +
-                        "failed to retrieve the public key from catalog.", ex);
+                    logger?.LogWarning(
+                        ex,
+                        "Could not validate key configuration for account {KontoId}: catalog temporarily unavailable. Startup continues.",
+                        kontoId);
+                    catalogCert = null;
                 }
             }
 
@@ -172,7 +189,7 @@ namespace KS.Fiks.IO.Client
                 && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
                 throw new InvalidOperationException(
-                    $"No configured private key can decrypt messages for account {configuration.KontoConfiguration.KontoId}. " +
+                    $"No configured private key can decrypt messages for account {kontoId}. " +
                     "The public key in catalog does not match any configured private key.");
             }
 
@@ -200,6 +217,13 @@ namespace KS.Fiks.IO.Client
         }
 
         public Guid KontoId { get; }
+
+        /// <summary>
+        /// True when automatic public key upload is enabled for this client, i.e. when
+        /// <see cref="Configuration.KontoConfiguration.OffentligNokkel"/> was configured. When false,
+        /// the client never writes to the catalog and only validates the existing key.
+        /// </summary>
+        public bool AutomaticPublicKeyUploadEnabled { get; }
 
         public async Task<Konto> GetKonto(Guid kontoId)
         {

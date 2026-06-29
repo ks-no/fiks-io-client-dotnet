@@ -7,6 +7,7 @@ using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Catalog;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Org.BouncyCastle.Asn1.X509;
@@ -74,11 +75,12 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         }
 
         [Fact]
-        public async Task UploadsWhenCatalogReturnsNull()
+        public async Task UploadsWhenCatalogHasNoKey()
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
-            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync((X509Certificate)null);
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
 
             var sut = CreateSut(catalogMock);
 
@@ -88,17 +90,34 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         }
 
         [Fact]
-        public async Task UploadsWhenCatalogThrowsException()
+        public async Task PropagatesAndDoesNotUploadWhenCatalogFailsTransiently()
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
-            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ThrowsAsync(new Exception("Nøkkel ikke funnet"));
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ThrowsAsync(new Exception("Katalog utilgjengelig"));
+
+            var sut = CreateSut(catalogMock);
+
+            await Assert.ThrowsAsync<Exception>(() => sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem));
+
+            catalogMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SkipsUploadWhenCatalogKeyHasSamePublicKeyButReEncodedCertificate()
+        {
+            var kontoId = Guid.NewGuid();
+
+            var reEncodedCatalogCert = ReEncodeWithSamePublicKey(_publicKeyCert);
+
+            var catalogMock = new Mock<ICatalogHandler>();
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync(reEncodedCatalogCert);
 
             var sut = CreateSut(catalogMock);
 
             await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
 
-            catalogMock.Verify(_ => _.UploadPublicKey(kontoId, _publicKeyPem), Times.Once);
+            catalogMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -158,7 +177,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
-            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ThrowsAsync(new Exception("Ingen nøkkel"));
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
 
             var sut = CreateSut(catalogMock, useNonMatchingPrivateKey: true);
 
@@ -185,7 +205,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
-            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ThrowsAsync(new Exception("Ingen nøkkel"));
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
             catalogMock.Setup(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Opplasting feilet"));
 
@@ -195,28 +216,18 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         }
 
         [Fact]
-        public async Task LogsWarningWhenCatalogLookupFails()
+        public async Task DoesNotSwallowTransientCatalogError()
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
             catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ThrowsAsync(new Exception("Katalog utilgjengelig"));
 
-            var loggerMock = new Mock<ILogger<PublicKeySynchronizer>>();
-            var loggerFactoryMock = new Mock<ILoggerFactory>();
-            loggerFactoryMock.Setup(_ => _.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+            var sut = CreateSut(catalogMock);
 
-            var sut = CreateSut(catalogMock, loggerFactory: loggerFactoryMock.Object);
-
-            await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
-
-            loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("Failed to retrieve public key")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
-                Times.Once);
+            // A transient error must not be interpreted as "no key" — it propagates so startup can abort.
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem));
+            Assert.Equal("Katalog utilgjengelig", ex.Message);
         }
 
         [Fact]
@@ -224,7 +235,8 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var kontoId = Guid.NewGuid();
             var catalogMock = new Mock<ICatalogHandler>();
-            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync((X509Certificate)null);
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
 
             var loggerMock = new Mock<ILogger<PublicKeySynchronizer>>();
             var loggerFactoryMock = new Mock<ILoggerFactory>();
@@ -302,6 +314,26 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
         {
             var (cert, _) = GenerateKeyPair();
             return cert;
+        }
+
+        private static X509Certificate ReEncodeWithSamePublicKey(X509Certificate source)
+        {
+            var random = new SecureRandom();
+            var signerKeyGen = new RsaKeyPairGenerator();
+            signerKeyGen.Init(new KeyGenerationParameters(random, 2048));
+            var signerKeys = signerKeyGen.GenerateKeyPair();
+
+            var gen = new X509V3CertificateGenerator();
+            gen.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
+            var name = new X509Name("CN=ReEncoded");
+            gen.SetSubjectDN(name);
+            gen.SetIssuerDN(name);
+            gen.SetNotBefore(DateTime.UtcNow.AddDays(-5));
+            gen.SetNotAfter(DateTime.UtcNow.AddDays(730));
+            gen.SetPublicKey(source.GetPublicKey());
+
+            var signer = new Asn1SignatureFactory("SHA256WithRSA", signerKeys.Private, random);
+            return gen.Generate(signer);
         }
     }
 }

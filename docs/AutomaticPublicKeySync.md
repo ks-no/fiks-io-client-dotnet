@@ -30,17 +30,45 @@ FiksIOConfigurationBuilder
 
 ---
 
+## Is the feature enabled? (Observability)
+
+Automatic upload is enabled **if and only if `OffentligNokkel` is configured** (non-null, non-whitespace). There are two ways to tell whether a running client has it enabled:
+
+- **Programmatically:** `FiksIOClient.AutomaticPublicKeyUploadEnabled` (a `bool`) — useful for health checks or diagnostics.
+- **In the logs:** `CreateAsync` emits one `INFO` line at startup, before any catalog interaction:
+  ```
+  INFO  Automatic public key upload is ENABLED for account {KontoId}.
+  INFO  Automatic public key upload is DISABLED for account {KontoId}.
+  ```
+
+This removes the previous ambiguity where, at `INFO` level, a client with the feature off was indistinguishable from one with the feature on but already up to date (both were silent or `DEBUG`-only).
+
+---
+
 ## How It Works
+
+> **Two independent steps — don't conflate them.** Startup performs (A) optional **upload** and (B) **validation**. They are governed by different conditions:
+>
+> - **(A) Upload** runs **only when the feature is enabled** (`OffentligNokkel` configured / `AutomaticPublicKeyUploadEnabled == true`). This is the only step that writes to the catalog.
+> - **(B) Validation** runs **regardless of the feature flag** — it is *not* gated on enable/disable. It checks that a configured private key can decrypt the catalog's public key, and runs whenever **a key exists to validate against** (an existing catalog key, or one just uploaded).
+>
+> Validation is skipped **only** when there is genuinely nothing to check: no key registered (404), or — for feature-off clients — the catalog is temporarily unavailable. In both of those cases the client still starts. A key that *exists but does not match* is always fatal, feature on or off.
 
 `FiksIOClient.CreateAsync` runs `PublicKeySynchronizer.SynchronizePublicKeyAsync` before initializing the AMQP connection. The synchronizer:
 
 1. Skips immediately if `OffentligNokkel` is not configured
 2. Fetches the current public key from the catalog
-3. Compares it with the configured key (DER byte comparison)
+3. Compares its **public key** with the configured key (`SubjectPublicKeyInfo` comparison — robust to certificate re-encoding)
 4. Validates ownership before uploading (see scenarios below)
 5. Uploads if needed, then proceeds with normal startup
 
-After synchronization, `CreateAsync` verifies that the effective catalog key (the key now registered in the catalog) can be decrypted by at least one configured private key. If not, `CreateAsync` throws `InvalidOperationException` and the client does not start. Misconfiguration and catalog unavailability that prevents the key from being set up correctly are treated as fatal startup errors.
+The synchronizer distinguishes **"no key registered"** from **"catalog temporarily unavailable"**. The underlying `KS.Fiks.IO.Send.Client` throws a dedicated `FiksIOSendPublicKeyNotFoundException` on HTTP 404; any other failure (network error, 5xx, timeout) surfaces as a different exception. "Not found" means the catalog is reachable and the slot is empty (safe to upload); a transient error means the registration state is unknown (the synchronizer does **not** blind-upload over a possibly-existing key — it propagates the error).
+
+After synchronization — **and independently of whether the upload feature is enabled** — `CreateAsync` validates the effective catalog key against the configured private keys:
+
+- **Definite mismatch** — the catalog returned a key that none of the configured private keys can decrypt → `CreateAsync` throws `InvalidOperationException` and the client does not start. This is a guaranteed "cannot decrypt incoming messages" misconfiguration and is fatal **for all clients**, whether or not the upload feature is used.
+- **No key registered** (`FiksIOSendPublicKeyNotFoundException`) — nothing to validate → startup proceeds.
+- **Catalog temporarily unavailable** — for clients **not** using the upload feature, validation cannot be performed; the client logs a warning and starts (preserving pre-feature availability — a transient catalog outage must not block startup). For clients **using** the upload feature, a transient catalog error during synchronization is fatal, because the upload is an active operation that could not be completed safely.
 
 ---
 
@@ -53,26 +81,24 @@ flowchart TD
     classDef info    fill:#1d4ed8,stroke:#1d4ed8,color:#fff
     classDef success fill:#15803d,stroke:#15803d,color:#fff
 
-    START(["FiksIOClient.CreateAsync"]) --> A
+    START(["FiksIOClient.CreateAsync"]) --> LOG["LogInformation:\nupload ENABLED / DISABLED"]:::info
+    LOG --> A
 
-    subgraph SYNC ["PublicKeySynchronizer"]
+    subgraph SYNC ["PublicKeySynchronizer (only when OffentligNokkel is set)"]
         A{OffentligNokkel\nconfigured?}
         A -->|no| SKIP["sync disabled"]:::info
         A -->|yes| B{Valid PEM?}
 
         B -->|no| ERR1(["throw: invalid certificate"]):::error
-        B -->|yes| C["GetPublicKey(kontoId)"]
+        B -->|yes| C{"GetPublicKey(kontoId)"}
 
-        C -->|Exception| W1["LogWarning: fetch failed"]:::warn
-        C -->|success| D
-        W1 --> D
+        C -->|404 PublicKeyNotFound| G
+        C -->|transient error| ERR3(["log error + rethrow:\ncatalog read failed"]):::error
+        C -->|key returned| D
 
-        D{Already\nup to date?}
+        D{"Same public key?\n(SubjectPublicKeyInfo)"}
         D -->|yes| SKIP2["no change"]:::info
-        D -->|no| E{Catalog key\nexists?}
-
-        E -->|yes| F{Belongs to\nour key ring?}
-        E -->|no| G
+        D -->|no| F{Catalog key belongs\nto our key ring?}
 
         F -->|no| W2["LogWarning: not our key\nskipping upload"]:::warn
         F -->|yes| G
@@ -81,8 +107,8 @@ flowchart TD
         G -->|no| ERR2(["throw: misconfigured key"]):::error
         G -->|yes| H["UploadPublicKey(kontoId, pem)"]
 
-        H -->|Exception| ERR3(["throw: upload failed"]):::error
-        H -->|HTTP 2xx| OK["key uploaded"]:::info
+        H -->|Exception| ERR3b(["throw: upload failed"]):::error
+        H -->|HTTP 2xx| OK["key uploaded\n(verify: warn-only)"]:::info
     end
 
     SKIP  --> VAL
@@ -90,10 +116,17 @@ flowchart TD
     W2    --> VAL
     OK    --> VAL
 
-    VAL["Verify catalog key\nis decryptable ¹"]
-    VAL -->|false| ERR4(["throw: no private key\ncan decrypt messages"]):::error
-    VAL -->|true| AMQP["InitializeAmqpHandlerAsync()"]
-    AMQP --> DONE(["return FiksIOClient ✓"]):::success
+    subgraph VALIDATE ["CreateAsync — startup key validation"]
+        VAL{Effective catalog\nkey available?}
+        VAL -->|"feature off: no key (404, silent)<br/>or transient (LogWarning)"| CONT["skip validation"]:::warn
+        VAL -->|key available| VC{Decryptable by a\nconfigured private key? ¹}
+        VC -->|no| ERR4(["throw: no private key\ncan decrypt messages"]):::error
+        VC -->|yes| PASS["validated"]:::success
+    end
+
+    CONT --> AMQP
+    PASS --> AMQP
+    AMQP["InitializeAmqpHandlerAsync()"] --> DONE(["return FiksIOClient ✓"]):::success
 
     note["¹ Encrypts 256 random bytes with the certificate\nand decrypts with each configured private key"]
     style note fill:#78350f,stroke:#78350f,color:#fff
@@ -108,7 +141,7 @@ flowchart TD
 **Precondition:** A new account has been created. No public key has been registered yet.
 
 **Flow:**
-1. Catalog returns `null` for the account's public key
+1. Catalog responds 404 → `GetPublicKey` throws `FiksIOSendPublicKeyNotFoundException`, which the synchronizer interprets as "no key registered"
 2. Synchronizer validates that `OffentligNokkel` matches one of the configured private keys — confirms the vendor owns the key
 3. Uploads `OffentligNokkel` to the catalog
 4. Client starts normally
@@ -129,7 +162,7 @@ INFO  Public key uploaded for account {KontoId}.
 
 **Flow:**
 1. Catalog returns the existing certificate
-2. DER byte comparison shows keys are identical
+2. `SubjectPublicKeyInfo` comparison shows the public keys are identical (even if the certificate wrapper differs)
 3. No upload needed
 
 **Result:** Nothing happens. Startup proceeds immediately.
@@ -191,7 +224,7 @@ INFO  Public key uploaded for account {KontoId}.
 
 **Flow:**
 1. Catalog returns a certificate
-2. Keys differ → upload candidate
+2. Public keys differ → upload candidate
 3. Synchronizer validates the **catalog cert** against the private key ring → no match → rotation not authorized
 4. Upload skipped
 5. `CreateAsync` validates the catalog cert against the private key ring → no match → **throws `InvalidOperationException`**
@@ -212,7 +245,7 @@ ERROR [InvalidOperationException] No configured private key can decrypt messages
 **Precondition:** `OffentligNokkel` is set, but the certificate does not correspond to any of the configured private keys (e.g., wrong file was used).
 
 **Flow:**
-1. Catalog returns `null` (no existing key)
+1. Catalog responds 404 (no existing key)
 2. Synchronizer validates `OffentligNokkel` against the private key ring → no match
 3. **Throws `InvalidOperationException`**
 
@@ -226,21 +259,22 @@ ERROR [InvalidOperationException] Configured public key for account {KontoId} do
 
 ---
 
-### Scenario 6 — Catalog unavailable at startup
+### Scenario 6 — Catalog unavailable at startup (upload feature enabled)
 
-**Precondition:** The Fiks-IO catalog API is temporarily unreachable (network issue, maintenance).
+**Precondition:** `OffentligNokkel` is configured and the Fiks-IO catalog API is temporarily unreachable (network issue, 5xx, timeout — **not** a 404).
 
 **Flow:**
-1. `GetPublicKey` throws an exception
-2. Synchronizer logs a warning and attempts to upload anyway
-3. `UploadPublicKey` also fails (catalog still unreachable) → exception propagates out of `CreateAsync`
+1. `GetPublicKey` throws a transient exception (not `FiksIOSendPublicKeyNotFoundException`)
+2. The synchronizer does **not** treat this as "no key" and does **not** blind-upload (this protects an existing catalog key from being overwritten when the real state is unknown)
+3. The exception propagates out of `CreateAsync`
 
-**Result:** The client does not start. Catalog availability is required at startup to ensure the key registration state is known. Retry on the next restart.
+**Result:** The client does not start. For the upload feature, catalog availability is required at startup so the key-registration state is known before any write. Retry on the next restart.
+
+> For clients that do **not** use the upload feature, a transient catalog error is **not** fatal — see Scenario 7.
 
 **Logs:**
 ```
-WARN  Failed to retrieve public key from catalog for account {KontoId}. Attempting upload.
-ERROR Failed to upload public key for account {KontoId}.
+ERROR Failed to read public key from catalog for account {KontoId}; cannot safely synchronize. Aborting startup.
 ```
 
 ---
@@ -257,21 +291,21 @@ ERROR Failed to upload public key for account {KontoId}.
 1. `OffentligNokkel` is `null`
 2. Synchronizer exits immediately — no catalog write is performed
 3. `CreateAsync` fetches the current catalog key directly
-4. If the catalog is unreachable → **throws `InvalidOperationException`**
-5. If the catalog has a registered key that does not match the configured private key → **throws `InvalidOperationException`**
-6. If the catalog has no registered key, or the registered key matches → proceeds to AMQP setup
+4. If the catalog has a registered key that does not match any configured private key → **throws `InvalidOperationException`** (fail-fast on a definite, non-transient misconfiguration)
+5. If the catalog has no registered key (404) → nothing to validate → proceeds to AMQP setup
+6. If the catalog is **temporarily unreachable** (transient error) → logs a warning and proceeds to AMQP setup. Validation cannot be performed, but a transient outage must **not** block startup for a client that does not use the upload feature.
 
-**Result:** No key upload is performed, but startup key validation still runs. This is a **breaking change** from earlier versions: mismatches that previously surfaced only at message-receive time now cause a fail-fast error at startup.
+**Result:** No key upload is performed. A definite key mismatch is a fail-fast startup error — this is a **breaking change** from earlier versions, where a mismatch surfaced only at message-receive time. A transient catalog outage, however, preserves the pre-feature behaviour (the client still starts).
 
-**Logs (mismatch):**
+**Logs (mismatch — fatal):**
 ```
 WARN  No configured private key matched the certificate for account {KontoId}.
 ERROR [InvalidOperationException] No configured private key can decrypt messages for account {KontoId}.
 ```
 
-**Logs (catalog unreachable):**
+**Logs (catalog unreachable — non-fatal, client starts):**
 ```
-ERROR [InvalidOperationException] Unable to validate key configuration for account {KontoId}: failed to retrieve the public key from catalog.
+WARN  Could not validate key configuration for account {KontoId}: catalog temporarily unavailable. Startup continues.
 ```
 
 ---
@@ -300,7 +334,8 @@ ERROR [InvalidOperationException] Unable to validate key configuration for accou
 - **No expiry awareness:** The synchronizer does not check certificate validity dates (`NotBefore`/`NotAfter`). An expired certificate in the catalog will not be replaced automatically unless the configured `OffentligNokkel` differs from it.
 - **No rotation drain indicator:** There is no built-in signal for when it is safe to remove an old private key. This is left to the operator.
 - **Sync is startup-only:** Synchronization runs once when the client is created. If the catalog key changes while the client is running, it will not be detected until the next restart.
-- **Catalog read failures are treated as "no key":** A transient failure reading the catalog key at startup is treated the same as "no key registered" — the client will attempt to upload the configured key. If the catalog is genuinely unavailable, the upload also fails and that error aborts startup. The synchronizer cannot reliably distinguish "not found" from "temporarily unavailable" because that contract is not strongly typed in the underlying `KS.Fiks.IO.Send.Client` package.
+- **Concurrent startups during rotation:** If several client instances start simultaneously, they may each evaluate the catalog state and attempt an upload. Uploading the same key is idempotent, but if instances are deployed with *different* `OffentligNokkel` values during a rollout, they can repeatedly overwrite each other's key on each restart until the rollout converges. Roll out a key change to all instances together.
+- **Post-upload verification is best-effort:** After uploading, the synchronizer re-reads the catalog key to confirm it. A mismatch here (e.g. eventual consistency) is logged as a warning only and does not fail startup.
 
 ---
 
@@ -318,13 +353,22 @@ ERROR [InvalidOperationException] Unable to validate key configuration for accou
   Configure via `WithFiksKontoConfiguration(kontoId, privateKey(s), offentligNokkel)`. Omitting the
   public key disables the feature (backward compatible). Supports key rotation with multiple private
   keys. See docs/AutomaticPublicKeySync.md.
+- `FiksIOClient.AutomaticPublicKeyUploadEnabled` (bool) plus a startup `INFO` log line indicating
+  whether automatic upload is ENABLED or DISABLED for the account.
 
 ### Changed / Breaking
 - `FiksIOClient.CreateAsync` now validates that a configured private key can decrypt the catalog's
-  registered public key, and requires the catalog to be reachable at startup. A mismatch or an
-  unreachable catalog throws `InvalidOperationException` (previously surfaced only at message-receive
-  time). This applies even when the public-key-upload feature is not used.
+  registered public key. A **definite mismatch** (the catalog has a key that none of the configured
+  private keys can decrypt) throws `InvalidOperationException` and the client does not start —
+  previously this surfaced only at message-receive time. This applies even when the public-key-upload
+  feature is not used. A missing key (catalog 404) or a **transient** catalog outage does **not** block
+  startup for clients that do not use the upload feature (the latter is logged as a warning).
 - `KontoConfiguration` constructors now reject null/whitespace private keys consistently (the
   single-private-key constructor previously skipped this check). An empty key list now throws
   `ArgumentException` (previously `ArgumentNullException`).
+
+### Dependencies
+- Requires `KS.Fiks.IO.Send.Client` &ge; the version that adds `ICatalogHandler.UploadPublicKey` and the
+  `FiksIOSendPublicKeyNotFoundException` (thrown by `GetPublicKey` on HTTP 404). The client uses this typed
+  exception to distinguish "no key registered" from "catalog temporarily unavailable".
 ```
