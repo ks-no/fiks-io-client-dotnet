@@ -26,7 +26,7 @@ FiksIOConfigurationBuilder
     ...
 ```
 
-`OffentligNokkel` is optional. Omitting it disables the feature entirely (fully backward-compatible).
+`OffentligNokkel` is optional. Omitting it disables automatic upload (no catalog write). Startup still performs best-effort key validation as described below.
 
 ---
 
