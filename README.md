@@ -364,7 +364,7 @@ The client can automatically upload the public key to the Fiks-IO catalog on sta
 .WithFiksKontoConfiguration(kontoId, new[] { oldPrivateKeyPem, newPrivateKeyPem }, newPublicCertPem)
 ```
 
-Omitting `publicCertPem` disables the feature entirely and preserves existing behaviour. See [docs/AutomaticPublicKeySync.md](docs/AutomaticPublicKeySync.md) for full documentation including key rotation and startup scenarios.
+Omitting `publicCertPem` disables automatic upload (no catalog write). Startup still performs best-effort key validation and fails fast on a definite mismatch between the catalog key and the configured private keys. See [docs/AutomaticPublicKeySync.md](docs/AutomaticPublicKeySync.md) for full documentation including key rotation and startup scenarios.
 
 #### Asice signing:
 Asice signing is required since version 3.0.0 of this client. More information on Asice signing can be found [here](https://docs.digdir.no/dpi_dokumentpakke_sikkerhet.html).
