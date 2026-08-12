@@ -13,7 +13,7 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
 		<VersionPrefix>7.0.3</VersionPrefix>
-		<TargetFrameworks>net8.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+		<TargetFrameworks>net8.0;netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<AssemblyVersion>5.0.0.0</AssemblyVersion>

@@ -63,19 +63,19 @@ jobs:
     steps:
       - name: Download signed packages (release)
         if: inputs.isRelease == true
-        uses: actions/download-artifact@v4
+        uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-signed
           path: packages
       - name: Download unsigned packages (pre-release)
         if: inputs.isRelease != true
-        uses: actions/download-artifact@v4
+        uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-unsigned
           path: packages
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # 6.0.0
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       - name: Push to NuGet.org (OIDC trusted publishing)
         uses: ks-no/github-actions-public/dotnet-push-to-nuget-org@main
         with:
@@ -101,13 +101,13 @@ jobs:
         with:
           ks_github_app_id: ${{ vars.KS_RUNNER_APP_ID }}
           ks_github_app_private_key: ${{ secrets.KS_RUNNER_PRIVATE_KEY }}
-      - uses: actions/checkout@v6
+      - uses: ks-no/github-actions-public/checkout@main
         with:
           fetch-depth: 0
           fetch-tags: true
           submodules: true
           token: ${{ steps.setup-github-app.outputs.app_token }}
-      - uses: actions/download-artifact@v4
+      - uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-signed
           path: release-packages
