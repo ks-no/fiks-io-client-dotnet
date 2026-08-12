@@ -124,6 +124,11 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(ConnectionMock.Object);
+
+                ConnectionFactoryMock
+                    .Setup(factory => factory.CredentialsProvider.GetCredentialsAsync(
+                        It.IsAny<CancellationToken>())).ReturnsAsync(new Credentials("test", "test", "test", TimeSpan.FromMinutes(5)));
+
             }
 
             ConnectionFactoryMock.SetupSet(connection => connection.Password = It.IsAny<string>());
