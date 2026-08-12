@@ -33,6 +33,10 @@ public class AmqpConnectionManagerTests
             .Setup(cf => cf.CreateConnectionAsync(It.IsAny<List<AmqpTcpEndpoint>>(), It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(connectionMock.Object);
+        
+        _connectionFactoryMock
+            .Setup(factory => factory.CredentialsProvider.GetCredentialsAsync(
+                It.IsAny<CancellationToken>())).ReturnsAsync(new Credentials("test", "test", "test", TimeSpan.FromMinutes(5)));
     }
 
     [Fact]
