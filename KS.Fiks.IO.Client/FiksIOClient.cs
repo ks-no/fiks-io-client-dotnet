@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Amqp;
+using KS.Fiks.IO.Client.Catalog;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Client.Dokumentlager;
 using KS.Fiks.IO.Client.Models;
@@ -14,9 +15,11 @@ using KS.Fiks.IO.Crypto.Asic;
 using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
 
 [assembly:
@@ -43,7 +46,7 @@ namespace KS.Fiks.IO.Client
 
         private IMaskinportenClient _maskinportenClient;
 
-        private KeyValidatorHandler _keyValidatorHandler;
+        private IKeyValidator _keyValidator;
 
         private FiksIOClient(
             FiksIOConfiguration configuration,
@@ -65,9 +68,11 @@ namespace KS.Fiks.IO.Client
             HttpClient httpClient = null,
             IPublicKeyProvider publicKeyProvider = null,
             IAsicEncrypter asicEncrypter = null,
-            KeyValidatorHandler keyValidatorHandler = null)
+            IKeyValidator keyValidator = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
+            AutomaticPublicKeyUploadEnabled =
+                !string.IsNullOrWhiteSpace(configuration.KontoConfiguration.OffentligNokkel);
 
             _maskinportenClient = maskinportenClient ??
                                   new MaskinportenClient(configuration.MaskinportenConfiguration, httpClient);
@@ -108,7 +113,7 @@ namespace KS.Fiks.IO.Client
 
             _loggerFactory = loggerFactory;
 
-            _keyValidatorHandler = keyValidatorHandler ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
+            _keyValidator = keyValidator ?? new KeyValidatorHandler(_catalogHandler, configuration.KontoConfiguration, loggerFactory);
         }
 
         public static async Task<FiksIOClient> CreateAsync(
@@ -137,6 +142,57 @@ namespace KS.Fiks.IO.Client
                 asicEncrypter,
                 null);
 
+            var logger = loggerFactory?.CreateLogger<FiksIOClient>();
+            var kontoId = configuration.KontoConfiguration.KontoId;
+
+            logger?.LogInformation(
+                "Automatic public key upload is {State} for account {KontoId}.",
+                client.AutomaticPublicKeyUploadEnabled ? "ENABLED" : "DISABLED",
+                kontoId);
+
+            var synchronizer = new PublicKeySynchronizer(
+                client._catalogHandler,
+                client._keyValidator,
+                loggerFactory);
+
+            var effectiveCert = await synchronizer.SynchronizePublicKeyAsync(
+                kontoId,
+                configuration.KontoConfiguration.OffentligNokkel).ConfigureAwait(false);
+
+            X509Certificate catalogCert;
+            if (effectiveCert != null)
+            {
+                catalogCert = effectiveCert;
+            }
+            else
+            {
+                try
+                {
+                    catalogCert = await client._catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
+                }
+                catch (FiksIOSendPublicKeyNotFoundException)
+                {
+                    // No key registered and the upload feature is not enabled: nothing to validate.
+                    catalogCert = null;
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogWarning(
+                        ex,
+                        "Could not validate key configuration for account {KontoId}: catalog temporarily unavailable. Startup continues.",
+                        kontoId);
+                    catalogCert = null;
+                }
+            }
+
+            if (catalogCert != null
+                && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
+            {
+                throw new InvalidOperationException(
+                    $"No configured private key can decrypt messages for account {kontoId}. " +
+                    "The public key in catalog does not match any configured private key.");
+            }
+
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
             return client;
         }
@@ -161,6 +217,14 @@ namespace KS.Fiks.IO.Client
         }
 
         public Guid KontoId { get; }
+
+        /// <summary>
+        /// True when automatic public key upload is enabled for this client, i.e. when
+        /// <see cref="Configuration.KontoConfiguration.OffentligNokkel"/> was configured. When false,
+        /// the client never writes to the catalog; it still performs best-effort startup key validation,
+        /// which is skipped when no key is registered or the catalog is temporarily unavailable.
+        /// </summary>
+        public bool AutomaticPublicKeyUploadEnabled { get; }
 
         public async Task<Konto> GetKonto(Guid kontoId)
         {
@@ -211,7 +275,7 @@ namespace KS.Fiks.IO.Client
 
         public Task<bool> ValidatePublicKeyAgainstPrivateKeyAsync()
         {
-            return _keyValidatorHandler.ValidatePublicKeyAgainstPrivateKeyAsync();
+            return _keyValidator.ValidatePublicKeyAgainstPrivateKeyAsync();
         }
 
         public async ValueTask DisposeAsync()

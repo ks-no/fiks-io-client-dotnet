@@ -111,9 +111,21 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
+        public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, string fiksPrivateKey, string offentligNokkel)
+        {
+            _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKey, offentligNokkel);
+            return this;
+        }
+
         public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, IEnumerable<string> fiksPrivateKeys)
         {
             _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKeys);
+            return this;
+        }
+
+        public FiksIOConfigurationBuilder WithFiksKontoConfiguration(Guid fiksKontoId, IEnumerable<string> fiksPrivateKeys, string offentligNokkel)
+        {
+            _kontoConfiguration = new KontoConfiguration(fiksKontoId, fiksPrivateKeys, offentligNokkel);
             return this;
         }
 

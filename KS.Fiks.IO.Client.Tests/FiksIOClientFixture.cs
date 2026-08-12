@@ -14,7 +14,6 @@ using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
-using KS.Fiks.IO.Send.Client.Models;
 using Ks.Fiks.Maskinporten.Client;
 using Moq;
 using RabbitMQ.Client.Events;
@@ -35,6 +34,8 @@ namespace KS.Fiks.IO.Client.Tests
         private Guid _integrasjonId = Guid.NewGuid();
         private Guid _accountId = Guid.NewGuid();
         private KatalogConfiguration _katalogConfiguration;
+        private List<string> _privateKeys = new List<string> { "dummyKey" };
+        private string _offentligNokkel = null;
 
         public FiksIOClientFixture()
         {
@@ -75,7 +76,25 @@ namespace KS.Fiks.IO.Client.Tests
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
                 AmqpHandlerMock.Object,
-                asicEncrypter: AsicEncrypterMock.Object).Result;
+                AsicEncrypterMock.Object).Result;
+        }
+
+        public async Task<FiksIOClient> CreateSutAsync()
+        {
+            SetupConfiguration(true);
+            SetupMocks();
+            return await FiksIOClient.CreateAsync(
+                _configuration,
+                null,
+                null,
+                null,
+                null,
+                CatalogHandlerMock.Object,
+                MaskinportenClientMock.Object,
+                SendHandlerMock.Object,
+                DokumentlagerHandlerMock.Object,
+                AmqpHandlerMock.Object,
+                AsicEncrypterMock.Object).ConfigureAwait(false);
         }
 
         public FiksIOClient CreateSutWithoutMaskinportenConfig()
@@ -93,7 +112,7 @@ namespace KS.Fiks.IO.Client.Tests
                 SendHandlerMock.Object,
                 DokumentlagerHandlerMock.Object,
                 AmqpHandlerMock.Object,
-                asicEncrypter: AsicEncrypterMock.Object).Result;
+                AsicEncrypterMock.Object).Result;
         }
 
         public FiksIOClientFixture WithAccountId(Guid id)
@@ -138,6 +157,18 @@ namespace KS.Fiks.IO.Client.Tests
             return this;
         }
 
+        public FiksIOClientFixture WithPrivateKey(string privateKeyPem)
+        {
+            _privateKeys = new List<string> { privateKeyPem };
+            return this;
+        }
+
+        public FiksIOClientFixture WithOffentligNokkel(string pem)
+        {
+            _offentligNokkel = pem;
+            return this;
+        }
+
         internal Mock<ICatalogHandler> CatalogHandlerMock { get; }
 
         internal Mock<IDokumentlagerHandler> DokumentlagerHandlerMock { get; }
@@ -159,7 +190,7 @@ namespace KS.Fiks.IO.Client.Tests
         private void SetupConfiguration(bool withMaskinportenConfig)
         {
             var apiConfiguration = new ApiConfiguration(_scheme, _host, _port);
-            var accountConfiguration = new KontoConfiguration(_accountId, "dummyKey");
+            var accountConfiguration = new KontoConfiguration(_accountId, _privateKeys, _offentligNokkel);
             var maskinportenConfig = withMaskinportenConfig
                 ? new MaskinportenClientConfiguration("audience", "token", "issuer", 1, new X509Certificate2())
                 : null;

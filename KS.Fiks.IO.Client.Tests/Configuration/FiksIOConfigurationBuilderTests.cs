@@ -167,5 +167,102 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                     .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                     .BuildProdConfiguration());
         }
+
+        [Fact]
+        public void ConfigWithPublicKeySinglePrivateKey()
+        {
+            var dummyPrivateKey = Guid.NewGuid().ToString();
+            var dummyPublicKey = "-----BEGIN CERTIFICATE-----\nTESTDATA\n-----END CERTIFICATE-----";
+            var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKey, dummyPublicKey)
+                .BuildTestConfiguration();
+
+            config.KontoConfiguration.OffentligNokkel.ShouldBe(dummyPublicKey);
+            config.KontoConfiguration.PrivatNokler.Single().ShouldBe(dummyPrivateKey);
+        }
+
+        [Fact]
+        public void ConfigWithPublicKeyMultiplePrivateKeys()
+        {
+            var dummyPrivateKeys = Enumerable.Range(0, 2).Select(_ => Guid.NewGuid().ToString()).ToList();
+            var dummyPublicKey = "-----BEGIN CERTIFICATE-----\nTESTDATA\n-----END CERTIFICATE-----";
+            var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .WithFiksKontoConfiguration(Guid.NewGuid(), dummyPrivateKeys, dummyPublicKey)
+                .BuildTestConfiguration();
+
+            config.KontoConfiguration.OffentligNokkel.ShouldBe(dummyPublicKey);
+            config.KontoConfiguration.PrivatNokler.ShouldBeEquivalentTo(dummyPrivateKeys);
+        }
+
+        [Fact]
+        public void ConfigWithoutPublicKeyHasNullOffentligNokkel()
+        {
+            var config = FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration(Guid.NewGuid().ToString(), 10)
+                .WithMaskinportenConfiguration(new X509Certificate2(), Guid.NewGuid().ToString())
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .WithFiksKontoConfiguration(Guid.NewGuid(), Guid.NewGuid().ToString())
+                .BuildTestConfiguration();
+
+            config.KontoConfiguration.OffentligNokkel.ShouldBeNull();
+        }
+
+        [Fact]
+        public void KontoConfigurationThrowsOnWhitespacePrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), new[] { "validKey", "   " }));
+        }
+
+        [Fact]
+        public void KontoConfigurationThrowsOnNullPrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), new[] { "validKey", null }));
+        }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationThrowsOnWhitespacePrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), "   "));
+        }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationThrowsOnNullPrivateKey()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), (string)null));
+        }
+
+        [Fact]
+        public void SingleKeyKontoConfigurationAcceptsValidPrivateKey()
+        {
+            var kontoId = Guid.NewGuid();
+            var config = new KontoConfiguration(kontoId, "validKey");
+
+            config.KontoId.ShouldBe(kontoId);
+            config.PrivatNokler.Single().ShouldBe("validKey");
+            config.OffentligNokkel.ShouldBeNull();
+        }
+
+        [Fact]
+        public void EmptyPrivateKeyListThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new KontoConfiguration(Guid.NewGuid(), Enumerable.Empty<string>()));
+        }
     }
 }

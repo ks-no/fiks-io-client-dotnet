@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using KS.Fiks.Crypto;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Catalog;
+using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.X509;
 
 namespace KS.Fiks.IO.Client
 {
-    internal class KeyValidatorHandler
+    internal class KeyValidatorHandler : IKeyValidator
     {
         private readonly ICatalogHandler _catalogHandler;
         private readonly KontoConfiguration _kontoConfiguration;
@@ -37,7 +39,26 @@ namespace KS.Fiks.IO.Client
                     $"Cannot validate key pair for konto {_kontoConfiguration.KontoId}: no private keys are configured in KontoConfiguration.");
             }
 
-            var certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
+            X509Certificate certificate;
+            try
+            {
+                certificate = await _catalogHandler.GetPublicKey(_kontoConfiguration.KontoId).ConfigureAwait(false);
+            }
+            catch (FiksIOSendPublicKeyNotFoundException)
+            {
+                _logger?.LogWarning("No public key registered in catalog for account {KontoId}, cannot validate key pair.", _kontoConfiguration.KontoId);
+                return false;
+            }
+
+            return ValidateCertificateAgainstPrivateKeys(certificate);
+        }
+
+        public bool ValidateCertificateAgainstPrivateKeys(X509Certificate certificate)
+        {
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var randomBytes = new byte[256];
             using (var rng = RandomNumberGenerator.Create())
@@ -45,30 +66,53 @@ namespace KS.Fiks.IO.Client
                 rng.GetBytes(randomBytes);
             }
 
+            byte[] encryptedBytes;
             try
             {
                 using (var plainStream = new MemoryStream(randomBytes))
                 using (var encryptedStream = new MemoryStream())
                 {
                     EncryptionService.Create(certificate).Encrypt(plainStream, encryptedStream);
-
-                    encryptedStream.Position = 0;
-                    using (var decryptedStream = DecryptionService.Create(_kontoConfiguration.PrivatNokler[0]).Decrypt(encryptedStream))
-                    using (var resultStream = new MemoryStream())
-                    {
-                        decryptedStream.CopyTo(resultStream);
-                        return resultStream.ToArray().SequenceEqual(randomBytes);
-                    }
+                    encryptedBytes = encryptedStream.ToArray();
                 }
             }
             catch (Exception ex)
             {
                 _logger?.LogWarning(
                     ex,
-                    "Validation failed for account {KontoId}. The private key does not match the public key from Fiks-IO catalog api.",
+                    "Could not encrypt the validation payload with the certificate for account {KontoId}; treating it as not matching.",
                     _kontoConfiguration.KontoId);
                 return false;
             }
+
+            var matched = _kontoConfiguration.PrivatNokler.Any(privateKey =>
+            {
+                try
+                {
+                    using (var encryptedStream = new MemoryStream(encryptedBytes))
+                    using (var decryptedStream = DecryptionService.Create(privateKey).Decrypt(encryptedStream))
+                    using (var resultStream = new MemoryStream())
+                    {
+                        decryptedStream.CopyTo(resultStream);
+                        return resultStream.ToArray().SequenceEqual(randomBytes);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogDebug(
+                        ex,
+                        "Private key candidate did not match certificate for account {KontoId}.",
+                        _kontoConfiguration.KontoId);
+                    return false;
+                }
+            });
+
+            if (!matched)
+            {
+                _logger?.LogWarning("No configured private key matched the certificate for account {KontoId}.", _kontoConfiguration.KontoId);
+            }
+
+            return matched;
         }
     }
 }
