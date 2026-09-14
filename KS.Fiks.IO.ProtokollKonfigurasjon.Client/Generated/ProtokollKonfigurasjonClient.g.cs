@@ -268,6 +268,21 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
         System.Threading.Tasks.Task RemoveForespurtTilgangTilKontoAsync(System.Guid fiksOrgId, System.Guid systemId, System.Guid kontoId, System.Guid eksternSystemId, System.Threading.CancellationToken cancellationToken);
 
         /// <remarks>
+        /// Fjern system sin tilgang til konto
+        /// </remarks>
+        /// <returns>Fjerner tilgang</returns>
+        /// <exception cref="ProtokollKonfigurasjonApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task RemoveTilgangTilKontoForSystemAsync(System.Guid fiksOrgId, System.Guid systemId, System.Guid eksternKontoId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <remarks>
+        /// Fjern system sin tilgang til konto
+        /// </remarks>
+        /// <returns>Fjerner tilgang</returns>
+        /// <exception cref="ProtokollKonfigurasjonApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task RemoveTilgangTilKontoForSystemAsync(System.Guid fiksOrgId, System.Guid systemId, System.Guid eksternKontoId, System.Threading.CancellationToken cancellationToken);
+
+        /// <remarks>
         /// Søk etter systemer som kontoen kan gi tilgang til
         /// </remarks>
         /// <returns>Systemer fra søkeresultat som kontoen kan gi tilgang til.</returns>
@@ -415,6 +430,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
 
             if (systemId == null)
                 throw new System.ArgumentNullException("systemId");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1805,6 +1823,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
             if (systemId == null)
                 throw new System.ArgumentNullException("systemId");
 
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
             var client_ = _httpClient;
             var disposeClient_ = false;
             try
@@ -1985,6 +2006,102 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
         }
 
         /// <remarks>
+        /// Fjern system sin tilgang til konto
+        /// </remarks>
+        /// <returns>Fjerner tilgang</returns>
+        /// <exception cref="ProtokollKonfigurasjonApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task RemoveTilgangTilKontoForSystemAsync(System.Guid fiksOrgId, System.Guid systemId, System.Guid eksternKontoId)
+        {
+            return RemoveTilgangTilKontoForSystemAsync(fiksOrgId, systemId, eksternKontoId, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <remarks>
+        /// Fjern system sin tilgang til konto
+        /// </remarks>
+        /// <returns>Fjerner tilgang</returns>
+        /// <exception cref="ProtokollKonfigurasjonApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task RemoveTilgangTilKontoForSystemAsync(System.Guid fiksOrgId, System.Guid systemId, System.Guid eksternKontoId, System.Threading.CancellationToken cancellationToken)
+        {
+            if (fiksOrgId == null)
+                throw new System.ArgumentNullException("fiksOrgId");
+
+            if (systemId == null)
+                throw new System.ArgumentNullException("systemId");
+
+            if (eksternKontoId == null)
+                throw new System.ArgumentNullException("eksternKontoId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("DELETE");
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "fiks-protokoll/api/v1/konfigurasjon/{fiksOrgId}/systemer/{systemId}/tilganger/{eksternKontoId}"
+                    urlBuilder_.Append("fiks-protokoll/api/v1/konfigurasjon/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(fiksOrgId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/systemer/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(systemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/tilganger/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(eksternKontoId, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 204)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ErrorMessage>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ProtokollKonfigurasjonApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ProtokollKonfigurasjonApiException<ErrorMessage>("Noe gikk galt", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <remarks>
         /// Søk etter systemer som kontoen kan gi tilgang til
         /// </remarks>
         /// <returns>Systemer fra søkeresultat som kontoen kan gi tilgang til.</returns>
@@ -2010,6 +2127,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
 
             if (kontoId == null)
                 throw new System.ArgumentNullException("kontoId");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2118,6 +2238,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
             if (kontoId == null)
                 throw new System.ArgumentNullException("kontoId");
 
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
             var client_ = _httpClient;
             var disposeClient_ = false;
             try
@@ -2218,6 +2341,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
 
             if (kontoId == null)
                 throw new System.ArgumentNullException("kontoId");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2326,6 +2452,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
             if (kontoId == null)
                 throw new System.ArgumentNullException("kontoId");
 
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
             var client_ = _httpClient;
             var disposeClient_ = false;
             try
@@ -2429,6 +2558,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
 
             if (systemId == null)
                 throw new System.ArgumentNullException("systemId");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2768,7 +2900,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
         public System.Collections.Generic.ICollection<PartResponse> Parts { get; set; } = new System.Collections.ObjectModel.Collection<PartResponse>();
 
         [Newtonsoft.Json.JsonProperty("offentligNokkel", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public OffentligNokkelResponse OffentligNokkel { get; set; } = new OffentligNokkelResponse();
+        public OffentligNokkelResponse OffentligNokkel { get; set; }
 
         /// <summary>
         /// Tidspunkt protokoll-konto ble opprettet

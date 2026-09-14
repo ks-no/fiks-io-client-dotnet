@@ -11,6 +11,7 @@ project.lock.json
 *.pyc
 nupkg/
 local-nuget/
+artifacts/
 
 # Visual Studio Code
 .vscode
