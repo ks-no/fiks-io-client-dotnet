@@ -37,3 +37,5 @@ msbuild.err
 msbuild.wrn
 
 **/Generated/**/*.cs
+# Release job downloads signed packages here (create-github-release); never commit them
+release-packages/
