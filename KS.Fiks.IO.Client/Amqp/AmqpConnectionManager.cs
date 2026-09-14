@@ -80,6 +80,8 @@ namespace KS.Fiks.IO.Client.Amqp
                 await _tokenBucket.WaitAsync().ConfigureAwait(false);
                 _logger?.LogDebug("Token acquired, proceeding to create connection");
 
+                CheckThatCredentialsCanBeRetrieved();
+
                 var endpoint = new AmqpTcpEndpoint(configuration.Host, configuration.Port, _sslOption);
                 var connection = await _connectionFactory
                     .CreateConnectionAsync(new List<AmqpTcpEndpoint> { endpoint }, configuration.ApplicationName)
@@ -91,6 +93,18 @@ namespace KS.Fiks.IO.Client.Amqp
             {
                 _logger?.LogError(ex, "Failed to create connection to {Host}:{Port}", configuration.Host, configuration.Port);
                 throw new FiksIOAmqpConnectionFailedException($"Failed to create connection to {configuration.Host}:{configuration.Port}", ex);
+            }
+        }
+
+        private void CheckThatCredentialsCanBeRetrieved()
+        {
+            if (_connectionFactory.CredentialsProvider != null)
+            {
+                _connectionFactory.CredentialsProvider.GetCredentialsAsync().Wait();
+            }
+            else
+            {
+                throw new FiksIOMaskinportenTokenException("CredentialProvider is not configured");
             }
         }
     }
