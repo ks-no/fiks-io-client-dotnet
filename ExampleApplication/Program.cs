@@ -14,6 +14,10 @@ using KS.Fiks.IO.ProtokollKonfigurasjon.Client;
 using KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated;
 using Ks.Fiks.Maskinporten.Client;
 using Ks.Fiks.Protokoll;
+using KonfigurasjonCreateProtokollKontoRequest = KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated.CreateProtokollKontoRequest;
+using KonfigurasjonPartRequest = KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated.PartRequest;
+using ProtokollCreateProtokollKontoRequest = Ks.Fiks.Protokoll.CreateProtokollKontoRequest;
+using ProtokollPartRequest = Ks.Fiks.Protokoll.PartRequest;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -189,12 +193,12 @@ namespace ExampleApplication
         private static async Task CreateKonto()
         {
             _logger.Information("K-key pressed. Creating protokoll-konto");
-            var request = new CreateProtokollKontoRequest
+            var request = new KonfigurasjonCreateProtokollKontoRequest
             {
                 Navn = "Example konto",
                 Beskrivelse = "Opprettet av ExampleApplication",
                 StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
-                Parts = new[] { new PartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+                Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
                 OffentligNokkel = appSettings.FiksIOConfig.AsiceSigningPublicKey
             };
             var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
@@ -223,13 +227,13 @@ namespace ExampleApplication
                     return;
                 }
                 
-                var arkivPart = new PartRequest
+                var arkivPart = new ProtokollPartRequest
                 {
                     PartNavn = "arkiv.full",
                     StottetProtokollVersjon = "v1"
                 };
 
-                var parts = new List<PartRequest> {arkivPart };
+                var parts = new List<ProtokollPartRequest> {arkivPart };
                 
                 string offentligNokkel = "";
                 var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
@@ -243,7 +247,7 @@ namespace ExampleApplication
                     Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
                 }
                 
-                var createKontoRequest = new CreateProtokollKontoRequest
+                var createKontoRequest = new ProtokollCreateProtokollKontoRequest
                 {
                     Navn = "Fiks Arkiv Konto",
                     Beskrivelse = "Konto for å sende meldinger til Arkiv",
