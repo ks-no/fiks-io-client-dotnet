@@ -1,0 +1,95 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KS.Fiks.IO.ProtokollKonfigurasjon.Client</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>KS FIKS IO Protokoll Konfigurasjon Client</Title>
+    <Authors>Ks-Kommunesektorens Organisasjon</Authors>
+    <Copyright>Ks-Kommunesektorens Organisasjon</Copyright>
+    <PackageProjectUrl>https://github.com/ks-no/fiks-io-client-dotnet</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>KS.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>FIKS</PackageTags>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+    <!--
+      Multi-targeted SDK projects build their per-TargetFramework "inner" builds in
+      parallel by default. Every inner build runs the NSwag target below and writes the
+      same Generated/ProtokollKonfigurasjonClient.g.cs file, so parallel inner builds race
+      on that file. POSIX file semantics let concurrent writers replace the file without
+      erroring, which is why this went unnoticed on Linux; Windows takes an exclusive
+      lock, so the same race fails there with "The process cannot access the file
+      ... because it is being used by another process." Serialize the inner builds to
+      avoid the race.
+    -->
+    <BuildInParallel>false</BuildInParallel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../KS.Fiks.IO.Client/KS.png">
+      <Pack>true</Pack>
+      <PackagePath>/</PackagePath>
+    </None>
+    <None Include="../LICENSE">
+      <Pack>true</Pack>
+      <PackagePath>/</PackagePath>
+    </None>
+    <None Include="README.md">
+      <Pack>true</Pack>
+      <PackagePath>/</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NSwag.MSBuild" Version="14.7.1" PrivateAssets="All" />
+    <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Defaults to Net80 (matches TargetFramework). Override locally with /p:NSwagRuntime=Net100 on .NET 10-only machines. -->
+    <NSwagRuntime Condition="'$(NSwagRuntime)' == ''">Net80</NSwagRuntime>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net80'">$(NSwagExe_Net80)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net90'">$(NSwagExe_Net90)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
+  </PropertyGroup>
+
+  <!--
+    Must run BeforeTargets="CoreCompile", not "Build": "Build" has no tasks of its own
+    (just DependsOnTargets="BeforeBuild;CoreBuild;AfterBuild"), so a target with
+    BeforeTargets="Build" only runs once CoreBuild (which includes CoreCompile) has
+    already finished - i.e. after compilation, too late to provide the generated source.
+    This previously went unnoticed only because the generated file was committed to the
+    repo, so CoreCompile always had a (possibly stale) copy to compile regardless of
+    whether/when this target ran. Runs unconditionally, including in CI (previously
+    skipped when CI=true - set automatically by GitHub Actions - because the generated
+    file used to be committed to work around unreliable network access on the Windows CI
+    runner; see git history). The generated file is gitignored and no longer committed,
+    so this target must always produce it before compilation. If NSwag fails to reach the
+    OpenAPI spec URL it can exit 0 without writing the file, so we explicitly fail the
+    build when the expected output is missing instead of surfacing a confusing CS0246.
+    SDK-style implicit **/*.cs globbing captures @(Compile) items at project evaluation
+    time, before any target runs, so a file this target creates would otherwise be
+    invisible to CoreCompile; explicitly add it to @(Compile) once generated.
+  -->
+  <Target Name="NSwag" BeforeTargets="CoreCompile">
+    <MakeDir Directories="Generated" />
+    <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
+    <Error Condition="!Exists('Generated/ProtokollKonfigurasjonClient.g.cs')"
+           Text="NSwag did not produce Generated/ProtokollKonfigurasjonClient.g.cs. Check network access to the OpenAPI spec URL in nswag.json." />
+    <ItemGroup>
+      <Compile Include="Generated/ProtokollKonfigurasjonClient.g.cs" Exclude="@(Compile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

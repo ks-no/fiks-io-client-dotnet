@@ -26,6 +26,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj" />
+      <ProjectReference Include="..\KS.Fiks.IO.ProtokollKonfigurasjon.Client\KS.Fiks.IO.ProtokollKonfigurasjon.Client.csproj" />
     </ItemGroup>
 
 
@@ -46,8 +47,16 @@
       </Content>
     </ItemGroup>
 
+  <PropertyGroup>
+    <!-- Defaults to Net80 (matches TargetFramework). Override locally with /p:NSwagRuntime=Net100 on .NET 10-only machines. -->
+    <NSwagRuntime Condition="'$(NSwagRuntime)' == ''">Net80</NSwagRuntime>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net80'">$(NSwagExe_Net80)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net90'">$(NSwagExe_Net90)</_NSwagCommand>
+    <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
+  </PropertyGroup>
+
   <Target Name="NSwag" BeforeTargets="BeforeCompile">
-    <Exec WorkingDirectory="$(ProjectDir)" Command="$(NSwagExe_Net80) run nswag/fiks-protokoll-konfigurasjon-api-v1.nswag /variables:Configuration=$(Configuration)" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="$(_NSwagCommand) run nswag/fiks-protokoll-konfigurasjon-api-v1.nswag /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
     <ItemGroup>
       <Compile Include="Generated/**/*.cs" />
     </ItemGroup>

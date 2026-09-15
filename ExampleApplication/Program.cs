@@ -10,8 +10,13 @@ using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
+using KS.Fiks.IO.ProtokollKonfigurasjon.Client;
 using Ks.Fiks.Maskinporten.Client;
 using Ks.Fiks.Protokoll;
+using KonfigurasjonCreateProtokollKontoRequest = KS.Fiks.IO.ProtokollKonfigurasjon.Client.CreateProtokollKontoRequest;
+using KonfigurasjonPartRequest = KS.Fiks.IO.ProtokollKonfigurasjon.Client.PartRequest;
+using ProtokollCreateProtokollKontoRequest = Ks.Fiks.Protokoll.CreateProtokollKontoRequest;
+using ProtokollPartRequest = Ks.Fiks.Protokoll.PartRequest;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -51,6 +56,7 @@ namespace ExampleApplication
         public const string FiksMatrikkelfoeringPing = "no.ks.fiks.matrikkelfoering.v2.ping";
         public const string FiksMatrikkelfoeringPong = "no.ks.fiks.matrikkelfoering.v2.pong";
         private static RabbitMQEventLogger _rabbitMqEventLogger;
+        private static IProtokollKonfigurasjonClient _protokollKonfigurasjonClient;
         
         private static Guid _protokollFiksOrgId = Guid.Empty;
         private static Guid _protokollSystemId = Guid.Empty;
@@ -69,14 +75,20 @@ namespace ExampleApplication
             
             _maskinportenClient = new MaskinportenClient(configuration.MaskinportenConfiguration);
             _scope = configuration.IntegrasjonConfiguration.Scope;
-            
+
+            _protokollKonfigurasjonClient = KontoKonfigurasjonClient.CreateClient(
+                $"{appSettings.FiksIOConfig.ApiScheme}://{appSettings.FiksIOConfig.ApiHost}:{appSettings.FiksIOConfig.ApiPort}",
+                appSettings.FiksIOConfig.FiksIoIntegrationId,
+                appSettings.FiksIOConfig.FiksIoIntegrationPassword,
+                async () => (await _maskinportenClient.GetAccessToken(_scope)).Token);
+
             _fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             
             // Creating messageSender as a local instance
             _messageSender = new MessageSender(_fiksIoClient, appSettings);
             
-            _protokollSystemId = appSettings.FiksIOConfig.ProtokollSystemId;
+            _protokollSystemId = appSettings.FiksIOConfig.SystemId;
             
             var protokollPublicKey = appSettings.FiksIOConfig.ProtokollPublicKey;
             Log.Information("Initialized Protokoll System ID: {SystemId}", _protokollSystemId);
@@ -112,6 +124,7 @@ namespace ExampleApplication
             _logger.Information("Press A-key for sending a Fiks-Arkiv V1 'ping' message");
             _logger.Information("Press P-key for sending a Fiks-Plan V2 'ping' message");
             _logger.Information("Press M-key for sending a Fiks-Matrikkelfoering V2 'ping' message");
+            _logger.Information("Press K-key for creating a protokoll-konto");
             _logger.Information("Press L-key for printing status information in console");
             _logger.Information("Press T-key for generating a Maskinporten token");
             _logger.Information("Press N-key for creating a Fiks Arkiv konto");
@@ -142,6 +155,10 @@ namespace ExampleApplication
                 {
                     _logger.Information("M-key pressed. Sending Fiks-Matrikkelfoering V2 ping-message to account id: {ToAccountId}", _toAccountId);
                     await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
+                } else if (key == ConsoleKey.K)
+                {
+                    _logger.Information("K-key pressed. Creating protokoll-konto");
+                    await CreateKonto();
                 } else if (key == ConsoleKey.L)
                 {
                     await WriteHeartBeatConnectionStatusToLog();
@@ -173,6 +190,42 @@ namespace ExampleApplication
             await tokenSource.CancelAsync();
         }
 
+        private static async Task CreateKonto()
+        {
+            try
+            {
+                string offentligNokkel = "";
+                var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
+                if (!string.IsNullOrEmpty(publicKeyPath) && File.Exists(publicKeyPath))
+                {
+                    offentligNokkel = File.ReadAllText(publicKeyPath);
+                    Log.Information("Loaded public key from: {PublicKeyPath}", publicKeyPath);
+                }
+                else
+                {
+                    Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
+                }
+
+                var request = new KonfigurasjonCreateProtokollKontoRequest
+                {
+                    Navn = "Example konto",
+                    Beskrivelse = "Opprettet av ExampleApplication",
+                    StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
+                    Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+                    OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
+                };
+                var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
+                    appSettings.FiksIOConfig.FiksOrgId,
+                    appSettings.FiksIOConfig.SystemId,
+                    request);
+                _logger.Information("Opprettet protokoll-konto med id: {KontoId}, navn: {KontoNavn}", konto.Id, konto.Navn);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to create protokoll-konto");
+            }
+        }
+
         private static async Task WriteMaskinportenToken()
         {
             MaskinportenToken token = await _maskinportenClient.GetAccessToken(_scope);
@@ -192,13 +245,13 @@ namespace ExampleApplication
                     return;
                 }
                 
-                var arkivPart = new PartRequest
+                var arkivPart = new ProtokollPartRequest
                 {
                     PartNavn = "arkiv.full",
                     StottetProtokollVersjon = "v1"
                 };
 
-                var parts = new List<PartRequest> {arkivPart };
+                var parts = new List<ProtokollPartRequest> {arkivPart };
                 
                 string offentligNokkel = "";
                 var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
@@ -212,7 +265,7 @@ namespace ExampleApplication
                     Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
                 }
                 
-                var createKontoRequest = new CreateProtokollKontoRequest
+                var createKontoRequest = new ProtokollCreateProtokollKontoRequest
                 {
                     Navn = "Fiks Arkiv Konto",
                     Beskrivelse = "Konto for å sende meldinger til Arkiv",

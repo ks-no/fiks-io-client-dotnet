@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+        <OutputType>Library</OutputType>
+        <LangVersion>latest</LangVersion>
+        <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+        <PackageReference Include="Moq" Version="4.20.72" />
+        <PackageReference Include="more.xunit.runner.visualstudio" Version="2.3.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Shouldly" Version="4.3.0" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\KS.Fiks.IO.ProtokollKonfigurasjon.Client\KS.Fiks.IO.ProtokollKonfigurasjon.Client.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="xunit.runner.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+</Project>
