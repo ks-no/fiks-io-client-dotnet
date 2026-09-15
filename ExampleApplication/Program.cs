@@ -192,13 +192,26 @@ namespace ExampleApplication
         private static async Task CreateKonto()
         {
             _logger.Information("K-key pressed. Creating protokoll-konto");
+
+            string offentligNokkel = "";
+            var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
+            if (!string.IsNullOrEmpty(publicKeyPath) && File.Exists(publicKeyPath))
+            {
+                offentligNokkel = File.ReadAllText(publicKeyPath);
+                Log.Information("Loaded public key from: {PublicKeyPath}", publicKeyPath);
+            }
+            else
+            {
+                Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
+            }
+
             var request = new KonfigurasjonCreateProtokollKontoRequest
             {
                 Navn = "Example konto",
                 Beskrivelse = "Opprettet av ExampleApplication",
                 StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
                 Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
-                OffentligNokkel = appSettings.FiksIOConfig.AsiceSigningPublicKey
+                OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
             };
             var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
                 appSettings.FiksIOConfig.FiksOrgId,
