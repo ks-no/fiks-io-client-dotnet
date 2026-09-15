@@ -107,6 +107,12 @@ But you can also use a private key linked to the Maskinporten certificate if you
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
 
+#### FiksOrgId
+The id of your organization (`fiks-org`) in Fiks-plattformen. Used together with `SystemId` when creating a protokoll-konto (K-key) via the Protokoll Konfigurasjon API. You can find this in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+
+#### SystemId
+The id of the system, registered under your `FiksOrgId`, that will own the protokoll-konto created via the K-key. Also found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+
 ## Building locally
 
 ExampleApplication references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` as a NuGet package. The repository includes a `nuget.config` that adds a local folder feed (`local-nuget/`) as a package source, so the package can be used without publishing to Artifactory.
