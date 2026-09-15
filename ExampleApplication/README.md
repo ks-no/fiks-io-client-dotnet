@@ -115,17 +115,7 @@ The id of the system, registered under your `FiksOrgId`, that will own the proto
 
 ## Building locally
 
-ExampleApplication references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` as a NuGet package. The repository includes a `nuget.config` that adds a local folder feed (`local-nuget/`) as a package source, so the package can be used without publishing to Artifactory.
-
-Before building for the first time, or after making changes to `KS.Fiks.IO.ProtokollKonfigurasjon.Client`, pack it into the local feed:
-
-```bash
-dotnet pack ../KS.Fiks.IO.ProtokollKonfigurasjon.Client \
-  -c Release /p:CI=true /p:SignAssembly=false \
-  -o ../local-nuget
-```
-
-Then build and test the solution as normal:
+`ExampleApplication` references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` via a project reference, so no packing or local NuGet feed is required. Just build and test the solution as normal:
 
 ```bash
 dotnet test ../KS.Fiks.IO.Client.sln /p:CI=true /p:SignAssembly=false
