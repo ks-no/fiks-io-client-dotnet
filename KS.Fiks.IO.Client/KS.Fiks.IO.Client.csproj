@@ -12,7 +12,7 @@
 		<RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>FIKS</PackageTags>
-		<VersionPrefix>7.0.3</VersionPrefix>
+		<VersionPrefix>7.0.4</VersionPrefix>
 		<TargetFrameworks>net8.0;netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -42,14 +42,14 @@
 		<None Remove="Schema\no.ks.fiks.kvittering.serverfeil.v1.schema.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.1.0" />
+		<PackageReference Include="KS.Fiks.IO.Send.Client" Version="2.1.1" />
 		<PackageReference Include="KS.Fiks.Maskinporten.Client" Version="2.0.7" />	
-		<PackageReference Include="RabbitMQ.Client" Version="7.2.1" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+		<PackageReference Include="RabbitMQ.Client" Version="7.2.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="KS.Fiks.QA" Version="1.0.0" PrivateAssets="All" />
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.401" PrivateAssets="All" />
 		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="2.0.0" />
-		<PackageReference Include="System.Text.Json" Version="10.0.9" />
+		<PackageReference Include="System.Text.Json" Version="10.0.12" />
 	</ItemGroup>
 </Project>
