@@ -88,7 +88,7 @@ namespace ExampleApplication
             // Creating messageSender as a local instance
             _messageSender = new MessageSender(_fiksIoClient, appSettings);
             
-            _protokollSystemId = appSettings.FiksIOConfig.ProtokollSystemId;
+            _protokollSystemId = appSettings.FiksIOConfig.SystemId;
             
             var protokollPublicKey = appSettings.FiksIOConfig.ProtokollPublicKey;
             Log.Information("Initialized Protokoll System ID: {SystemId}", _protokollSystemId);
@@ -157,14 +157,8 @@ namespace ExampleApplication
                     await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
                 } else if (key == ConsoleKey.K)
                 {
-                    try
-                    {
-                        await CreateKonto();
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, "Failed to create protokoll-konto");
-                    }
+                    _logger.Information("K-key pressed. Creating protokoll-konto");
+                    await CreateKonto();
                 } else if (key == ConsoleKey.L)
                 {
                     await WriteHeartBeatConnectionStatusToLog();
@@ -198,33 +192,38 @@ namespace ExampleApplication
 
         private static async Task CreateKonto()
         {
-            _logger.Information("K-key pressed. Creating protokoll-konto");
+            try
+            {
+                string offentligNokkel = "";
+                var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
+                if (!string.IsNullOrEmpty(publicKeyPath) && File.Exists(publicKeyPath))
+                {
+                    offentligNokkel = File.ReadAllText(publicKeyPath);
+                    Log.Information("Loaded public key from: {PublicKeyPath}", publicKeyPath);
+                }
+                else
+                {
+                    Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
+                }
 
-            string offentligNokkel = "";
-            var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
-            if (!string.IsNullOrEmpty(publicKeyPath) && File.Exists(publicKeyPath))
-            {
-                offentligNokkel = File.ReadAllText(publicKeyPath);
-                Log.Information("Loaded public key from: {PublicKeyPath}", publicKeyPath);
+                var request = new KonfigurasjonCreateProtokollKontoRequest
+                {
+                    Navn = "Example konto",
+                    Beskrivelse = "Opprettet av ExampleApplication",
+                    StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
+                    Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+                    OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
+                };
+                var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
+                    appSettings.FiksIOConfig.FiksOrgId,
+                    appSettings.FiksIOConfig.SystemId,
+                    request);
+                _logger.Information("Opprettet protokoll-konto med id: {KontoId}, navn: {KontoNavn}", konto.Id, konto.Navn);
             }
-            else
+            catch (Exception e)
             {
-                Log.Warning("Public key file not found at: {PublicKeyPath}", publicKeyPath);
+                _logger.Error(e, "Failed to create protokoll-konto");
             }
-
-            var request = new KonfigurasjonCreateProtokollKontoRequest
-            {
-                Navn = "Example konto",
-                Beskrivelse = "Opprettet av ExampleApplication",
-                StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
-                Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
-                OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
-            };
-            var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(
-                appSettings.FiksIOConfig.FiksOrgId,
-                appSettings.FiksIOConfig.SystemId,
-                request);
-            _logger.Information("Opprettet protokoll-konto med id: {KontoId}, navn: {KontoNavn}", konto.Id, konto.Navn);
         }
 
         private static async Task WriteMaskinportenToken()

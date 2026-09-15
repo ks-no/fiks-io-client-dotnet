@@ -30,7 +30,6 @@ namespace ExampleApplication
         public string AsiceSigningPrivateKey { get; set; }
         public Guid FiksOrgId { get; set; }
         public Guid SystemId { get; set; }
-        public Guid ProtokollSystemId { get; set; }
         public string ProtokollPublicKey { get; set; }
     }
 }
