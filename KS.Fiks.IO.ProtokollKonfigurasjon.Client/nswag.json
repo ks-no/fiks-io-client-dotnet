@@ -3,7 +3,7 @@
   "defaultVariables": "NSwagRuntime=Net80",
   "documentGenerator": {
     "fromDocument": {
-      "url": "https://developers.fiks.ks.no/api/fiks-protokoll-konfigurasjon-integrasjon-api-v1.json",
+      "url": "specs/fiks-protokoll-konfigurasjon-integrasjon-api-v1.json",
       "output": null,
       "newLineBehavior": "Auto"
     }
