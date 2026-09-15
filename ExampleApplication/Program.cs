@@ -157,7 +157,14 @@ namespace ExampleApplication
                     await _messageSender.Send(FiksMatrikkelfoeringPing, _toAccountId);
                 } else if (key == ConsoleKey.K)
                 {
-                    await CreateKonto();
+                    try
+                    {
+                        await CreateKonto();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, "Failed to create protokoll-konto");
+                    }
                 } else if (key == ConsoleKey.L)
                 {
                     await WriteHeartBeatConnectionStatusToLog();
