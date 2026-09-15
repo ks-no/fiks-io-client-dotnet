@@ -1,6 +1,6 @@
 using System;
 
-namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated
+namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 {
     // Hand-written extension of the NSwag-generated client/interface. Kept in a separate,
     // non-generated file (outside Generated/, which is gitignored) so it survives regeneration

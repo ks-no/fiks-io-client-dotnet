@@ -35,7 +35,7 @@
       "generateDtoTypes": true,
       "operationGenerationMode": "SingleClientFromOperationId",
       "className": "ProtokollKonfigurasjonClient",
-      "namespace": "KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated",
+      "namespace": "KS.Fiks.IO.ProtokollKonfigurasjon.Client",
       "additionalNamespaceUsages": [],
       "output": "Generated/ProtokollKonfigurasjonClient.g.cs"
     }

@@ -1,7 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated;
 
 namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 {
