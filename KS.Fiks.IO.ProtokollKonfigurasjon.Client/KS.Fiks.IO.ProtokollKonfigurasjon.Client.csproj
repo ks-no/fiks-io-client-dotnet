@@ -52,9 +52,32 @@
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
   </PropertyGroup>
 
-  <Target Name="NSwag" BeforeTargets="Build" Condition="'$(CI)' != 'true'">
+  <!--
+    Must run BeforeTargets="CoreCompile", not "Build": "Build" has no tasks of its own
+    (just DependsOnTargets="BeforeBuild;CoreBuild;AfterBuild"), so a target with
+    BeforeTargets="Build" only runs once CoreBuild (which includes CoreCompile) has
+    already finished - i.e. after compilation, too late to provide the generated source.
+    This previously went unnoticed only because the generated file was committed to the
+    repo, so CoreCompile always had a (possibly stale) copy to compile regardless of
+    whether/when this target ran. Runs unconditionally, including in CI (previously
+    skipped when CI=true - set automatically by GitHub Actions - because the generated
+    file used to be committed to work around unreliable network access on the Windows CI
+    runner; see git history). The generated file is gitignored and no longer committed,
+    so this target must always produce it before compilation. If NSwag fails to reach the
+    OpenAPI spec URL it can exit 0 without writing the file, so we explicitly fail the
+    build when the expected output is missing instead of surfacing a confusing CS0246.
+    SDK-style implicit **/*.cs globbing captures @(Compile) items at project evaluation
+    time, before any target runs, so a file this target creates would otherwise be
+    invisible to CoreCompile; explicitly add it to @(Compile) once generated.
+  -->
+  <Target Name="NSwag" BeforeTargets="CoreCompile">
     <MakeDir Directories="Generated" />
     <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
+    <Error Condition="!Exists('Generated/ProtokollKonfigurasjonClient.g.cs')"
+           Text="NSwag did not produce Generated/ProtokollKonfigurasjonClient.g.cs. Check network access to the OpenAPI spec URL in nswag.json." />
+    <ItemGroup>
+      <Compile Include="Generated/ProtokollKonfigurasjonClient.g.cs" Exclude="@(Compile)" />
+    </ItemGroup>
   </Target>
 
 </Project>
