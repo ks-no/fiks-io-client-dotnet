@@ -21,6 +21,17 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
+    <!--
+      Multi-targeted SDK projects build their per-TargetFramework "inner" builds in
+      parallel by default. Every inner build runs the NSwag target below and writes the
+      same Generated/ProtokollKonfigurasjonClient.g.cs file, so parallel inner builds race
+      on that file. POSIX file semantics let concurrent writers replace the file without
+      erroring, which is why this went unnoticed on Linux; Windows takes an exclusive
+      lock, so the same race fails there with "The process cannot access the file
+      ... because it is being used by another process." Serialize the inner builds to
+      avoid the race.
+    -->
+    <BuildInParallel>false</BuildInParallel>
   </PropertyGroup>
 
   <ItemGroup>
