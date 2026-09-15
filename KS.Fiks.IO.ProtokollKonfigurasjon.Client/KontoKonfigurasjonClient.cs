@@ -5,7 +5,7 @@ using KS.Fiks.IO.ProtokollKonfigurasjon.Client.Generated;
 
 namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 {
-    public static class KontoKonfigurasjonKlient
+    public static class KontoKonfigurasjonClient
     {
         /// <summary>
         /// Creates a client for the Fiks protokoll-konfigurasjon API.
@@ -20,7 +20,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
         /// token on every call. <c>Ks.Fiks.Maskinporten.Client.MaskinportenClient.GetAccessToken</c> already
         /// caches internally and is safe to pass directly.
         /// </param>
-        public static IProtokollKonfigurasjonClient CreateKlient(
+        public static IProtokollKonfigurasjonClient CreateClient(
             string hostUrl,
             Guid integrasjonId,
             string integrasjonPassord,

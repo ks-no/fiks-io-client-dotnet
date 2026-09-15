@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
     /// <remarks>
     /// This handler must remain the innermost <see cref="DelegatingHandler"/> in the chain (i.e. closest to
     /// the wire, directly wrapping the transport handler), which is guaranteed today since it is only ever
-    /// constructed by <see cref="KontoKonfigurasjonKlient.CreateKlient"/> and is not part of the public API.
+    /// constructed by <see cref="KontoKonfigurasjonClient.CreateClient"/> and is not part of the public API.
     /// Do not insert any additional handler between this handler and the transport handler, and do not add a
     /// logging/telemetry handler outside this one that logs <see cref="HttpRequestMessage.Headers"/> after
     /// the request has been forwarded down the chain: doing so would capture the integrasjon password and

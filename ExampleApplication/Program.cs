@@ -77,7 +77,7 @@ namespace ExampleApplication
             _maskinportenClient = new MaskinportenClient(configuration.MaskinportenConfiguration);
             _scope = configuration.IntegrasjonConfiguration.Scope;
 
-            _protokollKonfigurasjonClient = KontoKonfigurasjonKlient.CreateKlient(
+            _protokollKonfigurasjonClient = KontoKonfigurasjonClient.CreateClient(
                 $"{appSettings.FiksIOConfig.ApiScheme}://{appSettings.FiksIOConfig.ApiHost}:{appSettings.FiksIOConfig.ApiPort}",
                 appSettings.FiksIOConfig.FiksIoIntegrationId,
                 appSettings.FiksIOConfig.FiksIoIntegrationPassword,
