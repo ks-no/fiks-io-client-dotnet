@@ -13,7 +13,8 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
         /// Base URL of the protokoll-konfigurasjon API, e.g. <c>https://api.fiks.ks.no</c> or
         /// <c>https://api.fiks.test.ks.no</c>. Must be an absolute <c>https</c> URL: the integrasjon
         /// password and the Maskinporten token are sent to this host on every request, so a plaintext
-        /// <c>http</c> URL would expose both on the wire.
+        /// <c>http</c> URL would expose both on the wire. The returned client only ever sends those
+        /// credentials to this URL's origin, even if its <c>BaseUrl</c> is changed afterwards.
         /// </param>
         /// <param name="integrasjonId">Integrasjon id used for authentication.</param>
         /// <param name="integrasjonPassord">Integrasjon password used for authentication.</param>
@@ -35,16 +36,17 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
             string integrasjonPassord,
             Func<Task<string>> maskinportenTokenSupplier)
         {
-            ValidateHostUrl(hostUrl);
+            var hostUri = ValidateHostUrl(hostUrl);
 
-            var httpClient = new HttpClient(new FiksIntegrasjonHttpMessageHandler(integrasjonId, integrasjonPassord, maskinportenTokenSupplier));
+            var httpClient = new HttpClient(new FiksIntegrasjonHttpMessageHandler(hostUri, integrasjonId, integrasjonPassord, maskinportenTokenSupplier));
             return new ProtokollKonfigurasjonClient(httpClient, ownsHttpClient: true) { BaseUrl = hostUrl };
         }
 
         // Every request carries the integrasjon password and a Maskinporten bearer token, so a hostUrl
         // that is relative (and therefore resolved against something else) or plaintext http would hand
-        // those credentials out. Fail fast on both instead of discovering it on the wire.
-        private static void ValidateHostUrl(string hostUrl)
+        // those credentials out. Fail fast on both instead of discovering it on the wire. The validated
+        // origin is then pinned in the handler, since BaseUrl stays settable on the generated client.
+        private static Uri ValidateHostUrl(string hostUrl)
         {
             if (!Uri.TryCreate(hostUrl, UriKind.Absolute, out var uri))
             {
@@ -60,6 +62,8 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
                     "Maskinporten token are sent to hostUrl on every request.",
                     nameof(hostUrl));
             }
+
+            return uri;
         }
     }
 }

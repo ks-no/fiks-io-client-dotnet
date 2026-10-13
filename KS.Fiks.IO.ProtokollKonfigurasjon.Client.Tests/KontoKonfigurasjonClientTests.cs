@@ -44,6 +44,24 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         }
 
         [Fact]
+        public async Task CreateClient_DoesNotSendCredentialsAfterBaseUrlIsChanged()
+        {
+            // The generated client exposes a settable BaseUrl, so validating the host in CreateClient is
+            // not enough on its own: the credentials must stay pinned to the host they were given for.
+            using var client = (ProtokollKonfigurasjonClient)KontoKonfigurasjonClient.CreateClient(
+                "https://example.test",
+                Guid.NewGuid(),
+                "password",
+                () => Task.FromResult("token"));
+
+            client.BaseUrl = "https://other.test";
+
+            // Throws before anything reaches the network, so no request is made to other.test.
+            await Should.ThrowAsync<InvalidOperationException>(() =>
+                client.CreateKontoAsync(Guid.NewGuid(), Guid.NewGuid(), new CreateProtokollKontoRequest()));
+        }
+
+        [Fact]
         public async Task Dispose_DisposesTheUnderlyingHttpClient()
         {
             var client = KontoKonfigurasjonClient.CreateClient(

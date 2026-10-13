@@ -14,22 +14,30 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         private const string IntegrasjonPassordHeader = "IntegrasjonPassord";
         private const string RequestIdHeader = "requestId";
 
+        private static readonly Uri HostUrl = new Uri("https://example.test");
+
         [Fact]
         public void DefaultInnerHandler_DoesNotFollowRedirects()
         {
-            using var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"));
+            using var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () => Task.FromResult("token"));
 
             var innerHandler = sut.InnerHandler.ShouldBeOfType<HttpClientHandler>();
             innerHandler.AllowAutoRedirect.ShouldBeFalse();
         }
 
+        // A wrong scheme, a wrong host and a wrong port must all be refused. The wrong host is the
+        // reachable case in practice: the generated client's BaseUrl stays settable after CreateClient
+        // has validated the host.
         [Theory]
         [InlineData("http://example.test/api")]
         [InlineData("ftp://example.test/api")]
-        public async Task SendAsync_ThrowsWithoutSendingAnythingWhenRequestUriIsNotHttps(string target)
+        [InlineData("https://other.test/api")]
+        [InlineData("https://example.test.evil.test/api")]
+        [InlineData("https://example.test:8443/api")]
+        public async Task SendAsync_ThrowsWithoutSendingAnythingWhenRequestUriIsNotThePinnedOrigin(string target)
         {
             var recordingHandler = new RecordingHttpMessageHandler();
-            var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"))
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () => Task.FromResult("token"))
             {
                 InnerHandler = recordingHandler
             };
@@ -51,7 +59,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
             var integrasjonPassord = "some-password";
             var token = "some-maskinporten-token";
             var recordingHandler = new RecordingHttpMessageHandler();
-            var sut = new FiksIntegrasjonHttpMessageHandler(integrasjonId, integrasjonPassord, () => Task.FromResult(token))
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, integrasjonId, integrasjonPassord, () => Task.FromResult(token))
             {
                 InnerHandler = recordingHandler
             };
@@ -74,7 +82,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         public async Task SendAsync_SetsARequestIdHeader()
         {
             var recordingHandler = new RecordingHttpMessageHandler();
-            var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"))
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () => Task.FromResult("token"))
             {
                 InnerHandler = recordingHandler
             };
@@ -93,7 +101,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         {
             var tokenCallCount = 0;
             var recordingHandler = new RecordingHttpMessageHandler();
-            var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () =>
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () =>
             {
                 tokenCallCount++;
                 return Task.FromResult($"token-{tokenCallCount}");
@@ -120,7 +128,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
             // once (e.g. by a retry policy) unless the handler removes its own headers before
             // re-adding them.
             var recordingHandler = new RecordingHttpMessageHandler();
-            var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"))
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () => Task.FromResult("token"))
             {
                 InnerHandler = recordingHandler
             };
@@ -136,6 +144,27 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
 
             recordingHandler.CallCount.ShouldBe(2);
             secondRequestId.ShouldNotBe(firstRequestId);
+        }
+
+        [Theory]
+        [InlineData("https://example.test/api")]
+        [InlineData("https://EXAMPLE.test/api")]
+        [InlineData("https://example.test:443/api")]
+        public async Task SendAsync_SendsWhenRequestUriIsThePinnedOrigin(string target)
+        {
+            var recordingHandler = new RecordingHttpMessageHandler();
+            var sut = new FiksIntegrasjonHttpMessageHandler(HostUrl, Guid.NewGuid(), "password", () => Task.FromResult("token"))
+            {
+                InnerHandler = recordingHandler
+            };
+
+            using var invoker = new HttpMessageInvoker(sut);
+            using var request = new HttpRequestMessage(HttpMethod.Get, target);
+
+            await invoker.SendAsync(request, CancellationToken.None);
+
+            recordingHandler.CallCount.ShouldBe(1);
+            request.Headers.Contains(IntegrasjonPassordHeader).ShouldBeTrue();
         }
     }
 }
