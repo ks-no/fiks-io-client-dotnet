@@ -17,7 +17,9 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
         /// returned client, so it should return a cached/memoized token (only fetching a new one from
         /// Maskinporten when the cached token is missing or about to expire) rather than requesting a new
         /// token on every call. <c>Ks.Fiks.Maskinporten.Client.MaskinportenClient.GetAccessToken</c> already
-        /// caches internally and is safe to pass directly.
+        /// caches internally, but takes a scope and returns a token object, so wrap it in a delegate that
+        /// supplies the scope and returns the token string, e.g.
+        /// <c>async () =&gt; (await maskinportenClient.GetAccessToken(scope)).Token</c>.
         /// </param>
         public static IProtokollKonfigurasjonClient CreateClient(
             string hostUrl,
@@ -26,7 +28,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
             Func<Task<string>> maskinportenTokenSupplier)
         {
             var httpClient = new HttpClient(new FiksIntegrasjonHttpMessageHandler(integrasjonId, integrasjonPassord, maskinportenTokenSupplier));
-            return new ProtokollKonfigurasjonClient(httpClient) { BaseUrl = hostUrl };
+            return new ProtokollKonfigurasjonClient(httpClient, ownsHttpClient: true) { BaseUrl = hostUrl };
         }
     }
 }

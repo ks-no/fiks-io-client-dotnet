@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 
 namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 {
@@ -13,6 +14,19 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 
     public partial class ProtokollKonfigurasjonClient : IDisposable
     {
+        private bool _ownsHttpClient;
+        private bool _disposed;
+
+        // Used by KontoKonfigurasjonClient.CreateClient, which creates the HttpClient itself and
+        // therefore hands over ownership of it. Callers using the generated public constructor
+        // inject their own (possibly shared) HttpClient and keep ownership of it, so disposing
+        // this client must leave theirs alone.
+        internal ProtokollKonfigurasjonClient(HttpClient httpClient, bool ownsHttpClient)
+            : this(httpClient)
+        {
+            _ownsHttpClient = ownsHttpClient;
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -21,10 +35,17 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing && _ownsHttpClient)
             {
                 _httpClient?.Dispose();
             }
+
+            _disposed = true;
         }
     }
 }

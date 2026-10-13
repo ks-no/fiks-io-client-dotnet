@@ -86,7 +86,7 @@
     <MakeDir Directories="Generated" />
     <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
     <Error Condition="!Exists('Generated/ProtokollKonfigurasjonClient.g.cs')"
-           Text="NSwag did not produce Generated/ProtokollKonfigurasjonClient.g.cs. Check network access to the OpenAPI spec URL in nswag.json." />
+           Text="NSwag did not produce Generated/ProtokollKonfigurasjonClient.g.cs. Check the NSwag output above and network access to the OpenAPI spec URL in nswag.json." />
     <ItemGroup>
       <Compile Include="Generated/ProtokollKonfigurasjonClient.g.cs" Exclude="@(Compile)" />
     </ItemGroup>

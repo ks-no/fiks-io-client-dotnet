@@ -30,14 +30,14 @@ var request = new CreateProtokollKontoRequest
 var konto = await client.CreateKontoAsync(fiksOrgId, systemId, request);
 ```
 
-`client` implements `IDisposable` and owns the `HttpClient` created for it, so dispose it (or wrap it in a `using`) once you are done with it.
+`client` implements `IDisposable` and owns the `HttpClient` that `CreateClient` created for it, so dispose it (or wrap it in a `using`) once you are done with it. (If you instead construct `ProtokollKonfigurasjonClient` directly with your own `HttpClient`, that one is yours to manage - disposing the client leaves it open.)
 
 ### Authentication
 
 `KontoKonfigurasjonClient.CreateClient` takes:
 - `hostUrl` - base URL of the Fiks Protokoll Konfigurasjon API.
 - `integrasjonId` / `integrasjonPassord` - your Fiks-IO integrasjon credentials.
-- `maskinportenTokenSupplier` - a delegate that returns a valid Maskinporten access token. This is invoked on every outgoing HTTP request, so it should return a cached/memoized token rather than requesting a new one from Maskinporten on every call. `Ks.Fiks.Maskinporten.Client.MaskinportenClient.GetAccessToken` already caches internally and is safe to pass directly.
+- `maskinportenTokenSupplier` - a delegate that returns a valid Maskinporten access token. This is invoked on every outgoing HTTP request, so it should return a cached/memoized token rather than requesting a new one from Maskinporten on every call. `Ks.Fiks.Maskinporten.Client.MaskinportenClient.GetAccessToken` already caches internally, but it takes a scope and returns a token object - wrap it as in the example above (`async () => (await maskinportenClient.GetAccessToken(scope)).Token`).
 
 ### Available operations
 
