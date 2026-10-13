@@ -1,6 +1,6 @@
 {
-  "runtime": "Net80",
-  "defaultVariables": "",
+  "runtime": "$(NSwagRuntime)",
+  "defaultVariables": "NSwagRuntime=Net80",
   "documentGenerator": {
     "fromDocument": {
       "json": "",

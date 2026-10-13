@@ -19,6 +19,7 @@ The application listens to different keys for sending messages, managing account
 - T-key - Fetch and print Maskinporten access token
 
 #### Fiks Arkiv Account Management
+- K-key - Create a protokoll-konto via the Protokoll Konfigurasjon API
 - N-key - Create a Fiks Arkiv account as archive
 - C-key - Send access request to created account
 - V-key - View all access requests
@@ -82,7 +83,9 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "MaskinPortenIssuer": "", // Maskinporten issuer
         "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
-        "AsiceSigningPublicKey": "" // The path to the public key for verification of AsiceSigning of the payloads.
+        "AsiceSigningPublicKey": "", // The path to the public key for verification of AsiceSigning of the payloads.
+        "FiksOrgId": "<your fiks-org id>", // Your FiksOrg id, used when creating a protokoll-konto (K-key)
+        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (K-key)
     }
   }
 }
@@ -103,6 +106,22 @@ But you can also use a private key linked to the Maskinporten certificate if you
 
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
+
+#### FiksOrgId
+The id of your organization (`fiks-org`) in Fiks-plattformen. Used together with `SystemId` when creating a protokoll-konto (K-key) via the Protokoll Konfigurasjon API. You can find this in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+
+#### SystemId
+The id of the system, registered under your `FiksOrgId`, that will own the protokoll-konto created via the K-key. Also found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+
+## Building locally
+
+`ExampleApplication` references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` via a project reference, so no packing or local NuGet feed is required. Just build and test the solution as normal:
+
+```bash
+dotnet test ../KS.Fiks.IO.Client.sln /p:CI=true /p:SignAssembly=false
+```
+
+> `/p:SignAssembly=false` is needed locally on Linux because the `.snk` strong-name key format uses SHA-1, which is rejected by OpenSSL 3 (used on Fedora 38+). CI runs on Ubuntu where this is not an issue.
 
 ## Maskinporten Token and API Calls
 

@@ -28,7 +28,8 @@ namespace ExampleApplication
         public string MaskinPortenTokenUrl { get; set; }
         public string AsiceSigningPublicKey { get; set; }
         public string AsiceSigningPrivateKey { get; set; }
-        public Guid ProtokollSystemId { get; set; }
+        public Guid FiksOrgId { get; set; }
+        public Guid SystemId { get; set; }
         public string ProtokollPublicKey { get; set; }
     }
 }
