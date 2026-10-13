@@ -106,16 +106,24 @@ namespace ExampleApplication
 
             Task.Run(() => { MonitorKeypress(tokenSource); });
             
-            await new HostBuilder()
-                .ConfigureHostConfiguration(configHost => { configHost.AddEnvironmentVariables("DOTNET_"); })
-                .ConfigureServices((_, services) =>
-                {
-                    services.AddSingleton(appSettings);
-                    services.AddSingleton(loggerFactory);
-                    services.AddSingleton<IFiksIOClient>(_fiksIoClient);
-                    services.AddHostedService<FiksIOSubscriber>();
-                })
-                .RunConsoleAsync(tokenSource.Token);
+            try
+            {
+                await new HostBuilder()
+                    .ConfigureHostConfiguration(configHost => { configHost.AddEnvironmentVariables("DOTNET_"); })
+                    .ConfigureServices((_, services) =>
+                    {
+                        services.AddSingleton(appSettings);
+                        services.AddSingleton(loggerFactory);
+                        services.AddSingleton<IFiksIOClient>(_fiksIoClient);
+                        services.AddHostedService<FiksIOSubscriber>();
+                    })
+                    .RunConsoleAsync(tokenSource.Token);
+            }
+            finally
+            {
+                // CreateClient hands over ownership of the HttpClient it created for this client.
+                _protokollKonfigurasjonClient.Dispose();
+            }
         }
 
         private static async Task MonitorKeypress(CancellationTokenSource tokenSource)

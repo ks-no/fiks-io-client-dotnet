@@ -40,7 +40,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         [Fact]
         public void CreateClient_ThrowsWhenHostIsNull()
         {
-            ShouldThrowForHost(null);
+            ShouldThrowForHost(null!);
         }
 
         [Fact]

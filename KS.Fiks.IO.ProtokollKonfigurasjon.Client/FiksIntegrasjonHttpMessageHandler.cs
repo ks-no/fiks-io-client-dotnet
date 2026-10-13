@@ -39,6 +39,16 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            // The generated client exposes a publicly settable BaseUrl, so the check in
+            // KontoKonfigurasjonClient.CreateClient only holds at construction time. Re-check here, where
+            // the credentials are actually attached to the request.
+            if (request.RequestUri == null || !request.RequestUri.IsAbsoluteUri || request.RequestUri.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new InvalidOperationException(
+                    $"Refusing to send the integrasjon password and the Maskinporten token to '{request.RequestUri}': " +
+                    "the request URI must be an absolute https URI.");
+            }
+
             // Remove any headers already present before (re-)adding them, since the same HttpRequestMessage
             // instance may be sent more than once (e.g. by retry policies), and Headers.Add throws on duplicates.
             request.Headers.Remove(IntegrasjonIdHeader);

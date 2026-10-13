@@ -23,6 +23,27 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
             innerHandler.AllowAutoRedirect.ShouldBeFalse();
         }
 
+        [Theory]
+        [InlineData("http://example.test/api")]
+        [InlineData("ftp://example.test/api")]
+        public async Task SendAsync_ThrowsWithoutSendingAnythingWhenRequestUriIsNotHttps(string target)
+        {
+            var recordingHandler = new RecordingHttpMessageHandler();
+            var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"))
+            {
+                InnerHandler = recordingHandler
+            };
+
+            using var invoker = new HttpMessageInvoker(sut);
+            using var request = new HttpRequestMessage(HttpMethod.Get, target);
+
+            await Should.ThrowAsync<InvalidOperationException>(() => invoker.SendAsync(request, CancellationToken.None));
+
+            recordingHandler.CallCount.ShouldBe(0);
+            request.Headers.Contains(IntegrasjonPassordHeader).ShouldBeFalse();
+            request.Headers.Authorization.ShouldBeNull();
+        }
+
         [Fact]
         public async Task SendAsync_SetsIntegrasjonIdIntegrasjonPassordAndBearerTokenHeaders()
         {
