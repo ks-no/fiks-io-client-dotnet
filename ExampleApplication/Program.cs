@@ -210,8 +210,8 @@ namespace ExampleApplication
                 {
                     Navn = "Example konto",
                     Beskrivelse = "Opprettet av ExampleApplication",
-                    StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
-                    Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+                    StottetProtokollNavn = "no.ks.fiks.arkiv",
+                    Parts = new[] { new KonfigurasjonPartRequest { PartNavn = "arkiv.full", StottetProtokollVersjon = "v1" } },
                     OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
                 };
                 var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(

@@ -20,6 +20,29 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
             client.BaseUrl.ShouldBe("https://example.test/");
         }
 
+        [Theory]
+        [InlineData("http://api.fiks.ks.no")]
+        [InlineData("ftp://api.fiks.ks.no")]
+        public void CreateClient_ThrowsWhenHostIsNotHttps(string host)
+        {
+            ShouldThrowForHost(host);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("api.fiks.ks.no")]
+        [InlineData("/konfigurasjon")]
+        public void CreateClient_ThrowsWhenHostIsNotAbsolute(string host)
+        {
+            ShouldThrowForHost(host);
+        }
+
+        [Fact]
+        public void CreateClient_ThrowsWhenHostIsNull()
+        {
+            ShouldThrowForHost(null);
+        }
+
         [Fact]
         public async Task Dispose_DisposesTheUnderlyingHttpClient()
         {
@@ -47,6 +70,17 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
             client.Dispose();
 
             Should.NotThrow(() => client.Dispose());
+        }
+
+        private static void ShouldThrowForHost(string host)
+        {
+            var exception = Should.Throw<ArgumentException>(() => KontoKonfigurasjonClient.CreateClient(
+                host,
+                Guid.NewGuid(),
+                "password",
+                () => Task.FromResult("token")));
+
+            exception.ParamName.ShouldBe("hostUrl");
         }
     }
 }

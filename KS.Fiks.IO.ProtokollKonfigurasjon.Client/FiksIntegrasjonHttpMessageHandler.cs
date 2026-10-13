@@ -30,7 +30,7 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client
         private readonly Func<Task<string>> _maskinportenTokenSupplier;
 
         public FiksIntegrasjonHttpMessageHandler(Guid integrasjonId, string integrasjonPassord, Func<Task<string>> maskinportenTokenSupplier)
-            : base(new HttpClientHandler())
+            : base(new HttpClientHandler { AllowAutoRedirect = false })
         {
             _integrasjonId = integrasjonId;
             _integrasjonPassord = integrasjonPassord;

@@ -15,6 +15,15 @@ namespace KS.Fiks.IO.ProtokollKonfigurasjon.Client.Tests
         private const string RequestIdHeader = "requestId";
 
         [Fact]
+        public void DefaultInnerHandler_DoesNotFollowRedirects()
+        {
+            using var sut = new FiksIntegrasjonHttpMessageHandler(Guid.NewGuid(), "password", () => Task.FromResult("token"));
+
+            var innerHandler = sut.InnerHandler.ShouldBeOfType<HttpClientHandler>();
+            innerHandler.AllowAutoRedirect.ShouldBeFalse();
+        }
+
+        [Fact]
         public async Task SendAsync_SetsIntegrasjonIdIntegrasjonPassordAndBearerTokenHeaders()
         {
             var integrasjonId = Guid.NewGuid();

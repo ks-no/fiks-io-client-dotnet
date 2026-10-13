@@ -22,8 +22,8 @@ var request = new CreateProtokollKontoRequest
 {
     Navn = "Min konto",
     Beskrivelse = "Opprettet via ProtokollKonfigurasjon.Client",
-    StottetProtokollNavn = "no.ks.fiks.arkiv.v1",
-    Parts = new[] { new PartRequest { PartNavn = "saksbehandler", StottetProtokollVersjon = "1.0" } },
+    StottetProtokollNavn = "no.ks.fiks.arkiv",
+    Parts = new[] { new PartRequest { PartNavn = "arkiv.full", StottetProtokollVersjon = "v1" } },
     OffentligNokkel = offentligNokkel
 };
 
@@ -35,7 +35,7 @@ var konto = await client.CreateKontoAsync(fiksOrgId, systemId, request);
 ### Authentication
 
 `KontoKonfigurasjonClient.CreateClient` takes:
-- `hostUrl` - base URL of the Fiks Protokoll Konfigurasjon API.
+- `hostUrl` - base URL of the Fiks Protokoll Konfigurasjon API (`https://api.fiks.ks.no` in production, `https://api.fiks.test.ks.no` in test). Must be an absolute `https` URL - the integrasjon password and the Maskinporten token are sent to this host on every request, so `CreateClient` rejects relative and plaintext `http` URLs.
 - `integrasjonId` / `integrasjonPassord` - your Fiks-IO integrasjon credentials.
 - `maskinportenTokenSupplier` - a delegate that returns a valid Maskinporten access token. This is invoked on every outgoing HTTP request, so it should return a cached/memoized token rather than requesting a new one from Maskinporten on every call. `Ks.Fiks.Maskinporten.Client.MaskinportenClient.GetAccessToken` already caches internally, but it takes a scope and returns a token object - wrap it as in the example above (`async () => (await maskinportenClient.GetAccessToken(scope)).Token`).
 
