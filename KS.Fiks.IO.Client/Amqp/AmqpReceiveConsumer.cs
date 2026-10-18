@@ -111,7 +111,7 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             if (Channel?.IsOpen == true)
             {
-                await Channel.BasicNackAsync(deliveryTag, false, requeue, cancellationToken).ConfigureAwait(false);
+                await Channel.BasicRejectAsync(deliveryTag, requeue, cancellationToken).ConfigureAwait(false);
             }
         }
 

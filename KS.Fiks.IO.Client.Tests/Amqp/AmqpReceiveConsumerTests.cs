@@ -481,7 +481,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(
-                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()), 
+                _ => _.BasicRejectAsync(deliveryTag, false, It.IsAny<CancellationToken>()), 
                 Times.Once);
         }
 
@@ -509,7 +509,7 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(
-                _ => _.BasicNackAsync(deliveryTag, false, true, It.IsAny<CancellationToken>()), 
+                _ => _.BasicRejectAsync(deliveryTag, true, It.IsAny<CancellationToken>()), 
                 Times.Once);
         }
 
