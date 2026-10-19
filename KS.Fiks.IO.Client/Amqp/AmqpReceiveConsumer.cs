@@ -95,8 +95,8 @@ namespace KS.Fiks.IO.Client.Amqp
         {
             return new AmqpAcknowledgeManager(
                 () => AcknowledgeMessageAsync(deliveryTag, cancellationToken),
-                () => RejectMessageAsync(deliveryTag, false, cancellationToken),
-                () => RejectMessageAsync(deliveryTag, true, cancellationToken));
+                () => NackMessageAsync(deliveryTag, cancellationToken),
+                () => RejectWithRequeueMessageAsync(deliveryTag, cancellationToken));
         }
 
         private async Task AcknowledgeMessageAsync(ulong deliveryTag, CancellationToken cancellationToken)
@@ -107,11 +107,19 @@ namespace KS.Fiks.IO.Client.Amqp
             }
         }
 
-        private async Task RejectMessageAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
+        private async Task NackMessageAsync(ulong deliveryTag, CancellationToken cancellationToken)
         {
             if (Channel?.IsOpen == true)
             {
-                await Channel.BasicRejectAsync(deliveryTag, requeue, cancellationToken).ConfigureAwait(false);
+                await Channel.BasicNackAsync(deliveryTag, false, false, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task RejectWithRequeueMessageAsync(ulong deliveryTag, CancellationToken cancellationToken)
+        {
+            if (Channel?.IsOpen == true)
+            {
+                await Channel.BasicRejectAsync(deliveryTag, true, cancellationToken).ConfigureAwait(false);
             }
         }
 

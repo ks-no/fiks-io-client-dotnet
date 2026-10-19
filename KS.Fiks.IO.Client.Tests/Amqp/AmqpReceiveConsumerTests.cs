@@ -481,12 +481,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(
-                _ => _.BasicRejectAsync(deliveryTag, false, It.IsAny<CancellationToken>()), 
+                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task NackWithRequeueAsyncCallsBasicNackAsyncWithRequeue()
+        public async Task NackWithRequeueAsyncCallsBasicRejectAsyncWithRequeue()
         {
             var sut = await _fixture.CreateSutAsync();
             var data = new[] { default(byte), byte.MaxValue };
@@ -495,6 +495,34 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
             Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
                 await messageArgs.SvarSender.NackWithRequeueAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicRejectAsync(deliveryTag, true, It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task RejectWithRequeueAsyncCallsBasicRejectAsyncWithRequeue()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)7423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.RejectWithRequeueAsync().ConfigureAwait(false);
             };
 
             sut.ReceivedAsync += handler;
