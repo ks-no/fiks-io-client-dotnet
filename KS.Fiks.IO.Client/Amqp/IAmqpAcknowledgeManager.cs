@@ -10,6 +10,8 @@ namespace KS.Fiks.IO.Client.Amqp
         Task NackAsync();
 
         Task RejectWithRequeueAsync();
+
+        Task NackWithRequeueAsync();
     }
 
     public class AmqpAcknowledgeManager : IAmqpAcknowledgeManager
@@ -36,6 +38,11 @@ namespace KS.Fiks.IO.Client.Amqp
         }
 
         public async Task RejectWithRequeueAsync()
+        {
+            await _rejectWithRequeueAction.Invoke().ConfigureAwait(false);
+        }
+
+        public async Task NackWithRequeueAsync()
         {
             await _rejectWithRequeueAction.Invoke().ConfigureAwait(false);
         }

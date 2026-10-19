@@ -63,6 +63,7 @@ namespace KS.Fiks.IO.Client.Send
             await _amqpAcknowledgeManager.NackAsync().ConfigureAwait(false);
         }
 
+        [Obsolete("NackWithRequeueAsync is deprecated. Use RejectWithRequeueAsync instead.")]
         public async Task NackWithRequeueAsync()
         {
             await _amqpAcknowledgeManager.RejectWithRequeueAsync().ConfigureAwait(false);
