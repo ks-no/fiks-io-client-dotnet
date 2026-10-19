@@ -153,6 +153,26 @@ await client.NewSubscriptionAsync(OnReceivedMelding);
 
 ```
 
+#### Acknowledging messages: Ack, Nack and Reject
+When you have received a message you must tell Fiks-IO what to do with it. The `SvarSender` on the received message gives you three alternatives:
+
+```csharp
+// The message was handled successfully and is removed from the queue
+await fileArgs.SvarSender.AckAsync();
+
+// The message could not be consumed. It is sent to the dead letter queue,
+// and no error message is sent back to the sender.
+await fileArgs.SvarSender.NackAsync();
+
+// The message could not be consumed right now and is put back in the queue
+// to be consumed again. The delivery count is incremented.
+await fileArgs.SvarSender.RejectWithRequeueAsync();
+```
+
+`RejectWithRequeueAsync()` requeues the message and increments its delivery count. This means the message is redelivered until the max delivery count is reached, and is then sent to the dead letter queue. Reaching the max delivery count leads to an error message being sent back to the sender.
+
+`NackWithRequeueAsync()` is deprecated. It requeued the message *without* incrementing the delivery count, meaning the message would be redelivered until the TTL was reached, and would not be sent to the dead letter queue before the TTL was reached. Its behaviour has now been changed so it works like `RejectWithRequeueAsync()`. Use `RejectWithRequeueAsync()` instead.
+
 ### GetKonto
 Using GetKonto, you can get information about a Fiks IO account, e.g. municipality number and organization name, given the account id.
 
