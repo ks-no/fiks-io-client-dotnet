@@ -11,6 +11,7 @@ namespace KS.Fiks.IO.Client.Amqp
 
         Task RejectWithRequeueAsync();
 
+        [Obsolete("NackWithRequeueAsync is deprecated. Use RejectWithRequeueAsync instead.")]
         Task NackWithRequeueAsync();
     }
 
