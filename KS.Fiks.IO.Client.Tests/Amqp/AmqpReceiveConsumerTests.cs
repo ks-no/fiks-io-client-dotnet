@@ -481,12 +481,16 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(
-                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()), 
+                _ => _.BasicNackAsync(deliveryTag, false, false, It.IsAny<CancellationToken>()),
                 Times.Once);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
-        public async Task NackWithRequeueAsyncCallsBasicNackAsyncWithRequeue()
+        public async Task NackWithRequeueAsyncCallsBasicRejectAsyncWithRequeue()
         {
             var sut = await _fixture.CreateSutAsync();
             var data = new[] { default(byte), byte.MaxValue };
@@ -494,7 +498,9 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
             Func<MottattMeldingArgs, Task> handler = async messageArgs =>
             {
+#pragma warning disable CS0618 // Deliberately exercising the deprecated method
                 await messageArgs.SvarSender.NackWithRequeueAsync().ConfigureAwait(false);
+#pragma warning restore CS0618
             };
 
             sut.ReceivedAsync += handler;
@@ -509,8 +515,124 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
                 data);
 
             _fixture.ChannelMock.Verify(
-                _ => _.BasicNackAsync(deliveryTag, false, true, It.IsAny<CancellationToken>()), 
+                _ => _.BasicRejectAsync(deliveryTag, true, It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task RejectWithRequeueAsyncCallsBasicRejectAsyncWithRequeue()
+        {
+            var sut = await _fixture.CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)7423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.RejectWithRequeueAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicRejectAsync(deliveryTag, true, It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task AckAsyncDoesNotCallBasicAckAsyncWhenChannelIsClosed()
+        {
+            var sut = await _fixture.WithClosedChannel().CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)8423423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.AckAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task NackAsyncDoesNotCallBasicNackAsyncWhenChannelIsClosed()
+        {
+            var sut = await _fixture.WithClosedChannel().CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)8523423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.NackAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectWithRequeueAsyncDoesNotCallBasicRejectAsyncWhenChannelIsClosed()
+        {
+            var sut = await _fixture.WithClosedChannel().CreateSutAsync();
+            var data = new[] { default(byte), byte.MaxValue };
+            var deliveryTag = (ulong)8623423;
+
+            Func<MottattMeldingArgs, Task> handler = async messageArgs =>
+            {
+                await messageArgs.SvarSender.RejectWithRequeueAsync().ConfigureAwait(false);
+            };
+
+            sut.ReceivedAsync += handler;
+
+            await sut.HandleBasicDeliverAsync(
+                "tag",
+                deliveryTag,
+                false,
+                "exchange",
+                Guid.NewGuid().ToString(),
+                _fixture.DefaultProperties,
+                data);
+
+            _fixture.ChannelMock.Verify(
+                _ => _.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
