@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
 using Moq;
+using Shouldly;
 using Xunit;
 
 namespace KS.Fiks.IO.Client.Tests.Send
@@ -164,6 +165,135 @@ namespace KS.Fiks.IO.Client.Tests.Send
             await sut.Svar("testType", "my message", "message.txt").ConfigureAwait(false);
 
             _fixture.SendHandlerMock.Verify(_ => _.Send(It.Is<MeldingRequest>(a => a.MottakerKontoId == avsenderKonto && a.AvsenderKontoId == mottakerKonto && a.KlientMeldingId == null && a.KlientKorrelasjonsId == null), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AckAsyncInvokesAckAction()
+        {
+            var melding = GetDefaultMottattMelding();
+            var ackCalled = false;
+            var nackCalled = false;
+            var rejectCalled = false;
+
+            var sut = _fixture
+                .WithMottattMelding(melding.MottattMelding)
+                .WithAck(() =>
+                {
+                    ackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithNack(() =>
+                {
+                    nackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithRejectWithRequeue(() =>
+                {
+                    rejectCalled = true;
+                    return Task.CompletedTask;
+                })
+                .CreateSut();
+
+            await sut.AckAsync().ConfigureAwait(false);
+
+            ackCalled.ShouldBeTrue();
+            nackCalled.ShouldBeFalse();
+            rejectCalled.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task NackAsyncInvokesNackActionAndNotRejectAction()
+        {
+            var melding = GetDefaultMottattMelding();
+            var ackCalled = false;
+            var nackCalled = false;
+            var rejectCalled = false;
+
+            var sut = _fixture
+                .WithMottattMelding(melding.MottattMelding)
+                .WithAck(() =>
+                {
+                    ackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithNack(() =>
+                {
+                    nackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithRejectWithRequeue(() =>
+                {
+                    rejectCalled = true;
+                    return Task.CompletedTask;
+                })
+                .CreateSut();
+
+            await sut.NackAsync().ConfigureAwait(false);
+
+            nackCalled.ShouldBeTrue();
+            rejectCalled.ShouldBeFalse();
+            ackCalled.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task RejectWithRequeueAsyncInvokesRejectActionAndNotNackAction()
+        {
+            var melding = GetDefaultMottattMelding();
+            var ackCalled = false;
+            var nackCalled = false;
+            var rejectCalled = false;
+
+            var sut = _fixture
+                .WithMottattMelding(melding.MottattMelding)
+                .WithAck(() =>
+                {
+                    ackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithNack(() =>
+                {
+                    nackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithRejectWithRequeue(() =>
+                {
+                    rejectCalled = true;
+                    return Task.CompletedTask;
+                })
+                .CreateSut();
+
+            await sut.RejectWithRequeueAsync().ConfigureAwait(false);
+
+            rejectCalled.ShouldBeTrue();
+            nackCalled.ShouldBeFalse();
+            ackCalled.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task DeprecatedNackWithRequeueAsyncInvokesRejectActionAndNotNackAction()
+        {
+            var melding = GetDefaultMottattMelding();
+            var nackCalled = false;
+            var rejectCalled = false;
+
+            var sut = _fixture
+                .WithMottattMelding(melding.MottattMelding)
+                .WithNack(() =>
+                {
+                    nackCalled = true;
+                    return Task.CompletedTask;
+                })
+                .WithRejectWithRequeue(() =>
+                {
+                    rejectCalled = true;
+                    return Task.CompletedTask;
+                })
+                .CreateSut();
+
+            await sut.NackWithRequeueAsync().ConfigureAwait(false);
+
+            rejectCalled.ShouldBeTrue();
+            nackCalled.ShouldBeFalse();
         }
     }
 }

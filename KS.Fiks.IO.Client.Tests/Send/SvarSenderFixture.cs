@@ -19,7 +19,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
         private Func<Task> _ack;
         private Func<Task> _nack;
-        private Func<Task> _nackWithRequeue;
+        private Func<Task> _rejectWithRequeue;
 
         public SvarSenderFixture()
         {
@@ -27,7 +27,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
             _mottattMelding = null;
             _ack = Mock.Of<Func<Task>>();
             _nack = Mock.Of<Func<Task>>();
-            _nackWithRequeue = Mock.Of<Func<Task>>();
+            _rejectWithRequeue = Mock.Of<Func<Task>>();
         }
 
         public SvarSenderFixture WithMottattMelding(MottattMelding mottattMelding)
@@ -48,9 +48,9 @@ namespace KS.Fiks.IO.Client.Tests.Send
             return this;
         }
 
-        public SvarSenderFixture WithNackRequeue(Func<Task> nackRequeue)
+        public SvarSenderFixture WithRejectWithRequeue(Func<Task> rejectWithRequeue)
         {
-            this._nackWithRequeue = nackRequeue;
+            this._rejectWithRequeue = rejectWithRequeue;
             return this;
         }
 
@@ -65,7 +65,7 @@ namespace KS.Fiks.IO.Client.Tests.Send
         internal SvarSender CreateSut()
         {
             SetupMocks();
-            return new SvarSender(SendHandlerMock.Object, _mottattMelding, new AmqpAcknowledgeManager(_ack, _nack, _nackWithRequeue));
+            return new SvarSender(SendHandlerMock.Object, _mottattMelding, new AmqpAcknowledgeManager(_ack, _nack, _rejectWithRequeue));
         }
 
         private void SetupMocks()

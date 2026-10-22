@@ -9,6 +9,9 @@ namespace KS.Fiks.IO.Client.Amqp
 
         Task NackAsync();
 
+        Task RejectWithRequeueAsync();
+
+        [Obsolete("NackWithRequeueAsync is deprecated. Use RejectWithRequeueAsync instead.")]
         Task NackWithRequeueAsync();
     }
 
@@ -16,13 +19,13 @@ namespace KS.Fiks.IO.Client.Amqp
     {
         private readonly Func<Task> _ackAction;
         private readonly Func<Task> _nackAction;
-        private readonly Func<Task> _nackWithRequeueAction;
+        private readonly Func<Task> _rejectWithRequeueAction;
 
-        public AmqpAcknowledgeManager(Func<Task> ackAction, Func<Task> nackAction, Func<Task> nackWithRequeueAction)
+        public AmqpAcknowledgeManager(Func<Task> ackAction, Func<Task> nackAction, Func<Task> rejectWithRequeueAction)
         {
             _ackAction = ackAction;
             _nackAction = nackAction;
-            _nackWithRequeueAction = nackWithRequeueAction;
+            _rejectWithRequeueAction = rejectWithRequeueAction;
         }
 
         public async Task AckAsync()
@@ -35,9 +38,14 @@ namespace KS.Fiks.IO.Client.Amqp
             await _nackAction.Invoke().ConfigureAwait(false);
         }
 
+        public async Task RejectWithRequeueAsync()
+        {
+            await _rejectWithRequeueAction.Invoke().ConfigureAwait(false);
+        }
+
         public async Task NackWithRequeueAsync()
         {
-            await _nackWithRequeueAction.Invoke().ConfigureAwait(false);
+            await _rejectWithRequeueAction.Invoke().ConfigureAwait(false);
         }
     }
 }

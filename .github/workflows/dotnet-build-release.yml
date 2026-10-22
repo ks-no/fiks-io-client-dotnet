@@ -13,6 +13,14 @@ on:
         type: boolean
         required: false
         default: false
+      publishMode:
+        description: 'Auth for nuget.org push: api-key (NUGET_API_KEY, default) or oidc (trusted publishing)'
+        type: choice
+        required: false
+        default: 'api-key'
+        options:
+          - oidc
+          - api-key
       specifiedVersion:
         description: 'Version (X.X.X) - leave empty for auto'
         required: false
@@ -35,7 +43,23 @@ permissions:
   id-token: write
 
 jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Require NUGET_API_KEY when publishMode=api-key
+        if: github.event_name == 'workflow_dispatch' && inputs.publishMode == 'api-key'
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::publishMode=api-key krever secret NUGET_API_KEY"
+            exit 1
+          fi
+
   build:
+    needs: preflight
     uses: ks-no/github-actions-public/.github/workflows/dotnet-library-build.yml@main
     with:
       is-release: ${{ inputs.isRelease == true }}
@@ -63,27 +87,27 @@ jobs:
     steps:
       - name: Download signed packages (release)
         if: inputs.isRelease == true
-        uses: actions/download-artifact@v4
+        uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-signed
           path: packages
       - name: Download unsigned packages (pre-release)
         if: inputs.isRelease != true
-        uses: actions/download-artifact@v4
+        uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-unsigned
           path: packages
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # 6.0.0
         with:
-          dotnet-version: '8.0.x'
-      - name: Push to NuGet.org (OIDC trusted publishing)
+          dotnet-version: '10.0.x'
+      - name: Push to NuGet.org (${{ inputs.publishMode || 'api-key' }})
         uses: ks-no/github-actions-public/dotnet-push-to-nuget-org@main
         with:
-          mode: oidc
+          mode: ${{ inputs.publishMode || 'api-key' }}
           nuget-user: ${{ secrets.NUGET_USER }}
           package-path: packages
           verify-signature: ${{ inputs.isRelease == true }}
-          api-key: ''
+          api-key: ${{ secrets.NUGET_API_KEY }}
 
   release:
     name: Release
@@ -101,13 +125,13 @@ jobs:
         with:
           ks_github_app_id: ${{ vars.KS_RUNNER_APP_ID }}
           ks_github_app_private_key: ${{ secrets.KS_RUNNER_PRIVATE_KEY }}
-      - uses: actions/checkout@v6
+      - uses: ks-no/github-actions-public/checkout@main
         with:
           fetch-depth: 0
           fetch-tags: true
           submodules: true
           token: ${{ steps.setup-github-app.outputs.app_token }}
-      - uses: actions/download-artifact@v4
+      - uses: ks-no/github-actions-public/download-artifact@main
         with:
           name: nuget-packages-signed
           path: release-packages
