@@ -71,7 +71,7 @@ namespace KS.Fiks.IO.Client
             IKeyValidator keyValidator = null)
         {
             KontoId = configuration.KontoConfiguration.KontoId;
-            AutomaticPublicKeyUploadEnabled =
+            IsAutomaticPublicKeyUploadEnabled =
                 !string.IsNullOrWhiteSpace(configuration.KontoConfiguration.OffentligNokkel);
 
             _maskinportenClient = maskinportenClient ??
@@ -147,7 +147,7 @@ namespace KS.Fiks.IO.Client
 
             logger?.LogInformation(
                 "Automatic public key upload is {State} for account {KontoId}.",
-                client.AutomaticPublicKeyUploadEnabled ? "ENABLED" : "DISABLED",
+                client.IsAutomaticPublicKeyUploadEnabled ? "ENABLED" : "DISABLED",
                 kontoId);
 
             var synchronizer = new PublicKeySynchronizer(
@@ -224,7 +224,7 @@ namespace KS.Fiks.IO.Client
         /// the client never writes to the catalog; it still performs best-effort startup key validation,
         /// which is skipped when no key is registered or the catalog is temporarily unavailable.
         /// </summary>
-        public bool AutomaticPublicKeyUploadEnabled { get; }
+        public bool IsAutomaticPublicKeyUploadEnabled { get; }
 
         public async Task<Konto> GetKonto(Guid kontoId)
         {

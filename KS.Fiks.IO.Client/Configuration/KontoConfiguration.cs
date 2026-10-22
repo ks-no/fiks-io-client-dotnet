@@ -47,14 +47,14 @@ namespace KS.Fiks.IO.Client.Configuration
         public Guid KontoId { get; }
 
         /// <summary>
-        /// Privat nøkkel som matcher den offentlige nøkkelen som er spesifisert for kontoen i fiks-konfigurasjon. Benyttes for å dekryptere innkommende meldinger.
-        /// For å støtte nøkkelrotasjon er det mulig å legge til flere private nøkler.
+        /// Private keys matching the public key registered for the account in the Fiks configuration. Used to decrypt incoming messages.
+        /// Several private keys can be added to support key rotation.
         /// </summary>
         public List<string> PrivatNokler { get; }
 
         /// <summary>
-        /// Valgfri offentlig nøkkel (PEM-kodet X.509-sertifikat) for kontoen. Når satt vil klienten automatisk laste opp
-        /// nøkkelen til Fiks-IO katalog ved oppstart dersom nøkkelen mangler eller er utdatert.
+        /// Optional public key (PEM-encoded X.509 certificate) for the account. When set, the client uploads
+        /// the key to the Fiks-IO catalog on startup if the key is missing or outdated.
         /// </summary>
         public string OffentligNokkel { get; }
     }

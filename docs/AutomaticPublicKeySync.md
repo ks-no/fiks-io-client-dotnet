@@ -4,7 +4,7 @@
 
 Setting up a Fiks-IO account traditionally required the account's public key to be registered in the catalog manually by Fiks Forvaltning. This manual step can lead to coordination issues, especially when vendors need to rotate keys or set up accounts independently. To streamline this, we have introduced an **automatic public key synchronization** feature in the Fiks-IO .NET client.
 
-With automatic public key synchronization, the client uploads the configured public key to the Fiks-IO catalog on startup — eliminating the need for manual coordination. The municipality employee can set up the account independently and share the account details with the vendor afterward. The first time the vendor starts their client, the key is registered automatically.
+With automatic public key synchronization, the client uploads the configured public key to the Fiks-IO catalog on startup — eliminating the need for manual coordination. The customer can set up the account independently and share the account details with the vendor afterward. The first time the vendor starts their client, the key is registered automatically.
 
 ---
 
@@ -34,7 +34,7 @@ FiksIOConfigurationBuilder
 
 Automatic upload is enabled **if and only if `OffentligNokkel` is configured** (non-null, non-whitespace). There are two ways to tell whether a running client has it enabled:
 
-- **Programmatically:** `FiksIOClient.AutomaticPublicKeyUploadEnabled` (a `bool`) — useful for health checks or diagnostics.
+- **Programmatically:** `FiksIOClient.IsAutomaticPublicKeyUploadEnabled` (a `bool`) — useful for health checks or diagnostics.
 - **In the logs:** `CreateAsync` emits one `INFO` line at startup, before any catalog interaction:
   ```
   INFO  Automatic public key upload is ENABLED for account {KontoId}.
@@ -49,7 +49,7 @@ This removes the previous ambiguity where, at `INFO` level, a client with the fe
 
 > **Two independent steps — don't conflate them.** Startup performs (A) optional **upload** and (B) **validation**. They are governed by different conditions:
 >
-> - **(A) Upload** runs **only when the feature is enabled** (`OffentligNokkel` configured / `AutomaticPublicKeyUploadEnabled == true`). This is the only step that writes to the catalog.
+> - **(A) Upload** runs **only when the feature is enabled** (`OffentligNokkel` configured / `IsAutomaticPublicKeyUploadEnabled == true`). This is the only step that writes to the catalog.
 > - **(B) Validation** runs **regardless of the feature flag** — it is *not* gated on enable/disable. It checks that a configured private key can decrypt the catalog's public key, and runs whenever **a key exists to validate against** (an existing catalog key, or one just uploaded).
 >
 > Validation is skipped **only** when there is genuinely nothing to check: no key registered (404), or — for feature-off clients — the catalog is temporarily unavailable. In both of those cases the client still starts. A key that *exists but does not match* is always fatal, feature on or off.
@@ -220,7 +220,7 @@ INFO  Public key uploaded for account {KontoId}.
 
 ### Scenario 4 — Catalog has an unrelated key
 
-**Precondition:** The catalog contains a public key that does not match any of the vendor's private keys. This would occur if the account was set up by someone else (e.g., the municipality uploaded a key manually).
+**Precondition:** The catalog contains a public key that does not match any of the vendor's private keys. This would occur if the account was set up by someone else (e.g., the customer uploaded a key manually).
 
 **Flow:**
 1. Catalog returns a certificate
@@ -336,39 +336,3 @@ WARN  Could not validate key configuration for account {KontoId}: catalog tempor
 - **Sync is startup-only:** Synchronization runs once when the client is created. If the catalog key changes while the client is running, it will not be detected until the next restart.
 - **Concurrent startups during rotation:** If several client instances start simultaneously, they may each evaluate the catalog state and attempt an upload. Uploading the same key is idempotent, but if instances are deployed with *different* `OffentligNokkel` values during a rollout, they can repeatedly overwrite each other's key on each restart until the rollout converges. Roll out a key change to all instances together.
 - **Post-upload verification is best-effort:** After uploading, the synchronizer re-reads the catalog key to confirm it. A mismatch here (e.g. eventual consistency) is logged as a warning only and does not fail startup.
-
----
-
-## Release Notes Draft
-
-> The repository has no `CHANGELOG`/`PackageReleaseNotes` convention; releases are published via GitHub Releases.
-> The text below is a draft to paste into the GitHub Release body for the next version. The exact version string
-> is decided by the team at release time (`VersionPrefix` is currently `7.0.3`).
-
-```markdown
-## <next version> — Automatic public key synchronization
-
-### Added
-- Optional automatic upload of the account's public key to the Fiks-IO catalog on client startup.
-  Configure via `WithFiksKontoConfiguration(kontoId, privateKey(s), offentligNokkel)`. Omitting the
-  public key disables the feature (backward compatible). Supports key rotation with multiple private
-  keys. See docs/AutomaticPublicKeySync.md.
-- `FiksIOClient.AutomaticPublicKeyUploadEnabled` (bool) plus a startup `INFO` log line indicating
-  whether automatic upload is ENABLED or DISABLED for the account.
-
-### Changed / Breaking
-- `FiksIOClient.CreateAsync` now validates that a configured private key can decrypt the catalog's
-  registered public key. A **definite mismatch** (the catalog has a key that none of the configured
-  private keys can decrypt) throws `InvalidOperationException` and the client does not start —
-  previously this surfaced only at message-receive time. This applies even when the public-key-upload
-  feature is not used. A missing key (catalog 404) or a **transient** catalog outage does **not** block
-  startup for clients that do not use the upload feature (the latter is logged as a warning).
-- `KontoConfiguration` constructors now reject null/whitespace private keys consistently (the
-  single-private-key constructor previously skipped this check). An empty key list now throws
-  `ArgumentException` (previously `ArgumentNullException`).
-
-### Dependencies
-- Requires `KS.Fiks.IO.Send.Client` &ge; the version that adds `ICatalogHandler.UploadPublicKey` and the
-  `FiksIOSendPublicKeyNotFoundException` (thrown by `GetPublicKey` on HTTP 404). The client uses this typed
-  exception to distinguish "no key registered" from "catalog temporarily unavailable".
-```

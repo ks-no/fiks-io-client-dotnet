@@ -280,7 +280,7 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
-        public async Task AutomaticPublicKeyUploadEnabledIsFalseWhenOffentligNokkelNotSet()
+        public async Task IsAutomaticPublicKeyUploadEnabledReturnsFalseWhenOffentligNokkelNotSet()
         {
             _fixture.CatalogHandlerMock
                 .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
@@ -288,11 +288,11 @@ namespace KS.Fiks.IO.Client.Tests
 
             var sut = await _fixture.CreateSutAsync();
 
-            sut.AutomaticPublicKeyUploadEnabled.ShouldBeFalse();
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeFalse();
         }
 
         [Fact]
-        public async Task AutomaticPublicKeyUploadEnabledIsTrueWhenOffentligNokkelSet()
+        public async Task IsAutomaticPublicKeyUploadEnabledReturnsTrueWhenOffentligNokkelSet()
         {
             var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
             _fixture
@@ -304,7 +304,7 @@ namespace KS.Fiks.IO.Client.Tests
 
             var sut = await _fixture.CreateSutAsync();
 
-            sut.AutomaticPublicKeyUploadEnabled.ShouldBeTrue();
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeTrue();
         }
     }
 }
