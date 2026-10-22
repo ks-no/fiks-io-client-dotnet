@@ -63,9 +63,15 @@ namespace KS.Fiks.IO.Client.Send
             await _amqpAcknowledgeManager.NackAsync().ConfigureAwait(false);
         }
 
+        [Obsolete("NackWithRequeueAsync is deprecated. Use RejectWithRequeueAsync instead.")]
         public async Task NackWithRequeueAsync()
         {
-            await _amqpAcknowledgeManager.NackWithRequeueAsync().ConfigureAwait(false);
+            await _amqpAcknowledgeManager.RejectWithRequeueAsync().ConfigureAwait(false);
+        }
+
+        public async Task RejectWithRequeueAsync()
+        {
+            await _amqpAcknowledgeManager.RejectWithRequeueAsync().ConfigureAwait(false);
         }
 
         private async Task<SendtMelding> Reply(string messageType, IPayload payload, Guid? klientMeldingId, CancellationToken cancellationToken)
