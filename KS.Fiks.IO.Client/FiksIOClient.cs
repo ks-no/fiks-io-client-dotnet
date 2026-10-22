@@ -188,9 +188,19 @@ namespace KS.Fiks.IO.Client
             if (catalogCert != null
                 && !client._keyValidator.ValidateCertificateAgainstPrivateKeys(catalogCert))
             {
-                throw new InvalidOperationException(
-                    $"No configured private key can decrypt messages for account {kontoId}. " +
-                    "The public key in catalog does not match any configured private key.");
+                if (client.IsAutomaticPublicKeyUploadEnabled)
+                {
+                    throw new InvalidOperationException(
+                        $"No configured private key can decrypt messages for account {kontoId}. " +
+                        "The public key in catalog does not match any configured private key.");
+                }
+
+                // Without the upload feature the client keeps its pre-feature startup behaviour, so a mismatch is logged, not thrown.
+                logger?.LogError(
+                    "No configured private key can decrypt messages for account {KontoId}. " +
+                    "The public key in catalog does not match any configured private key. " +
+                    "Startup continues because automatic public key upload is disabled; incoming messages will fail to decrypt.",
+                    kontoId);
             }
 
             await client.InitializeAmqpHandlerAsync(configuration, amqpWatcher).ConfigureAwait(false);
@@ -222,7 +232,8 @@ namespace KS.Fiks.IO.Client
         /// True when automatic public key upload is enabled for this client, i.e. when
         /// <see cref="Configuration.KontoConfiguration.OffentligNokkel"/> was configured. When false,
         /// the client never writes to the catalog; it still performs best-effort startup key validation,
-        /// which is skipped when no key is registered or the catalog is temporarily unavailable.
+        /// which is skipped when no key is registered or the catalog is temporarily unavailable, and which
+        /// logs an error instead of failing startup when the catalog key does not match any private key.
         /// </summary>
         public bool IsAutomaticPublicKeyUploadEnabled { get; }
 

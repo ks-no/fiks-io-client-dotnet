@@ -50,9 +50,9 @@ This removes the previous ambiguity where, at `INFO` level, a client with the fe
 > **Two independent steps — don't conflate them.** Startup performs (A) optional **upload** and (B) **validation**. They are governed by different conditions:
 >
 > - **(A) Upload** runs **only when the feature is enabled** (`OffentligNokkel` configured / `IsAutomaticPublicKeyUploadEnabled == true`). This is the only step that writes to the catalog.
-> - **(B) Validation** runs **regardless of the feature flag** — it is *not* gated on enable/disable. It checks that a configured private key can decrypt the catalog's public key, and runs whenever **a key exists to validate against** (an existing catalog key, or one just uploaded).
+> - **(B) Validation** runs **regardless of the feature flag**. It checks that a configured private key can decrypt the catalog's public key, and runs whenever **a key exists to validate against** (an existing catalog key, or one just uploaded). What happens on a mismatch depends on the flag: it is fatal when the feature is enabled, and logged as an `ERROR` when it is disabled.
 >
-> Validation is skipped **only** when there is genuinely nothing to check: no key registered (404), or — for feature-off clients — the catalog is temporarily unavailable. In both of those cases the client still starts. A key that *exists but does not match* is always fatal, feature on or off.
+> Validation is skipped **only** when there is genuinely nothing to check: no key registered (404), or — for feature-off clients — the catalog is temporarily unavailable. In both of those cases the client still starts.
 
 `FiksIOClient.CreateAsync` runs `PublicKeySynchronizer.SynchronizePublicKeyAsync` before initializing the AMQP connection. The synchronizer:
 
@@ -66,7 +66,9 @@ The synchronizer distinguishes **"no key registered"** from **"catalog temporari
 
 After synchronization — **and independently of whether the upload feature is enabled** — `CreateAsync` validates the effective catalog key against the configured private keys:
 
-- **Definite mismatch** — the catalog returned a key that none of the configured private keys can decrypt → `CreateAsync` throws `InvalidOperationException` and the client does not start. This is a guaranteed "cannot decrypt incoming messages" misconfiguration and is fatal **for all clients**, whether or not the upload feature is used.
+- **Definite mismatch** — the catalog returned a key that none of the configured private keys can decrypt. This is a guaranteed "cannot decrypt incoming messages" misconfiguration.
+  - **Feature enabled:** `CreateAsync` throws `InvalidOperationException` and the client does not start.
+  - **Feature disabled:** `CreateAsync` logs an `ERROR` and the client starts, as it did before this feature existed. Incoming messages will fail to decrypt until the key configuration is fixed. Fail-fast for clients that do not use the feature is left for a future major version, since it would change the default startup behaviour.
 - **No key registered** (`FiksIOSendPublicKeyNotFoundException`) — nothing to validate → startup proceeds.
 - **Catalog temporarily unavailable** — for clients **not** using the upload feature, validation cannot be performed; the client logs a warning and starts (preserving pre-feature availability — a transient catalog outage must not block startup). For clients **using** the upload feature, a transient catalog error during synchronization is fatal, because the upload is an active operation that could not be completed safely.
 
@@ -120,11 +122,13 @@ flowchart TD
         VAL{Effective catalog\nkey available?}
         VAL -->|"feature off: no key (404, silent)<br/>or transient (LogWarning)"| CONT["skip validation"]:::warn
         VAL -->|key available| VC{Decryptable by a\nconfigured private key? ¹}
-        VC -->|no| ERR4(["throw: no private key\ncan decrypt messages"]):::error
+        VC -->|no, feature on| ERR4(["throw: no private key\ncan decrypt messages"]):::error
+        VC -->|no, feature off| LOGERR["LogError: no private key\ncan decrypt messages"]:::warn
         VC -->|yes| PASS["validated"]:::success
     end
 
     CONT --> AMQP
+    LOGERR --> AMQP
     PASS --> AMQP
     AMQP["InitializeAmqpHandlerAsync()"] --> DONE(["return FiksIOClient ✓"]):::success
 
@@ -291,16 +295,16 @@ ERROR Failed to read public key from catalog for account {KontoId}; cannot safel
 1. `OffentligNokkel` is `null`
 2. Synchronizer exits immediately — no catalog write is performed
 3. `CreateAsync` fetches the current catalog key directly
-4. If the catalog has a registered key that does not match any configured private key → **throws `InvalidOperationException`** (fail-fast on a definite, non-transient misconfiguration)
+4. If the catalog has a registered key that does not match any configured private key → logs an `ERROR` and proceeds to AMQP setup
 5. If the catalog has no registered key (404) → nothing to validate → proceeds to AMQP setup
 6. If the catalog is **temporarily unreachable** (transient error) → logs a warning and proceeds to AMQP setup. Validation cannot be performed, but a transient outage must **not** block startup for a client that does not use the upload feature.
 
-**Result:** No key upload is performed. A definite key mismatch is a fail-fast startup error — this is a **breaking change** from earlier versions, where a mismatch surfaced only at message-receive time. A transient catalog outage, however, preserves the pre-feature behaviour (the client still starts).
+**Result:** No key upload is performed, and the client always starts. Startup behaviour is the same as in earlier versions: a key mismatch still surfaces as decryption failures when messages arrive, but it is now also reported in the log at startup.
 
-**Logs (mismatch — fatal):**
+**Logs (mismatch — non-fatal, client starts):**
 ```
 WARN  No configured private key matched the certificate for account {KontoId}.
-ERROR [InvalidOperationException] No configured private key can decrypt messages for account {KontoId}.
+ERROR No configured private key can decrypt messages for account {KontoId}. The public key in catalog does not match any configured private key. Startup continues because automatic public key upload is disabled; incoming messages will fail to decrypt.
 ```
 
 **Logs (catalog unreachable — non-fatal, client starts):**

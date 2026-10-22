@@ -15,6 +15,7 @@ using KS.Fiks.IO.Send.Client;
 using KS.Fiks.IO.Send.Client.Catalog;
 using KS.Fiks.IO.Send.Client.Configuration;
 using Ks.Fiks.Maskinporten.Client;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client.Events;
 
@@ -36,6 +37,7 @@ namespace KS.Fiks.IO.Client.Tests
         private KatalogConfiguration _katalogConfiguration;
         private List<string> _privateKeys = new List<string> { "dummyKey" };
         private string _offentligNokkel = null;
+        private ILoggerFactory _loggerFactory = null;
 
         public FiksIOClientFixture()
         {
@@ -67,7 +69,7 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
-                null,
+                _loggerFactory,
                 null,
                 null,
                 null,
@@ -85,7 +87,7 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return await FiksIOClient.CreateAsync(
                 _configuration,
-                null,
+                _loggerFactory,
                 null,
                 null,
                 null,
@@ -103,7 +105,7 @@ namespace KS.Fiks.IO.Client.Tests
             SetupMocks();
             return FiksIOClient.CreateAsync(
                 _configuration,
-                null,
+                _loggerFactory,
                 null,
                 null,
                 null,
@@ -166,6 +168,12 @@ namespace KS.Fiks.IO.Client.Tests
         public FiksIOClientFixture WithOffentligNokkel(string pem)
         {
             _offentligNokkel = pem;
+            return this;
+        }
+
+        public FiksIOClientFixture WithLoggerFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
             return this;
         }
 

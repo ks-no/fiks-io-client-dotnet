@@ -8,6 +8,7 @@ using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client.Exceptions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
@@ -224,14 +225,43 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
-        public async Task CreateAsyncThrowsWhenCatalogKeyDoesNotMatchPrivateKey()
+        public async Task CreateAsyncLogsErrorAndStartsWhenCatalogKeyDoesNotMatchPrivateKeyAndUploadIsDisabled()
         {
             var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
             _fixture.CatalogHandlerMock
                 .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
                 .ReturnsAsync(cert);
+            var loggerMock = new Mock<ILogger>();
+            var loggerFactoryMock = new Mock<ILoggerFactory>();
+            loggerFactoryMock.Setup(_ => _.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+
+            var sut = await _fixture.WithLoggerFactory(loggerFactoryMock.Object).CreateSutAsync();
+
+            sut.ShouldNotBeNull();
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeFalse();
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("No configured private key can decrypt messages", StringComparison.Ordinal)),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsyncThrowsWhenCatalogKeyDoesNotMatchPrivateKeyAndUploadIsEnabled()
+        {
+            var publicKeyPem = File.ReadAllText("fiks_demo_public.pem");
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_nomatching_private.pem"))
+                .WithOffentligNokkel(publicKeyPem);
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(X509CertificateReader.ExtractCertificate(publicKeyPem));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _fixture.CreateSutAsync());
+            _fixture.CatalogHandlerMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
