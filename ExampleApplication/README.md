@@ -19,7 +19,6 @@ The application listens to different keys for sending messages, managing account
 - T-key - Fetch and print Maskinporten access token
 
 #### Fiks Arkiv Account Management
-- K-key - Create a protokoll-konto via the Protokoll Konfigurasjon API
 - N-key - Create a Fiks Arkiv account as archive
 - C-key - Send access request to created account
 - V-key - View all access requests
@@ -58,6 +57,8 @@ This file is then used by the [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfig
 The [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) in this example project uses the Fluent builder that is included in the Fiks-IO-Client. 
 This is even more helpful with setting up a test or production client for you.
 
+The account management keys (N, C, V and R) go through `IProtokollKonfigurasjonClient` from the [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) package, created with `KontoKonfigurasjonClient.CreateClient` in [Program.cs](Program.cs). The package handles the integrasjon and Maskinporten headers, so this example needs no API client of its own.
+
 ### appsettings.json
 Here is the example appsetting.json file with hopefully some helpful comments:
 
@@ -84,8 +85,7 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
         "AsiceSigningPublicKey": "", // The path to the public key for verification of AsiceSigning of the payloads.
-        "FiksOrgId": "<your fiks-org id>", // Your FiksOrg id, used when creating a protokoll-konto (K-key)
-        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (K-key)
+        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (N-key)
     }
   }
 }
@@ -107,11 +107,8 @@ But you can also use a private key linked to the Maskinporten certificate if you
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
 
-#### FiksOrgId
-The id of your organization (`fiks-org`) in Fiks-plattformen. Used together with `SystemId` when creating a protokoll-konto (K-key) via the Protokoll Konfigurasjon API. You can find this in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
-
 #### SystemId
-The id of the system, registered under your `FiksOrgId`, that will own the protokoll-konto created via the K-key. Also found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+The id of the system that will own the protokoll-konto created via the N-key. It is registered under your organization (`fiks-org`) in Fiks-plattformen, and found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)). The `fiks-org` id itself is not configured here: the application reads it from the Fiks-IO account given by `FiksIoAccountId`.
 
 ## Building locally
 
