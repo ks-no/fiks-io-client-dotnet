@@ -23,6 +23,8 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private bool _shouldUseDokumentlager = false;
 
+        private bool _isChannelOpen = true;
+
         public AmqpReceiveConsumerFixture()
         {
             ChannelMock = new Mock<IChannel>();
@@ -58,6 +60,12 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
         public AmqpReceiveConsumerFixture WithoutDokumentlagerHeader()
         {
             _shouldUseDokumentlager = false;
+            return this;
+        }
+
+        public AmqpReceiveConsumerFixture WithClosedChannel()
+        {
+            _isChannelOpen = false;
             return this;
         }
 
@@ -108,12 +116,15 @@ namespace KS.Fiks.IO.Client.Tests.Amqp
 
         private void SetupMocks()
         {
-            ChannelMock.Setup(c => c.IsOpen).Returns(true);
+            ChannelMock.Setup(c => c.IsOpen).Returns(_isChannelOpen);
 
             ChannelMock.Setup(c => c.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(ValueTask.CompletedTask);
 
             ChannelMock.Setup(c => c.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask);
+
+            ChannelMock.Setup(c => c.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(ValueTask.CompletedTask);
 
             FileWriterMock.Setup(_ => _.WriteAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
