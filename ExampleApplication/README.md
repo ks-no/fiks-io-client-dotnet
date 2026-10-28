@@ -115,10 +115,10 @@ The id of the system that will own the protokoll-konto created via the N-key. It
 `ExampleApplication` references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` via a project reference, so no packing or local NuGet feed is required. Just build and test the solution as normal:
 
 ```bash
-dotnet test ../KS.Fiks.IO.Client.sln /p:CI=true /p:SignAssembly=false
+dotnet test ../KS.Fiks.IO.Client.sln
 ```
 
-> `/p:SignAssembly=false` is needed locally on Linux because the `.snk` strong-name key format uses SHA-1, which is rejected by OpenSSL 3 (used on Fedora 38+). CI runs on Ubuntu where this is not an issue.
+> On distributions whose OpenSSL 3 crypto policy rejects SHA-1 signatures (Fedora 38+, RHEL 9+), strong-name signing fails with `OpenSslCryptographicException: ... invalid digest`, because the `.snk` key format is SHA-1 based. Prefix the command with `OPENSSL_ENABLE_SHA1_SIGNATURES=1` on those machines. Do not disable signing with `/p:SignAssembly=false`: the libraries grant `InternalsVisibleTo` to the test projects by full public key, so unsigned test assemblies fail to compile (CS0281). CI runs on Ubuntu, where no workaround is needed.
 
 ## Maskinporten Token and API Calls
 

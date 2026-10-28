@@ -37,7 +37,7 @@
       "className": "ProtokollKonfigurasjonClient",
       "namespace": "KS.Fiks.IO.ProtokollKonfigurasjon.Client",
       "additionalNamespaceUsages": [],
-      "output": "Generated/ProtokollKonfigurasjonClient.g.cs"
+      "output": "$(NSwagOutput)"
     }
   }
 }

@@ -23,17 +23,6 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../fiks-io-strongly-named-key.snk</AssemblyOriginatorKeyFile>
-    <!--
-      Multi-targeted SDK projects build their per-TargetFramework "inner" builds in
-      parallel by default. Every inner build runs the NSwag target below and writes the
-      same Generated/ProtokollKonfigurasjonClient.g.cs file, so parallel inner builds race
-      on that file. POSIX file semantics let concurrent writers replace the file without
-      erroring, which is why this went unnoticed on Linux; Windows takes an exclusive
-      lock, so the same race fails there with "The process cannot access the file
-      ... because it is being used by another process." Serialize the inner builds to
-      avoid the race.
-    -->
-    <BuildInParallel>false</BuildInParallel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -64,6 +53,21 @@
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net80'">$(NSwagExe_Net80)</_NSwagCommand>
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net90'">$(NSwagExe_Net90)</_NSwagCommand>
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
+    <!--
+      Every per-TargetFramework build runs the NSwag target below, so a shared output path
+      would be written concurrently by builds running in parallel. POSIX file semantics let
+      concurrent writers replace a file without erroring, which is why that went unnoticed
+      on Linux; Windows takes an exclusive lock and fails with "The process cannot access
+      the file ... because it is being used by another process." Serializing this project's
+      own inner builds is not enough: a referencing multi-targeted project (the test project
+      targets net8.0 and net10.0) resolves the ProjectReference by invoking this project's
+      inner build directly with TargetFramework as a global property, which bypasses the
+      cross-targeting outer build entirely. Give each TargetFramework its own output path
+      instead - $(IntermediateOutputPath) is already per-configuration and per-framework -
+      so no two builds share a file. _NSwagOutput is computed inside the target below, not
+      here: IntermediateOutputPath is defined by the common targets, which are imported
+      after this project body is evaluated, so it is still empty at this point.
+    -->
   </PropertyGroup>
 
   <!--
@@ -76,21 +80,25 @@
     whether/when this target ran. Runs unconditionally, including in CI (previously
     skipped when CI=true - set automatically by GitHub Actions - because the generated
     file used to be committed to work around unreliable network access on the Windows CI
-    runner; see git history). The generated file is gitignored and no longer committed,
-    so this target must always produce it before compilation. If NSwag fails to reach the
-    OpenAPI spec URL it can exit 0 without writing the file, so we explicitly fail the
-    build when the expected output is missing instead of surfacing a confusing CS0246.
-    SDK-style implicit **/*.cs globbing captures @(Compile) items at project evaluation
-    time, before any target runs, so a file this target creates would otherwise be
-    invisible to CoreCompile; explicitly add it to @(Compile) once generated.
+    runner; see git history). The generated file now lands under obj/ and is never
+    committed, so this target must always produce it before compilation. If NSwag fails to
+    reach the OpenAPI spec URL it can exit 0 without writing the file, so we explicitly
+    fail the build when the expected output is missing instead of surfacing a confusing
+    CS0246. SDK-style implicit **/*.cs globbing captures @(Compile) items at project
+    evaluation time, before any target runs - and excludes obj/ anyway - so the generated
+    file must be added to @(Compile) explicitly once written.
   -->
   <Target Name="NSwag" BeforeTargets="CoreCompile">
-    <MakeDir Directories="Generated" />
-    <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration)" />
-    <Error Condition="!Exists('Generated/ProtokollKonfigurasjonClient.g.cs')"
-           Text="NSwag did not produce Generated/ProtokollKonfigurasjonClient.g.cs. Check the NSwag output above and network access to the OpenAPI spec URL in nswag.json." />
+    <PropertyGroup>
+      <!-- Relative to this project directory, which is also the Exec working directory. -->
+      <_NSwagOutput>$(IntermediateOutputPath)ProtokollKonfigurasjonClient.g.cs</_NSwagOutput>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <Exec Command="$(_NSwagCommand) run nswag.json /variables:NSwagRuntime=$(NSwagRuntime),Configuration=$(Configuration),NSwagOutput=$(_NSwagOutput)" />
+    <Error Condition="!Exists('$(_NSwagOutput)')"
+           Text="NSwag did not produce $(_NSwagOutput). Check the NSwag output above and network access to the OpenAPI spec URL in nswag.json." />
     <ItemGroup>
-      <Compile Include="Generated/ProtokollKonfigurasjonClient.g.cs" Exclude="@(Compile)" />
+      <Compile Include="$(_NSwagOutput)" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
 
