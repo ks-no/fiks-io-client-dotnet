@@ -12,11 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.402" PrivateAssets="All" />
-    <PackageReference Include="NSwag.AspNetCore" Version="14.7.1" />
-    <PackageReference Include="NSwag.MSBuild" Version="14.7.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
@@ -26,6 +21,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\KS.Fiks.IO.Client\KS.Fiks.IO.Client.csproj" />
+      <ProjectReference Include="..\KS.Fiks.IO.ProtokollKonfigurasjon.Client\KS.Fiks.IO.ProtokollKonfigurasjon.Client.csproj" />
     </ItemGroup>
 
 
@@ -45,12 +41,5 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
-
-  <Target Name="NSwag" BeforeTargets="BeforeCompile">
-    <Exec WorkingDirectory="$(ProjectDir)" Command="$(NSwagExe_Net80) run nswag/fiks-protokoll-konfigurasjon-api-v1.nswag /variables:Configuration=$(Configuration)" />
-    <ItemGroup>
-      <Compile Include="Generated/**/*.cs" />
-    </ItemGroup>
-  </Target>
 
 </Project>

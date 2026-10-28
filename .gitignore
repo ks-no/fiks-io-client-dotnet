@@ -10,6 +10,8 @@ project.lock.json
 .DS_Store
 *.pyc
 nupkg/
+local-nuget/
+artifacts/
 
 # Visual Studio Code
 .vscode
@@ -19,6 +21,7 @@ nupkg/
 *.user
 *.userosscache
 *.sln.docstates
+
 
 # Build results
 [Dd]ebug/
@@ -36,6 +39,5 @@ msbuild.log
 msbuild.err
 msbuild.wrn
 
-**/Generated/**/*.cs
 # Release job downloads signed packages here (create-github-release); never commit them
 release-packages/

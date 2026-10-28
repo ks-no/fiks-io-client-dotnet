@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using ExampleApplication.FiksIO;
 using KS.Fiks.IO.Client;
 using KS.Fiks.IO.Client.Amqp.RabbitMQ;
+using KS.Fiks.IO.ProtokollKonfigurasjon.Client;
 using Ks.Fiks.Maskinporten.Client;
-using Ks.Fiks.Protokoll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,7 +35,6 @@ namespace ExampleApplication
     {
         private static MessageSender _messageSender;
         private static FiksIOClient _fiksIoClient;
-        private static FiksProtokollKonfigurasjonApiClient _fiksProtokollKonfigurasjonApiClient;
         private static AppSettings appSettings;
         private static Guid _toAccountId;
         private static ILogger _logger;
@@ -51,6 +49,7 @@ namespace ExampleApplication
         public const string FiksMatrikkelfoeringPing = "no.ks.fiks.matrikkelfoering.v2.ping";
         public const string FiksMatrikkelfoeringPong = "no.ks.fiks.matrikkelfoering.v2.pong";
         private static RabbitMQEventLogger _rabbitMqEventLogger;
+        private static IProtokollKonfigurasjonClient _protokollKonfigurasjonClient;
         
         private static Guid _protokollFiksOrgId = Guid.Empty;
         private static Guid _protokollSystemId = Guid.Empty;
@@ -69,20 +68,24 @@ namespace ExampleApplication
             
             _maskinportenClient = new MaskinportenClient(configuration.MaskinportenConfiguration);
             _scope = configuration.IntegrasjonConfiguration.Scope;
-            
+
+            _protokollKonfigurasjonClient = KontoKonfigurasjonClient.CreateClient(
+                $"{appSettings.FiksIOConfig.ApiScheme}://{appSettings.FiksIOConfig.ApiHost}:{appSettings.FiksIOConfig.ApiPort}",
+                appSettings.FiksIOConfig.FiksIoIntegrationId,
+                appSettings.FiksIOConfig.FiksIoIntegrationPassword,
+                async () => (await _maskinportenClient.GetAccessToken(_scope)).Token);
+
             _fiksIoClient = await FiksIOClient.CreateAsync(configuration, loggerFactory);
             _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
             
             // Creating messageSender as a local instance
             _messageSender = new MessageSender(_fiksIoClient, appSettings);
             
-            _protokollSystemId = appSettings.FiksIOConfig.ProtokollSystemId;
+            _protokollSystemId = appSettings.FiksIOConfig.SystemId;
             
             var protokollPublicKey = appSettings.FiksIOConfig.ProtokollPublicKey;
             Log.Information("Initialized Protokoll System ID: {SystemId}", _protokollSystemId);
             Log.Information("Protokoll Public Key path: {PublicKeyPath}", protokollPublicKey);
-            
-            _fiksProtokollKonfigurasjonApiClient = await InitializeFiksProtokollKonfigurasjonApiClient(appSettings);
             
             // Setting the account to send messages to. In this case the same as sending account
             _toAccountId = appSettings.FiksIOConfig.FiksIoAccountId;
@@ -94,16 +97,24 @@ namespace ExampleApplication
 
             Task.Run(() => { MonitorKeypress(tokenSource); });
             
-            await new HostBuilder()
-                .ConfigureHostConfiguration(configHost => { configHost.AddEnvironmentVariables("DOTNET_"); })
-                .ConfigureServices((_, services) =>
-                {
-                    services.AddSingleton(appSettings);
-                    services.AddSingleton(loggerFactory);
-                    services.AddSingleton<IFiksIOClient>(_fiksIoClient);
-                    services.AddHostedService<FiksIOSubscriber>();
-                })
-                .RunConsoleAsync(tokenSource.Token);
+            try
+            {
+                await new HostBuilder()
+                    .ConfigureHostConfiguration(configHost => { configHost.AddEnvironmentVariables("DOTNET_"); })
+                    .ConfigureServices((_, services) =>
+                    {
+                        services.AddSingleton(appSettings);
+                        services.AddSingleton(loggerFactory);
+                        services.AddSingleton<IFiksIOClient>(_fiksIoClient);
+                        services.AddHostedService<FiksIOSubscriber>();
+                    })
+                    .RunConsoleAsync(tokenSource.Token);
+            }
+            finally
+            {
+                // CreateClient hands over ownership of the HttpClient it created for this client.
+                _protokollKonfigurasjonClient.Dispose();
+            }
         }
 
         private static async Task MonitorKeypress(CancellationTokenSource tokenSource)
@@ -198,7 +209,7 @@ namespace ExampleApplication
                     StottetProtokollVersjon = "v1"
                 };
 
-                var parts = new List<PartRequest> {arkivPart };
+                var parts = new List<PartRequest> { arkivPart };
                 
                 string offentligNokkel = "";
                 var publicKeyPath = appSettings.FiksIOConfig.ProtokollPublicKey;
@@ -221,19 +232,16 @@ namespace ExampleApplication
                     OffentligNokkel = !string.IsNullOrEmpty(offentligNokkel) ? offentligNokkel : null
                 };
 
-                var response = await _fiksProtokollKonfigurasjonApiClient.CreateKontoAsync(_protokollFiksOrgId, _protokollSystemId, createKontoRequest);
+                var konto = await _protokollKonfigurasjonClient.CreateKontoAsync(_protokollFiksOrgId, _protokollSystemId, createKontoRequest);
                 
-                if (response.StatusCode >= 200 && response.StatusCode < 300 && response.Result != null)
-                {
-                    _protokollKontoId = response.Result.Id;
-                    Log.Information("Successfully created Fiks Arkiv konto with ID: {KontoId}", _protokollKontoId);
-                    Log.Information("Konto navn: {KontoNavn}", response.Result.Navn);
-                    Log.Information("Protokoll: {Protokoll}", response.Result.StottetProtokollNavn);
-                }
-                else
-                {
-                    Log.Error("Failed to create Fiks Arkiv konto (Status: {StatusCode})", response.StatusCode);
-                }
+                _protokollKontoId = konto.Id;
+                Log.Information("Successfully created Fiks Arkiv konto with ID: {KontoId}", _protokollKontoId);
+                Log.Information("Konto navn: {KontoNavn}", konto.Navn);
+                Log.Information("Protokoll: {Protokoll}", konto.StottetProtokollNavn);
+            }
+            catch (ProtokollKonfigurasjonApiException ex)
+            {
+                Log.Error(ex, "Failed to create Fiks Arkiv konto (Status: {StatusCode})", ex.StatusCode);
             }
             catch (Exception ex)
             {
@@ -259,19 +267,16 @@ namespace ExampleApplication
 
                 Log.Information("Sending access request to konto {KontoId}...", _protokollKontoId);
                 
-                var response = await _fiksProtokollKonfigurasjonApiClient.CreateTilgangForesporselTilKontoAsync(
+                await _protokollKonfigurasjonClient.CreateTilgangForesporselTilKontoAsync(
                     _protokollFiksOrgId, 
                     _protokollSystemId, 
                     _protokollKontoId);
                 
-                if (response.StatusCode >= 200 && response.StatusCode < 300)
-                {
-                    Log.Information("Successfully sent access request to konto {KontoId}", _protokollKontoId);
-                }
-                else
-                {
-                    Log.Error("Failed to send access request (Status: {StatusCode})", response.StatusCode);
-                }
+                Log.Information("Successfully sent access request to konto {KontoId}", _protokollKontoId);
+            }
+            catch (ProtokollKonfigurasjonApiException ex)
+            {
+                Log.Error(ex, "Failed to send access request (Status: {StatusCode})", ex.StatusCode);
             }
             catch (Exception ex)
             {
@@ -297,25 +302,21 @@ namespace ExampleApplication
 
                 Log.Information("Fetching access requests for konto {KontoId}...", _protokollKontoId);
                 
-                var response = await _fiksProtokollKonfigurasjonApiClient.GetForespurteTilgangerPaaKontoAsync(
+                var accessRequests = (await _protokollKonfigurasjonClient.GetForespurteTilgangerPaaKontoAsync(
                     _protokollFiksOrgId,
                     _protokollSystemId,
-                    _protokollKontoId);
+                    _protokollKontoId)).ToList();
                 
-                if (response.StatusCode >= 200 && response.StatusCode < 300 && response.Result != null)
+                Log.Information("Found {Count} access requests", accessRequests.Count);
+                
+                foreach (var request in accessRequests)
                 {
-                    var accessRequests = response.Result.ToList();
-                    Log.Information("Found {Count} access requests", accessRequests.Count);
-                    
-                    foreach (var request in accessRequests)
-                    {
-                        Log.Information("  - System: {SystemNavn}, Org: {OrgNavn}", request.Navn, request.FiksOrgNavn);
-                    }
+                    Log.Information("  - System: {SystemNavn}, Org: {OrgNavn}", request.Navn, request.FiksOrgNavn);
                 }
-                else
-                {
-                    Log.Error("Failed to fetch access requests (Status: {StatusCode})", response.StatusCode);
-                }
+            }
+            catch (ProtokollKonfigurasjonApiException ex)
+            {
+                Log.Error(ex, "Failed to fetch access requests (Status: {StatusCode})", ex.StatusCode);
             }
             catch (Exception ex)
             {
@@ -341,39 +342,37 @@ namespace ExampleApplication
 
                 Log.Information("Approving access requests for konto {KontoId}...", _protokollKontoId);
                 
-                var response = await _fiksProtokollKonfigurasjonApiClient.GetForespurteTilgangerPaaKontoAsync(
+                var accessRequests = await _protokollKonfigurasjonClient.GetForespurteTilgangerPaaKontoAsync(
                     _protokollFiksOrgId,
                     _protokollSystemId,
                     _protokollKontoId);
                 
-                if (response.StatusCode >= 200 && response.StatusCode < 300 && response.Result != null)
+                int approvedCount = 0;
+                foreach (var accessRequest in accessRequests)
                 {
-                    int approvedCount = 0;
-                    foreach (var accessRequest in response.Result)
+                    // Approving one request at a time, so that a single failure does not abort the rest.
+                    try
                     {
-                        var approveResponse = await _fiksProtokollKonfigurasjonApiClient.CreateTilgangTilSystemAsync(
+                        await _protokollKonfigurasjonClient.CreateTilgangTilSystemAsync(
                             _protokollFiksOrgId,
                             _protokollSystemId,
                             _protokollKontoId,
                             accessRequest.Id);
                         
-                        if (approveResponse.StatusCode >= 200 && approveResponse.StatusCode < 300)
-                        {
-                            approvedCount++;
-                            Log.Information("Approved access for system: {SystemNavn}", accessRequest.Navn);
-                        }
-                        else
-                        {
-                            Log.Error("Failed to approve access for system {SystemId} (Status: {StatusCode})", accessRequest.Id, approveResponse.StatusCode);
-                        }
+                        approvedCount++;
+                        Log.Information("Approved access for system: {SystemNavn}", accessRequest.Navn);
                     }
-                    
-                    Log.Information("Approved {Count} access requests", approvedCount);
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Failed to approve access for system {SystemId}", accessRequest.Id);
+                    }
                 }
-                else
-                {
-                    Log.Error("Failed to fetch access requests for approval (Status: {StatusCode})", response.StatusCode);
-                }
+                
+                Log.Information("Approved {Count} access requests", approvedCount);
+            }
+            catch (ProtokollKonfigurasjonApiException ex)
+            {
+                Log.Error(ex, "Failed to fetch access requests for approval (Status: {StatusCode})", ex.StatusCode);
             }
             catch (Exception ex)
             {
@@ -411,51 +410,6 @@ namespace ExampleApplication
             Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antallkonsumenter : {status.AntallKonsumenter}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient KontoStatus - antall uavhentede meldinger : {status.AntallUavhentedeMeldinger}");
             Log.Information($"FiksIOSubscriber status check - FiksIOClient Key Validation - does the public key from catalog match the private key configured in client: {keyValidation}");
-        }
-
-        private static async Task<FiksProtokollKonfigurasjonApiClient> InitializeFiksProtokollKonfigurasjonApiClient(AppSettings appSettingsParam)
-        {
-            var integrasjonId = appSettingsParam.FiksIOConfig.FiksIoIntegrationId;
-            var integrasjonPassword = appSettingsParam.FiksIOConfig.FiksIoIntegrationPassword;
-            var apiScheme = appSettingsParam.FiksIOConfig.ApiScheme;
-            var apiHost = appSettingsParam.FiksIOConfig.ApiHost;
-            var apiPort = appSettingsParam.FiksIOConfig.ApiPort;
-            var baseUrl = $"{apiScheme}://{apiHost}:{apiPort}";
-            
-            var handler = new MaskinportenTokenDelegatingHandler(_maskinportenClient, _scope, integrasjonId, integrasjonPassword)
-            {
-                InnerHandler = new HttpClientHandler()
-            };
-
-            var httpClient = new HttpClient(handler);
-            httpClient.BaseAddress = new Uri(baseUrl);
-
-            return new FiksProtokollKonfigurasjonApiClient(httpClient)
-            {
-                BaseUrl = baseUrl
-            };
-        }
-
-        private class MaskinportenTokenDelegatingHandler(
-            MaskinportenClient maskinportenClient,
-            string scope,
-            Guid integrasjonId,
-            string integrasjonPassword)
-            : DelegatingHandler
-        {
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                request.Headers.Add("IntegrasjonId", integrasjonId.ToString());
-                request.Headers.Add("IntegrasjonPassord", integrasjonPassword);
-                
-                var token = await maskinportenClient.GetAccessToken(scope);
-                
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Token);
-                
-                request.Headers.Add("X-Request-ID", Guid.NewGuid().ToString());
-
-                return await base.SendAsync(request, cancellationToken);
-            }
         }
     }
 }
