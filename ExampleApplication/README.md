@@ -57,6 +57,8 @@ This file is then used by the [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfig
 The [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) in this example project uses the Fluent builder that is included in the Fiks-IO-Client. 
 This is even more helpful with setting up a test or production client for you.
 
+The account management keys (N, C, V and R) go through `IProtokollKonfigurasjonClient` from the [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) package, created with `KontoKonfigurasjonClient.CreateClient` in [Program.cs](Program.cs). The package handles the integrasjon and Maskinporten headers, so this example needs no API client of its own.
+
 ### appsettings.json
 Here is the example appsetting.json file with hopefully some helpful comments:
 
@@ -82,7 +84,8 @@ Here is the example appsetting.json file with hopefully some helpful comments:
         "MaskinPortenIssuer": "", // Maskinporten issuer
         "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
         "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
-        "AsiceSigningPublicKey": "" // The path to the public key for verification of AsiceSigning of the payloads.
+        "AsiceSigningPublicKey": "", // The path to the public key for verification of AsiceSigning of the payloads.
+        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (N-key)
     }
   }
 }
@@ -103,6 +106,19 @@ But you can also use a private key linked to the Maskinporten certificate if you
 
 #### AsiceSigningPublicKey
 This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
+
+#### SystemId
+The id of the system that will own the protokoll-konto created via the N-key. It is registered under your organization (`fiks-org`) in Fiks-plattformen, and found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)). The `fiks-org` id itself is not configured here: the application reads it from the Fiks-IO account given by `FiksIoAccountId`.
+
+## Building locally
+
+`ExampleApplication` references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` via a project reference, so no packing or local NuGet feed is required. Just build and test the solution as normal:
+
+```bash
+dotnet test ../KS.Fiks.IO.Client.sln
+```
+
+> On distributions whose OpenSSL 3 crypto policy rejects SHA-1 signatures (Fedora 38+, RHEL 9+), strong-name signing fails with `OpenSslCryptographicException: ... invalid digest`, because the `.snk` key format is SHA-1 based. Prefix the command with `OPENSSL_ENABLE_SHA1_SIGNATURES=1` on those machines. Do not disable signing with `/p:SignAssembly=false`: the libraries grant `InternalsVisibleTo` to the test projects by full public key, so unsigned test assemblies fail to compile (CS0281). CI runs on Ubuntu, where no workaround is needed.
 
 ## Maskinporten Token and API Calls
 

@@ -27,6 +27,9 @@ For more information on RabbitMQ, we recommend the documentation pages on connec
 ## Installation
 Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
 
+## Related packages
+This repository also publishes [KS.Fiks.IO.ProtokollKonfigurasjon.Client](https://www.nuget.org/packages/KS.Fiks.IO.ProtokollKonfigurasjon.Client), a client for the Fiks Protokoll Konfigurasjon API used to create and manage Fiks Protokoll `konto` (accounts) and systems. See its [README](KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) for usage.
+
 ## Prerequisites
 To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
 
