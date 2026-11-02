@@ -4,9 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KS.Fiks.Crypto.BouncyCastle;
 using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Crypto.Models;
+using KS.Fiks.IO.Send.Client.Exceptions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Org.BouncyCastle.X509;
 using RabbitMQ.Client.Events;
 using Shouldly;
 using Xunit;
@@ -207,6 +211,130 @@ namespace KS.Fiks.IO.Client.Tests
 
             await Assert.ThrowsAsync<TaskCanceledException>(
                 async () => await sut.Send(_fixture.DefaultRequest, cts.Token).ConfigureAwait(false));
+        }
+
+        [Fact]
+        public async Task CreateAsyncSucceedsWhenCatalogHasNoKey()
+        {
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
+
+            var sut = await _fixture.CreateSutAsync();
+            sut.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task CreateAsyncLogsErrorAndStartsWhenCatalogKeyDoesNotMatchPrivateKeyAndUploadIsDisabled()
+        {
+            var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(cert);
+            var loggerMock = new Mock<ILogger>();
+            var loggerFactoryMock = new Mock<ILoggerFactory>();
+            loggerFactoryMock.Setup(_ => _.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+
+            var sut = await _fixture.WithLoggerFactory(loggerFactoryMock.Object).CreateSutAsync();
+
+            sut.ShouldNotBeNull();
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeFalse();
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains("No configured private key can decrypt messages", StringComparison.Ordinal)),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsyncThrowsWhenCatalogKeyDoesNotMatchPrivateKeyAndUploadIsEnabled()
+        {
+            var publicKeyPem = File.ReadAllText("fiks_demo_public.pem");
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_nomatching_private.pem"))
+                .WithOffentligNokkel(publicKeyPem);
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(X509CertificateReader.ExtractCertificate(publicKeyPem));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _fixture.CreateSutAsync());
+            _fixture.CatalogHandlerMock.Verify(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateAsyncSucceedsWhenCatalogIsUnreachableAndOffentligNokkelIsNotSet()
+        {
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ThrowsAsync(new Exception("Catalog unreachable"));
+
+            var sut = await _fixture.CreateSutAsync();
+            sut.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task CreateAsyncThrowsWhenUploadFailsAndCatalogHasNoKey()
+        {
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_private.pem"))
+                .WithOffentligNokkel(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Upload failed"));
+
+            await Assert.ThrowsAsync<Exception>(() => _fixture.CreateSutAsync());
+        }
+
+        [Fact]
+        public async Task CreateAsyncDoesNotUploadWhenCatalogKeyAlreadyMatchesConfiguredKey()
+        {
+            var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_private.pem"))
+                .WithOffentligNokkel(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(cert);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            sut.ShouldNotBeNull();
+            _fixture.CatalogHandlerMock.Verify(
+                _ => _.UploadPublicKey(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task IsAutomaticPublicKeyUploadEnabledReturnsFalseWhenOffentligNokkelNotSet()
+        {
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
+
+            var sut = await _fixture.CreateSutAsync();
+
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task IsAutomaticPublicKeyUploadEnabledReturnsTrueWhenOffentligNokkelSet()
+        {
+            var cert = X509CertificateReader.ExtractCertificate(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture
+                .WithPrivateKey(File.ReadAllText("fiks_demo_private.pem"))
+                .WithOffentligNokkel(File.ReadAllText("fiks_demo_public.pem"));
+            _fixture.CatalogHandlerMock
+                .Setup(_ => _.GetPublicKey(It.IsAny<Guid>()))
+                .ReturnsAsync(cert);
+
+            var sut = await _fixture.CreateSutAsync();
+
+            sut.IsAutomaticPublicKeyUploadEnabled.ShouldBeTrue();
         }
     }
 }
