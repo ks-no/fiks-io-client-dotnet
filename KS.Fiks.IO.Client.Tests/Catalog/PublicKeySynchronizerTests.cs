@@ -24,6 +24,9 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
 {
     public class PublicKeySynchronizerTests
     {
+        private static readonly IReadOnlyList<TimeSpan> NoConfirmationRetryDelays =
+            new[] { TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero };
+
         private readonly string _publicKeyPem;
         private readonly X509Certificate _publicKeyCert;
         private readonly string _matchingPrivateKeyPem;
@@ -264,6 +267,67 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 Times.Once);
         }
 
+        [Fact]
+        public async Task ConfirmsUploadOnRetryWithoutWarning()
+        {
+            var kontoId = Guid.NewGuid();
+            var catalogMock = new Mock<ICatalogHandler>();
+            catalogMock.SetupSequence(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("not visible yet"))
+                .ReturnsAsync(_publicKeyCert);
+            var (loggerMock, loggerFactory) = CreateLoggerMock();
+
+            var sut = CreateSut(catalogMock, loggerFactory: loggerFactory);
+
+            await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
+
+            catalogMock.Verify(_ => _.UploadPublicKey(kontoId, _publicKeyPem), Times.Once);
+            catalogMock.Verify(_ => _.GetPublicKey(kontoId), Times.Exactly(3));
+            VerifyLogged(loggerMock, LogLevel.Warning, Times.Never());
+        }
+
+        [Fact]
+        public async Task LogsOneWarningWhenUploadIsNotConfirmedAfterAllRetries()
+        {
+            var kontoId = Guid.NewGuid();
+            var catalogMock = new Mock<ICatalogHandler>();
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"));
+            var (loggerMock, loggerFactory) = CreateLoggerMock();
+
+            var sut = CreateSut(catalogMock, loggerFactory: loggerFactory);
+
+            var result = await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
+
+            Assert.NotNull(result);
+            // One initial lookup, then one confirmation attempt plus three retries.
+            catalogMock.Verify(_ => _.GetPublicKey(kontoId), Times.Exactly(1 + 1 + NoConfirmationRetryDelays.Count));
+            VerifyLogged(loggerMock, LogLevel.Warning, Times.Once());
+        }
+
+        [Fact]
+        public async Task LogsOneWarningWhenCatalogKeyStillDiffersAfterAllRetries()
+        {
+            var kontoId = Guid.NewGuid();
+            var unrelatedCert = GenerateSelfSignedCert();
+            var catalogMock = new Mock<ICatalogHandler>();
+            catalogMock.SetupSequence(_ => _.GetPublicKey(kontoId))
+                .ThrowsAsync(new FiksIOSendPublicKeyNotFoundException("no key"))
+                .ReturnsAsync(unrelatedCert)
+                .ReturnsAsync(unrelatedCert)
+                .ReturnsAsync(unrelatedCert)
+                .ReturnsAsync(unrelatedCert);
+            var (loggerMock, loggerFactory) = CreateLoggerMock();
+
+            var sut = CreateSut(catalogMock, loggerFactory: loggerFactory);
+
+            await sut.SynchronizePublicKeyAsync(kontoId, _publicKeyPem);
+
+            catalogMock.Verify(_ => _.GetPublicKey(kontoId), Times.Exactly(1 + 1 + NoConfirmationRetryDelays.Count));
+            VerifyLogged(loggerMock, LogLevel.Warning, Times.Once());
+        }
+
         private PublicKeySynchronizer CreateSut(
             Mock<ICatalogHandler> catalogMock,
             bool useNonMatchingPrivateKey = false,
@@ -276,7 +340,27 @@ namespace KS.Fiks.IO.Client.Tests.Catalog
                 : new[] { primaryKey };
             var kontoConfig = new KontoConfiguration(Guid.NewGuid(), allKeys);
             var keyValidator = new KeyValidatorHandler(catalogMock.Object, kontoConfig);
-            return new PublicKeySynchronizer(catalogMock.Object, keyValidator, loggerFactory);
+            return new PublicKeySynchronizer(catalogMock.Object, keyValidator, loggerFactory, NoConfirmationRetryDelays);
+        }
+
+        private static (Mock<ILogger<PublicKeySynchronizer>> Logger, ILoggerFactory Factory) CreateLoggerMock()
+        {
+            var loggerMock = new Mock<ILogger<PublicKeySynchronizer>>();
+            var loggerFactoryMock = new Mock<ILoggerFactory>();
+            loggerFactoryMock.Setup(_ => _.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+            return (loggerMock, loggerFactoryMock.Object);
+        }
+
+        private static void VerifyLogged(Mock<ILogger<PublicKeySynchronizer>> loggerMock, LogLevel level, Times times)
+        {
+            loggerMock.Verify(
+                x => x.Log(
+                    level,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>() !),
+                times);
         }
 
         private static string CertToPem(X509Certificate cert)

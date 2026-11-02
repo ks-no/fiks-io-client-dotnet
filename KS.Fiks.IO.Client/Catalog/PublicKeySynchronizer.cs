@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KS.Fiks.Crypto.BouncyCastle;
@@ -11,18 +12,30 @@ namespace KS.Fiks.IO.Client.Catalog
 {
     internal class PublicKeySynchronizer
     {
+        // The catalog may need a moment to see a newly uploaded key, for example when the upload
+        // activates a deactivated account. Confirmation is retried after these delays before warning.
+        internal static readonly IReadOnlyList<TimeSpan> DefaultConfirmationRetryDelays = new[]
+        {
+            TimeSpan.FromMilliseconds(500),
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(2),
+        };
+
         private readonly ICatalogHandler _catalogHandler;
         private readonly IKeyValidator _keyValidator;
         private readonly ILogger<PublicKeySynchronizer> _logger;
+        private readonly IReadOnlyList<TimeSpan> _confirmationRetryDelays;
 
         public PublicKeySynchronizer(
             ICatalogHandler catalogHandler,
             IKeyValidator keyValidator,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory loggerFactory = null,
+            IReadOnlyList<TimeSpan> confirmationRetryDelays = null)
         {
             _catalogHandler = catalogHandler;
             _keyValidator = keyValidator;
             _logger = loggerFactory?.CreateLogger<PublicKeySynchronizer>();
+            _confirmationRetryDelays = confirmationRetryDelays ?? DefaultConfirmationRetryDelays;
         }
 
         public async Task<X509Certificate> SynchronizePublicKeyAsync(Guid kontoId, string configuredPublicKeyPem)
@@ -61,22 +74,69 @@ namespace KS.Fiks.IO.Client.Catalog
 
             _logger?.LogInformation("Public key uploaded for account {KontoId}.", kontoId);
 
-            try
-            {
-                var storedCert = await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
-                if (!HasSamePublicKey(storedCert, configuredCert))
-                {
-                    _logger?.LogWarning(
-                        "Catalog public key for account {KontoId} does not match the key just uploaded (may be eventual consistency).",
-                        kontoId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Could not confirm catalog public key for account {KontoId} after upload.", kontoId);
-            }
+            await ConfirmUploadAsync(kontoId, configuredCert).ConfigureAwait(false);
 
             return configuredCert;
+        }
+
+        private async Task ConfirmUploadAsync(Guid kontoId, X509Certificate configuredCert)
+        {
+            var maxAttempts = _confirmationRetryDelays.Count + 1;
+            Exception lastException = null;
+
+            for (var attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                if (attempt > 1)
+                {
+                    await Task.Delay(_confirmationRetryDelays[attempt - 2]).ConfigureAwait(false);
+                }
+
+                try
+                {
+                    var storedCert = await _catalogHandler.GetPublicKey(kontoId).ConfigureAwait(false);
+                    if (HasSamePublicKey(storedCert, configuredCert))
+                    {
+                        _logger?.LogDebug(
+                            "Catalog confirmed public key for account {KontoId} after {Attempts} attempt(s).",
+                            kontoId,
+                            attempt);
+                        return;
+                    }
+
+                    lastException = null;
+                    _logger?.LogDebug(
+                        "Catalog public key for account {KontoId} does not match the uploaded key yet (attempt {Attempt} of {MaxAttempts}).",
+                        kontoId,
+                        attempt,
+                        maxAttempts);
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    _logger?.LogDebug(
+                        "Could not confirm catalog public key for account {KontoId} yet (attempt {Attempt} of {MaxAttempts}): {Reason}",
+                        kontoId,
+                        attempt,
+                        maxAttempts,
+                        ex.Message);
+                }
+            }
+
+            if (lastException != null)
+            {
+                _logger?.LogWarning(
+                    lastException,
+                    "Could not confirm catalog public key for account {KontoId} after upload ({Attempts} attempts).",
+                    kontoId,
+                    maxAttempts);
+            }
+            else
+            {
+                _logger?.LogWarning(
+                    "Catalog public key for account {KontoId} does not match the key just uploaded after {Attempts} attempts (may be eventual consistency).",
+                    kontoId,
+                    maxAttempts);
+            }
         }
 
         private X509Certificate ParseConfiguredCertificate(Guid kontoId, string pem)
