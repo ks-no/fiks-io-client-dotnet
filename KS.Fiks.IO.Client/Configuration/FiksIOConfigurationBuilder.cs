@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Crypto.Configuration;
 using KS.Fiks.IO.Send.Client.Configuration;
@@ -20,6 +21,7 @@ namespace KS.Fiks.IO.Client.Configuration
         private ushort amqpPrefetchCount = 10;
         private string maskinportenIssuer = string.Empty;
         private X509Certificate2 maskinportenCertificate;
+        private RSA maskinportenPrivateKey;
         private string maskinportenKeyIdentifier;
 
         public static FiksIOConfigurationBuilder Init()
@@ -37,7 +39,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
+                maskinportenConfiguration: CreateMaskinportenTestConfiguration());
         }
 
         public FiksIOConfiguration BuildDevConfiguration(string amqpHost, string apiHost)
@@ -50,7 +52,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
+                maskinportenConfiguration: CreateMaskinportenTestConfiguration());
         }
 
         public FiksIOConfiguration BuildProdConfiguration()
@@ -63,7 +65,7 @@ namespace KS.Fiks.IO.Client.Configuration
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
-                maskinportenConfiguration: FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier));
+                maskinportenConfiguration: CreateMaskinportenProdConfiguration());
         }
 
         public FiksIOConfigurationBuilder WithMaskinportenConfiguration(X509Certificate2 certificate, string issuer)
@@ -77,6 +79,20 @@ namespace KS.Fiks.IO.Client.Configuration
         {
             maskinportenIssuer = issuer;
             maskinportenCertificate = certificate;
+            maskinportenKeyIdentifier = keyIdentifier;
+            return this;
+        }
+
+        /*
+         * Maskinporten with your own RSA key pair instead of a certificate. The keyIdentifier (kid) is required.
+         * Cannot be combined with WithMaskinportenConfiguration( ... ).
+         * The caller owns the RSA object. It is not disposed by the builder or the client, and it must be kept alive
+         * as long as the FiksIOClient is in use. Otherwise token renewal fails with an ObjectDisposedException.
+         */
+        public FiksIOConfigurationBuilder WithMaskinportenKeyPairConfiguration(RSA privateKey, string issuer, string keyIdentifier)
+        {
+            maskinportenIssuer = issuer;
+            maskinportenPrivateKey = privateKey;
             maskinportenKeyIdentifier = keyIdentifier;
             return this;
         }
@@ -129,12 +145,56 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
+        private MaskinportenClientConfiguration CreateMaskinportenTestConfiguration()
+        {
+            if (maskinportenPrivateKey == null)
+            {
+                return FiksIOConfiguration.CreateMaskinportenTestConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier);
+            }
+
+            return CreateMaskinportenKeyPairConfiguration(FiksIOConfiguration.maskinportenTestAudience, FiksIOConfiguration.maskinportenTestTokenEndpoint);
+        }
+
+        private MaskinportenClientConfiguration CreateMaskinportenProdConfiguration()
+        {
+            if (maskinportenPrivateKey == null)
+            {
+                return FiksIOConfiguration.CreateMaskinportenProdConfig(maskinportenIssuer, maskinportenCertificate, maskinportenKeyIdentifier);
+            }
+
+            return CreateMaskinportenKeyPairConfiguration(FiksIOConfiguration.maskinportenProdAudience, FiksIOConfiguration.maskinportenProdTokenEndpoint);
+        }
+
+        private MaskinportenClientConfiguration CreateMaskinportenKeyPairConfiguration(string audience, string tokenEndpoint)
+        {
+            return new MaskinportenClientConfiguration(
+                audience: audience,
+                tokenEndpoint: tokenEndpoint,
+                issuer: maskinportenIssuer,
+                numberOfSecondsLeftBeforeExpire: 10,
+                privateKey: maskinportenPrivateKey,
+                publicKey: maskinportenPrivateKey,
+                keyIdentifier: maskinportenKeyIdentifier);
+        }
+
         private void ValidateConfigurations()
         {
-            if (string.IsNullOrEmpty(maskinportenIssuer) || maskinportenCertificate == null)
+            if (maskinportenCertificate != null && maskinportenPrivateKey != null)
             {
                 throw new ArgumentException(
-                    "MaskinportenConfiguration missing. Have you called the WithMaskinportenConfiguration( ... ) in this builder?");
+                    "MaskinportenConfiguration has both a certificate and a key pair. Use either WithMaskinportenConfiguration( ... ) or WithMaskinportenKeyPairConfiguration( ... ), not both.");
+            }
+
+            if (string.IsNullOrEmpty(maskinportenIssuer) || (maskinportenCertificate == null && maskinportenPrivateKey == null))
+            {
+                throw new ArgumentException(
+                    "MaskinportenConfiguration missing. Have you called the WithMaskinportenConfiguration( ... ) or WithMaskinportenKeyPairConfiguration( ... ) in this builder?");
+            }
+
+            if (maskinportenPrivateKey != null && string.IsNullOrEmpty(maskinportenKeyIdentifier))
+            {
+                throw new ArgumentException(
+                    "keyIdentifier missing. The keyIdentifier (kid) is required when using WithMaskinportenKeyPairConfiguration( ... ).");
             }
 
             if (_integrasjonConfiguration == null)
