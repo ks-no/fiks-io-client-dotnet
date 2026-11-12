@@ -35,7 +35,23 @@ permissions:
   id-token: write
 
 jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Require NUGET_USER for trusted publishing
+        if: inputs.isRelease == true || inputs.pushToNugetOrg == true
+        env:
+          NUGET_USER: ${{ secrets.NUGET_USER }}
+        run: |
+          if [ -z "$NUGET_USER" ]; then
+            echo "::error::Trusted publishing (OIDC) krever secret NUGET_USER"
+            exit 1
+          fi
+
   build:
+    needs: preflight
     uses: ks-no/github-actions-public/.github/workflows/dotnet-library-build.yml@main
     with:
       is-release: ${{ inputs.isRelease == true }}
