@@ -82,6 +82,32 @@ namespace KS.Fiks.IO.Client.Tests
         }
 
         [Fact]
+        public async Task ReturnsTrueWhenOnlyNonFirstPrivateKeyMatches()
+        {
+            var catalogMock = new Mock<ICatalogHandler>();
+            var kontoId = Guid.NewGuid();
+            catalogMock.Setup(_ => _.GetPublicKey(kontoId)).ReturnsAsync(_matchingCertificate);
+
+            // The matching key is intentionally last to guard the "validate against all keys" behaviour.
+            var kontoConfig = new KontoConfiguration(kontoId, new[] { _nonMatchingPrivateKeyPem, _matchingPrivateKeyPem });
+            var sut = new KeyValidatorHandler(catalogMock.Object, kontoConfig);
+
+            var result = await sut.ValidatePublicKeyAgainstPrivateKeyAsync();
+
+            result.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void ValidateCertificateAgainstPrivateKeysThrowsWhenCertificateIsNull()
+        {
+            var catalogMock = new Mock<ICatalogHandler>();
+            var kontoConfig = new KontoConfiguration(Guid.NewGuid(), _matchingPrivateKeyPem);
+            var sut = new KeyValidatorHandler(catalogMock.Object, kontoConfig);
+
+            Assert.Throws<ArgumentNullException>(() => sut.ValidateCertificateAgainstPrivateKeys(null));
+        }
+
+        [Fact]
         public async Task ThrowsWhenNoPrivateKeysAreConfigured()
         {
             var catalogMock = new Mock<ICatalogHandler>();
