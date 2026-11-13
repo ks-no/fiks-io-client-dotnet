@@ -191,7 +191,7 @@ namespace KS.Fiks.IO.Client.Configuration
                     "MaskinportenConfiguration missing. Have you called the WithMaskinportenConfiguration( ... ) or WithMaskinportenKeyPairConfiguration( ... ) in this builder?");
             }
 
-            if (maskinportenPrivateKey != null && string.IsNullOrEmpty(maskinportenKeyIdentifier))
+            if (maskinportenPrivateKey != null && string.IsNullOrWhiteSpace(maskinportenKeyIdentifier))
             {
                 throw new ArgumentException(
                     "keyIdentifier missing. The keyIdentifier (kid) is required when using WithMaskinportenKeyPairConfiguration( ... ).");

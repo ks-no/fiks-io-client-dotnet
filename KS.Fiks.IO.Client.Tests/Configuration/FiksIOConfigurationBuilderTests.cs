@@ -178,7 +178,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             using var privateKey = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
-            var configuration = BuilderWithoutMaskinportenConfiguration()
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
                 .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
                 .BuildProdConfiguration();
 
@@ -198,7 +198,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             using var privateKey = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
-            var configuration = BuilderWithoutMaskinportenConfiguration()
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
                 .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
                 .BuildTestConfiguration();
 
@@ -218,7 +218,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             using var privateKey = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
-            var configuration = BuilderWithoutMaskinportenConfiguration()
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
                 .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
                 .BuildDevConfiguration("amqp-host", "api-host");
 
@@ -238,7 +238,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             using var privateKey = RSA.Create(2048);
 
             var exception = Assert.Throws<ArgumentException>(() =>
-                BuilderWithoutMaskinportenConfiguration()
+                CreateBuilderWithoutMaskinportenConfiguration()
                     .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
                     .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", "test-key-identifier")
                     .BuildProdConfiguration());
@@ -250,12 +250,13 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        [InlineData(" ")]
         public void ConfigurationFailsWithoutKeyIdentifierInMaskinportenKeyPairConfiguration(string? keyIdentifier)
         {
             using var privateKey = RSA.Create(2048);
 
             var exception = Assert.Throws<ArgumentException>(() =>
-                BuilderWithoutMaskinportenConfiguration()
+                CreateBuilderWithoutMaskinportenConfiguration()
                     .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
                     .BuildProdConfiguration());
 
@@ -266,7 +267,7 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         public void ConfigurationFailsWithoutPrivateKeyInMaskinportenKeyPairConfiguration()
         {
             var exception = Assert.Throws<ArgumentException>(() =>
-                BuilderWithoutMaskinportenConfiguration()
+                CreateBuilderWithoutMaskinportenConfiguration()
                     .WithMaskinportenKeyPairConfiguration(null, "test-issuer", "test-key-identifier")
                     .BuildProdConfiguration());
 
@@ -279,12 +280,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             using var privateKey = RSA.Create(2048);
 
             Assert.Throws<ArgumentException>(() =>
-                BuilderWithoutMaskinportenConfiguration()
+                CreateBuilderWithoutMaskinportenConfiguration()
                     .WithMaskinportenKeyPairConfiguration(privateKey, null, "test-key-identifier")
                     .BuildProdConfiguration());
         }
 
-        private static FiksIOConfigurationBuilder BuilderWithoutMaskinportenConfiguration()
+        private static FiksIOConfigurationBuilder CreateBuilderWithoutMaskinportenConfiguration()
         {
             return FiksIOConfigurationBuilder
                 .Init()

@@ -429,6 +429,8 @@ var maskinportenKey = RSA.Create();
 maskinportenKey.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 ```
 
+`RSA.ImportFromPem` is not available on .NET Framework. There you must load the key another way, for example by reading the PEM file into `RSAParameters` and calling `ImportParameters` on the RSA object.
+
 Register the public key on your Maskinporten client:
 - In the self-service web: [Registrere nøkkel på klient](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_web.html#registrere-nøkkel-på-klient). The web requires the key as a JWK, so you must convert the PEM file to JWK first.
 - Through the self-service API: [Registrere klient som bruker egen nøkkel](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_api.html#registrere-klient-som-bruker-egen-nøkkel).
