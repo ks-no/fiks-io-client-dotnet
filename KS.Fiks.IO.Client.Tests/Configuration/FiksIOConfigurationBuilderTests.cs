@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using KS.Fiks.IO.Client.Configuration;
 using KS.Fiks.IO.Send.Client.Configuration;
@@ -135,13 +136,16 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void ConfigurationFailsWithoutMaskinportenConfiguration()
         {
-            Assert.Throws<ArgumentException>(() =>
+            var exception = Assert.Throws<ArgumentException>(() =>
                 FiksIOConfigurationBuilder
                     .Init()
                     .WithAmqpConfiguration("test_app", 10)
                     .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                     .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key")
                     .BuildProdConfiguration());
+
+            exception.Message.ShouldContain("WithMaskinportenConfiguration");
+            exception.Message.ShouldContain("WithMaskinportenKeyPairConfiguration");
         }
 
         [Fact]
@@ -166,6 +170,129 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
                     .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
                     .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
                     .BuildProdConfiguration());
+        }
+
+        [Fact]
+        public void ProdConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
+        {
+            using var privateKey = RSA.Create(2048);
+            var keyIdentifier = $"{Guid.NewGuid():N}";
+
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
+                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .BuildProdConfiguration();
+
+            var maskinportenConfiguration = configuration.MaskinportenConfiguration;
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
+            maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
+            maskinportenConfiguration.Certificate.ShouldBeNull();
+            maskinportenConfiguration.Audience.ShouldBe(FiksIOConfiguration.maskinportenProdAudience);
+            maskinportenConfiguration.TokenEndpoint.ShouldBe(FiksIOConfiguration.maskinportenProdTokenEndpoint);
+        }
+
+        [Fact]
+        public void TestConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
+        {
+            using var privateKey = RSA.Create(2048);
+            var keyIdentifier = $"{Guid.NewGuid():N}";
+
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
+                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .BuildTestConfiguration();
+
+            var maskinportenConfiguration = configuration.MaskinportenConfiguration;
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
+            maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
+            maskinportenConfiguration.Certificate.ShouldBeNull();
+            maskinportenConfiguration.Audience.ShouldBe(FiksIOConfiguration.maskinportenTestAudience);
+            maskinportenConfiguration.TokenEndpoint.ShouldBe(FiksIOConfiguration.maskinportenTestTokenEndpoint);
+        }
+
+        [Fact]
+        public void DevConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
+        {
+            using var privateKey = RSA.Create(2048);
+            var keyIdentifier = $"{Guid.NewGuid():N}";
+
+            var configuration = CreateBuilderWithoutMaskinportenConfiguration()
+                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .BuildDevConfiguration("amqp-host", "api-host");
+
+            var maskinportenConfiguration = configuration.MaskinportenConfiguration;
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
+            maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
+            maskinportenConfiguration.Certificate.ShouldBeNull();
+            maskinportenConfiguration.Audience.ShouldBe(FiksIOConfiguration.maskinportenTestAudience);
+            maskinportenConfiguration.TokenEndpoint.ShouldBe(FiksIOConfiguration.maskinportenTestTokenEndpoint);
+        }
+
+        [Fact]
+        public void ConfigurationFailsWithBothCertificateAndKeyPairInMaskinportenConfiguration()
+        {
+            using var privateKey = RSA.Create(2048);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                CreateBuilderWithoutMaskinportenConfiguration()
+                    .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
+                    .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", "test-key-identifier")
+                    .BuildProdConfiguration());
+
+            exception.Message.ShouldContain("WithMaskinportenConfiguration");
+            exception.Message.ShouldContain("WithMaskinportenKeyPairConfiguration");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void ConfigurationFailsWithoutKeyIdentifierInMaskinportenKeyPairConfiguration(string? keyIdentifier)
+        {
+            using var privateKey = RSA.Create(2048);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                CreateBuilderWithoutMaskinportenConfiguration()
+                    .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                    .BuildProdConfiguration());
+
+            exception.Message.ShouldContain("keyIdentifier");
+        }
+
+        [Fact]
+        public void ConfigurationFailsWithoutPrivateKeyInMaskinportenKeyPairConfiguration()
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                CreateBuilderWithoutMaskinportenConfiguration()
+                    .WithMaskinportenKeyPairConfiguration(null, "test-issuer", "test-key-identifier")
+                    .BuildProdConfiguration());
+
+            exception.Message.ShouldContain("WithMaskinportenKeyPairConfiguration");
+        }
+
+        [Fact]
+        public void ConfigurationFailsWithoutIssuerInMaskinportenKeyPairConfiguration()
+        {
+            using var privateKey = RSA.Create(2048);
+
+            Assert.Throws<ArgumentException>(() =>
+                CreateBuilderWithoutMaskinportenConfiguration()
+                    .WithMaskinportenKeyPairConfiguration(privateKey, null, "test-key-identifier")
+                    .BuildProdConfiguration());
+        }
+
+        private static FiksIOConfigurationBuilder CreateBuilderWithoutMaskinportenConfiguration()
+        {
+            return FiksIOConfigurationBuilder
+                .Init()
+                .WithAmqpConfiguration("test_app", 10)
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
+                .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key");
         }
     }
 }
