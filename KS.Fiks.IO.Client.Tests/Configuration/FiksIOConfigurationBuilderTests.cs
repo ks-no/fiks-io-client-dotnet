@@ -175,16 +175,16 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void ProdConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
             var configuration = CreateBuilderWithoutMaskinportenConfiguration()
-                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .WithMaskinportenKeyPairConfiguration(keyPair, "test-issuer", keyIdentifier)
                 .BuildProdConfiguration();
 
             var maskinportenConfiguration = configuration.MaskinportenConfiguration;
-            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
-            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(keyPair);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(keyPair);
             maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
             maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
             maskinportenConfiguration.Certificate.ShouldBeNull();
@@ -195,16 +195,16 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void TestConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
             var configuration = CreateBuilderWithoutMaskinportenConfiguration()
-                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .WithMaskinportenKeyPairConfiguration(keyPair, "test-issuer", keyIdentifier)
                 .BuildTestConfiguration();
 
             var maskinportenConfiguration = configuration.MaskinportenConfiguration;
-            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
-            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(keyPair);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(keyPair);
             maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
             maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
             maskinportenConfiguration.Certificate.ShouldBeNull();
@@ -215,16 +215,16 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void DevConfigurationWithMaskinportenKeyPairShouldUseKeyPair()
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
             var keyIdentifier = $"{Guid.NewGuid():N}";
 
             var configuration = CreateBuilderWithoutMaskinportenConfiguration()
-                .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                .WithMaskinportenKeyPairConfiguration(keyPair, "test-issuer", keyIdentifier)
                 .BuildDevConfiguration("amqp-host", "api-host");
 
             var maskinportenConfiguration = configuration.MaskinportenConfiguration;
-            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(privateKey);
-            maskinportenConfiguration.PublicKey.ShouldBeSameAs(privateKey);
+            maskinportenConfiguration.PrivateKey.ShouldBeSameAs(keyPair);
+            maskinportenConfiguration.PublicKey.ShouldBeSameAs(keyPair);
             maskinportenConfiguration.KeyIdentifier.ShouldBe(keyIdentifier);
             maskinportenConfiguration.Issuer.ShouldBe("test-issuer");
             maskinportenConfiguration.Certificate.ShouldBeNull();
@@ -235,12 +235,12 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void ConfigurationFailsWithBothCertificateAndKeyPairInMaskinportenConfiguration()
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
 
             var exception = Assert.Throws<ArgumentException>(() =>
                 CreateBuilderWithoutMaskinportenConfiguration()
                     .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
-                    .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", "test-key-identifier")
+                    .WithMaskinportenKeyPairConfiguration(keyPair, "test-issuer", "test-key-identifier")
                     .BuildProdConfiguration());
 
             exception.Message.ShouldContain("WithMaskinportenConfiguration");
@@ -253,11 +253,11 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [InlineData(" ")]
         public void ConfigurationFailsWithoutKeyIdentifierInMaskinportenKeyPairConfiguration(string? keyIdentifier)
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
 
             var exception = Assert.Throws<ArgumentException>(() =>
                 CreateBuilderWithoutMaskinportenConfiguration()
-                    .WithMaskinportenKeyPairConfiguration(privateKey, "test-issuer", keyIdentifier)
+                    .WithMaskinportenKeyPairConfiguration(keyPair, "test-issuer", keyIdentifier)
                     .BuildProdConfiguration());
 
             exception.Message.ShouldContain("keyIdentifier");
@@ -277,11 +277,11 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         [Fact]
         public void ConfigurationFailsWithoutIssuerInMaskinportenKeyPairConfiguration()
         {
-            using var privateKey = RSA.Create(2048);
+            using var keyPair = RSA.Create(2048);
 
             Assert.Throws<ArgumentException>(() =>
                 CreateBuilderWithoutMaskinportenConfiguration()
-                    .WithMaskinportenKeyPairConfiguration(privateKey, null, "test-key-identifier")
+                    .WithMaskinportenKeyPairConfiguration(keyPair, null, "test-key-identifier")
                     .BuildProdConfiguration());
         }
 

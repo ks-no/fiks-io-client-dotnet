@@ -255,13 +255,13 @@ var config = FiksIOConfigurationBuilder
 
 // Prod alternative 4
 // Prod config with your own RSA key pair for maskinporten instead of a certificate
-// Keep maskinportenKey alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
-var maskinportenKey = RSA.Create();
-maskinportenKey.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
+// Keep maskinportenKeyPair alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
+var maskinportenKeyPair = RSA.Create();
+maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 var config = FiksIOConfigurationBuilder
                 .Init()
                 .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
-                .WithMaskinportenKeyPairConfiguration(maskinportenKey, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
+                .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
@@ -291,13 +291,13 @@ var config = FiksIOConfigurationBuilder
 
 // Test alternative 3
 // Test config with your own RSA key pair for maskinporten instead of a certificate
-// Keep maskinportenKey alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
-var maskinportenKey = RSA.Create();
-maskinportenKey.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
+// Keep maskinportenKeyPair alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
+var maskinportenKeyPair = RSA.Create();
+maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 var config = FiksIOConfigurationBuilder
                 .Init()
                 .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
-                .WithMaskinportenKeyPairConfiguration(maskinportenKey, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
+                .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
                 .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
@@ -311,7 +311,7 @@ Explanations:
 `maskinportenKeyIdentifier`: This is an optional parameter the client supports if you have a keyIdentifier for your maskinporten certificate. If you do not have this, you can use the overload without this parameter.
 Read more about key identifier [here](https://docs.digdir.no/docs/idporten/oidc/oidc_protocol_access_token.html#:~:text=value-,kid,-%E2%80%9CKey%20identifier%E2%80%9D%20%2D%20unique).
 
-`.WithMaskinportenKeyPairConfiguration(maskinportenKey, issuer, maskinportenKeyIdentifier)`: Use this instead of `WithMaskinportenConfiguration` if you authenticate with Maskinporten using your own RSA key pair instead of a certificate. See [Maskinporten with key pair](#maskinporten-with-key-pair) below.
+`.WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier)`: Use this instead of `WithMaskinportenConfiguration` if you authenticate with Maskinporten using your own RSA key pair instead of a certificate. See [Maskinporten with key pair](#maskinporten-with-key-pair) below.
 
 
 #### Create without builder example:
@@ -407,11 +407,11 @@ It is not required to be derived from the Maskinporten certificate. See example 
 
 #### Maskinporten with key pair:
 Instead of a business certificate (virksomhetssertifikat), the client can authenticate with Maskinporten using your own RSA key pair registered on your Maskinporten client.
-Use `WithMaskinportenKeyPairConfiguration(privateKey, issuer, keyIdentifier)` in the builder.
+Use `WithMaskinportenKeyPairConfiguration(keyPair, issuer, keyIdentifier)` in the builder.
 
 - **keyIdentifier**: Required. This is the `kid` of the public key registered on your Maskinporten client. Maskinporten requires `kid` in the JWT grant when you do not use a certificate. Read more [here](https://docs.digdir.no/docs/Maskinporten/maskinporten_protocol_jwtgrant.html).
 - **Certificate or key pair**: `WithMaskinportenKeyPairConfiguration` cannot be combined with `WithMaskinportenConfiguration`. Building the configuration fails with an `ArgumentException` if both are used.
-- **privateKey**: The `RSA` object must contain the private key, and the key must be at least 2048 bits.
+- **keyPair**: The `RSA` object must contain the private key, and the key must be at least 2048 bits.
 - **Ownership**: You own the `RSA` object. Neither the builder nor the client disposes it. Keep it alive as long as the `FiksIOClient` is in use, otherwise token renewal fails with an `ObjectDisposedException`.
 - **Key rotation**: A key is valid for at most one year, see [Maskinporten authentication](https://docs.digdir.no/docs/Maskinporten/maskinporten_autentisering.html). When you rotate, register a new key with a new `kid`, then build a new configuration and a new `FiksIOClient`.
 - **Asice signing**: Still required, and set up separately. See [Asice signing](#asice-signing).
@@ -425,8 +425,8 @@ openssl rsa -in maskinporten-private.pem -pubout -out maskinporten-public.pem
 
 Example for loading the private key. `RSA.ImportFromPem` requires .NET 5 or later:
 ```csharp
-var maskinportenKey = RSA.Create();
-maskinportenKey.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
+var maskinportenKeyPair = RSA.Create();
+maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 ```
 
 `RSA.ImportFromPem` is not available on .NET Framework. There you must load the key another way, for example by reading the PEM file into `RSAParameters` and calling `ImportParameters` on the RSA object.
