@@ -62,6 +62,7 @@ namespace KS.Fiks.IO.Client.Amqp
                         "TokenCredentialsForMaskinporten", maskinportenClient, integrasjonConfiguration, loggerFactory)
                 },
                 amqpConfiguration,
+                integrasjonConfiguration,
                 loggerFactory);
 
             _amqpWatcher = amqpWatcher ?? new DefaultAmqpWatcher(loggerFactory);
