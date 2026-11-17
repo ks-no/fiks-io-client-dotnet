@@ -311,6 +311,8 @@ Explanations:
 `maskinportenKeyIdentifier`: This is an optional parameter the client supports if you have a keyIdentifier for your maskinporten certificate. If you do not have this, you can use the overload without this parameter.
 Read more about key identifier [here](https://docs.digdir.no/docs/idporten/oidc/oidc_protocol_access_token.html#:~:text=value-,kid,-%E2%80%9CKey%20identifier%E2%80%9D%20%2D%20unique).
 
+`.WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier)`: Use this instead of `WithMaskinportenConfiguration` if you authenticate with Maskinporten using your own RSA key pair instead of a certificate. See [Maskinporten with key pair](#maskinporten-with-key-pair) below.
+
 
 #### Create without builder example:
 Here are examples using the two convenience methods.
