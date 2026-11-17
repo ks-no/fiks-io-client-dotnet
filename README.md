@@ -311,8 +311,6 @@ Explanations:
 `maskinportenKeyIdentifier`: This is an optional parameter the client supports if you have a keyIdentifier for your maskinporten certificate. If you do not have this, you can use the overload without this parameter.
 Read more about key identifier [here](https://docs.digdir.no/docs/idporten/oidc/oidc_protocol_access_token.html#:~:text=value-,kid,-%E2%80%9CKey%20identifier%E2%80%9D%20%2D%20unique).
 
-`.WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier)`: Use this instead of `WithMaskinportenConfiguration` if you authenticate with Maskinporten using your own RSA key pair instead of a certificate. See [Maskinporten with key pair](#maskinporten-with-key-pair) below.
-
 
 #### Create without builder example:
 Here are examples using the two convenience methods.
@@ -434,6 +432,20 @@ maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 Register the public key on your Maskinporten client:
 - In the self-service web: [Registrere nøkkel på klient](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_web.html#registrere-nøkkel-på-klient). The web requires the key as a JWK, so you must convert the PEM file to JWK first.
 - Through the self-service API: [Registrere klient som bruker egen nøkkel](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_api.html#registrere-klient-som-bruker-egen-nøkkel).
+
+#### Automatic public key upload
+
+The client can automatically upload the public key to the Fiks-IO catalog on startup, eliminating the need for manual coordination when setting up a new account. Pass the public certificate (PEM-encoded X.509) alongside the private key in `WithFiksKontoConfiguration`:
+
+```csharp
+// Single key
+.WithFiksKontoConfiguration(kontoId, privateKeyPem, publicCertPem)
+
+// Multiple keys (key rotation)
+.WithFiksKontoConfiguration(kontoId, new[] { oldPrivateKeyPem, newPrivateKeyPem }, newPublicCertPem)
+```
+
+Omitting `publicCertPem` disables automatic upload (no catalog write). Startup still performs best-effort key validation. A definite mismatch between the catalog key and the configured private keys stops startup when automatic upload is enabled, and is logged as an error when it is disabled. See [docs/AutomaticPublicKeySync.md](docs/AutomaticPublicKeySync.md) for full documentation including key rotation and startup scenarios.
 
 #### Asice signing:
 Asice signing is required since version 3.0.0 of this client. More information on Asice signing can be found [here](https://docs.digdir.no/dpi_dokumentpakke_sikkerhet.html).
