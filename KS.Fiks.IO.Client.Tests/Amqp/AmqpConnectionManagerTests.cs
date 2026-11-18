@@ -17,12 +17,12 @@ public class AmqpConnectionManagerTests
     private readonly Mock<IConnectionFactory> _connectionFactoryMock;
     private readonly AmqpConfiguration _defaultAmqpConfiguration;
     private readonly AmqpConfiguration _customRateLimitConfig;
-    private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+    private readonly Guid _integrasjonId;
 
     public AmqpConnectionManagerTests()
     {
         _connectionFactoryMock = new Mock<IConnectionFactory>();
-        _integrasjonConfiguration = new IntegrasjonConfiguration(Guid.NewGuid(), "TestPassword");
+        _integrasjonId = Guid.NewGuid();
         var connectionMock = new Mock<IConnection>();
 
         // Default: 5 tokens, 2s refill per token
@@ -45,7 +45,7 @@ public class AmqpConnectionManagerTests
     [Fact]
     public async Task DefaultRateLimitAllowsUpToFiveConnectionsImmediately()
     {
-        var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _defaultAmqpConfiguration, _integrasjonConfiguration);
+        var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _defaultAmqpConfiguration, _integrasjonId);
 
         var immediateSuccessCount = 0;
         var immediateFailCount = 0;
@@ -75,7 +75,7 @@ public class AmqpConnectionManagerTests
     [Fact]
     public async Task CustomRateLimitAllowsTwoConnectionsImmediatelyThenRateLimitHits()
     {
-        var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _customRateLimitConfig, _integrasjonConfiguration);
+        var manager = new AmqpConnectionManager(_connectionFactoryMock.Object, _customRateLimitConfig, _integrasjonId);
         var successfulConnections = 0;
         var failedConnections = 0;
 

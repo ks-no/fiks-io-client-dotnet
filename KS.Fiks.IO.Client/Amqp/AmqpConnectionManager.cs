@@ -13,7 +13,7 @@ namespace KS.Fiks.IO.Client.Amqp
     public class AmqpConnectionManager
     {
         private readonly IConnectionFactory _connectionFactory;
-        private readonly IntegrasjonConfiguration _integrasjonConfiguration;
+        private readonly Guid _integrasjonId;
         private readonly SslOption _sslOption;
         private readonly SemaphoreSlim _tokenBucket;
         private readonly int _bucketSize;
@@ -21,13 +21,14 @@ namespace KS.Fiks.IO.Client.Amqp
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public AmqpConnectionManager(IConnectionFactory connectionFactory,
+        public AmqpConnectionManager(
+            IConnectionFactory connectionFactory,
             AmqpConfiguration amqpConfiguration,
-            IntegrasjonConfiguration integrasjonConfiguration,
+            Guid integrasjonId,
             ILoggerFactory loggerFactory = null)
         {
             _connectionFactory = connectionFactory;
-            _integrasjonConfiguration = integrasjonConfiguration;
+            _integrasjonId = integrasjonId;
             _sslOption = amqpConfiguration.SslOption;
             _bucketSize = amqpConfiguration.RateLimitConfiguration.BucketSize;
             _tokenFillRate = amqpConfiguration.RateLimitConfiguration.TokenRefillInterval;
@@ -94,8 +95,8 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to create connection to {Host}:{Port} for integration {IntegrasjonId} with application {ApplicationName}", configuration.Host, configuration.Port, _integrasjonConfiguration.IntegrasjonId, configuration.ApplicationName);
-                throw new FiksIOAmqpConnectionFailedException($"Failed to create connection to {configuration.Host}:{configuration.Port} for integration {_integrasjonConfiguration.IntegrasjonId} with application {configuration.ApplicationName}", ex);
+                _logger?.LogError(ex, "Failed to create connection to {Host}:{Port} for integration {_integrationId} with application {ApplicationName}", configuration.Host, configuration.Port, _integrasjonId, configuration.ApplicationName);
+                throw new FiksIOAmqpConnectionFailedException($"Failed to create connection to {configuration.Host}:{configuration.Port} for integration {_integrasjonId} with application {configuration.ApplicationName}", ex);
             }
         }
 
