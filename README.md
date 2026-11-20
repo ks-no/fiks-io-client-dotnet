@@ -19,10 +19,10 @@ The client handles Maskinporten authentication, encryption, signing and the Fiks
 
 ### Prerequisites
 
-- [ ] A Fiks IO account (*konto*) with an integration (*integrasjon*) that has access to it. Set them up in FIKS-Konfigurasjon ([prod](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/), [test](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
-- [ ] A Maskinporten client with access to the `ks:fiks` scope, and a business certificate or RSA key pair registered on it.
-- [ ] A key pair for the account. The public key is registered on the account, and the private key (PKCS#8) decrypts the messages you receive.
-- [ ] A key pair or certificate for signing the messages you send (ASiC-E).
+- A Fiks IO account (*konto*) with an integration (*integrasjon*) that has access to it. Set them up in FIKS-Konfigurasjon ([prod](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/), [test](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+- A Maskinporten client with access to the `ks:fiks` scope, and a business certificate or RSA key pair registered on it.
+- A key pair for the account. The public key is registered on the account, and the private key (PKCS#8) decrypts the messages you receive.
+- A key pair or certificate for signing the messages you send (ASiC-E).
 
 ### Install
 
