@@ -1,136 +1,93 @@
-# Example Application for Fiks-IO-Client
+# Example application
 
-## How it works
+A console application that shows how to use [KS.Fiks.IO.Client](../README.md). It subscribes to messages on your account, sends `ping` messages to itself, and replies to each `ping` with a `pong`. It also shows logging, health checks, and how to create a Fiks Protokoll account with [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md).
 
-This application starts a simple console application that starts a subscription to Fiks-IO/Fiks-Protokoll messages as a BackgroundService in the [FiksIOSubscriber.cs](FiksIO/FiksIOSubscriber.cs) class.
+The application always runs against the Fiks test environment.
 
-It also listens to key-press to send a message to it self, through it's own Fiks-IO or Fiks-Protokoll account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubcriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
+If you want to build your first application step by step instead, see [Getting started](../docs/getting-started.md).
 
-The application listens to different keys for sending messages, managing accounts, and accessing information:
+## Run the application
 
-#### Messages
-- Enter-key - Fiks-IO 'ping'-message
-- A-key - Fiks-Arkiv protocol 'ping'-message
-- P-key - Fiks-Plan protocol 'ping'-message
-- M-key - Fiks-Matrikkelfoering protocol 'ping'-message
+1. You need a Fiks IO or Fiks Protokoll account in the test environment, with an integration, a Maskinporten client and the keys described in [Getting started](../docs/getting-started.md#what-you-need). See also [how to get started with Fiks Protokoll (Norwegian)](https://developers.fiks.ks.no/tjenester/fiksprotokoll/#hvordan-komme-i-gang-med-fiks-protokoll).
+2. Create `appsettings.Test.json` in this folder with your own values, see [Settings](#settings). The file is in `.gitignore`, so your secrets are not committed. It overrides `appsettings.json`.
+3. Run the application from this folder, so it finds the settings files and `testfile.txt`:
 
-#### Account and Status
-- L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
-- T-key - Fetch and print Maskinporten access token
+   ```bash
+   cd ExampleApplication
+   dotnet run
+   ```
 
-#### Fiks Arkiv Account Management
-- N-key - Create a Fiks Arkiv account as archive
-- C-key - Send access request to created account
-- V-key - View all access requests
-- R-key - Approve all access requests
+4. Press Enter to send a `ping` to your own account. The log shows the `ping` arriving, the `pong` reply being sent, and the `pong` arriving.
 
-#### System
-- Q-key - Quit the application 
+If you use a Fiks Protokoll account, add your own account as an approved sender in FIKS-Konfigurasjon, and use the protocol keys (A, P or M) instead of Enter.
 
-The L-key will write status of the _IsOpen()_ method can be used for health checking. The _IsOpen()_ shows the connection status based on the RabbitMQ heartbeat.
-It writes also the status of "antallKonsumenter" (number of subscribers) from the Fiks IO API, that also can be used for health checking. The status property "antallKonsumenter" is the registered number of subscribers in RabbitMQ.
+## Keys
 
-This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages. It sends the `testfile.txt` file as payload, and prints the text inside the file when it receives the message.
+| Key | What it does |
+|---|---|
+| Enter | Sends a Fiks IO `ping` to your own account |
+| A | Sends a Fiks Arkiv `ping` (`no.ks.fiks.arkiv.v1.ping`) |
+| P | Sends a Fiks Plan `ping` (`no.ks.fiks.plan.v2.ping`) |
+| M | Sends a Fiks Matrikkelføring `ping` (`no.ks.fiks.matrikkelfoering.v2.ping`) |
+| L | Logs the status: whether the connection is open (`IsOpenAsync`), the number of consumers and unread messages on the account (`GetKontoStatus`), and whether the private key matches the public key in the catalog (`ValidatePublicKeyAgainstPrivateKeyAsync`) |
+| T | Fetches a Maskinporten token and logs it, see [Maskinporten token and API calls](#maskinporten-token-and-api-calls) |
+| N | Creates a Fiks Arkiv account on the system given by `SystemId` |
+| C | Sends an access request to the account created with N |
+| V | Lists the access requests on the account created with N |
+| R | Approves all access requests on the account created with N |
+| Q | Quits |
 
-If you're using a Fiks-Protokoll account, please remember to add yourself as an approved sending account. This is only necessary for Fiks-Protokoll accounts.
+The `ping` messages carry `testfile.txt` as payload, and a new `klientMeldingId` and `klientKorrelasjonsId`. When the application receives a `ping`, it logs the payload text and replies with the matching `pong`. It acknowledges every message it receives.
 
-### Fiks Arkiv Account - Creation Workflow
+### Creating a Fiks Arkiv account
 
-To create a Fiks Arkiv account, follow these steps:
+Use the keys N, C, V and R in this order:
 
-1. **Create Fiks Arkiv account (N-key)**: Create a new Fiks Arkiv account on the system ID specified in the appsettings.json file
-2. **Send access request (C-key)**: Send an access request to the created account
-3. **View access requests (V-key)**: View all received access requests
-4. **Approve access requests (R-key)**: Approve all access requests
+1. **N** creates the account. The application remembers its ID for C, V and R until you quit.
+2. **C** sends an access request from your system to the new account.
+3. **V** lists the access requests.
+4. **R** approves them.
 
-Each account can only be created once. If you try to create it again, the application will inform you that it has already been created.
+## Settings
 
-## Getting started
+The application reads `appsettings.json` and then `appsettings.Test.json` from the folder you run it from. Paths in the settings are relative to the same folder.
 
-You will need a Fiks-Protokoll or a Fiks-IO account. See documentation on how at the [developers.fiks.ks.no](https://developers.fiks.ks.no/tjenester/fiksprotokoll/#hvordan-komme-i-gang-med-fiks-protokoll) portal.
+| Setting | Description |
+|---|---|
+| `FiksIoAccountId` | Your account ID. The application sends `ping` messages to this account |
+| `FiksIoIntegrationId` | Your integration ID |
+| `FiksIoIntegrationPassword` | Your integration password |
+| `FiksIoPrivateKey` | Path to the account's private key (PKCS#8). Not the Maskinporten key, see [Keys and signing](../docs/keys-and-signing.md#the-account-key) |
+| `MaskinPortenIssuer` | Your Maskinporten client ID |
+| `MaskinPortenCompanyCertificatePath` | Path to your business certificate (`.p12`) for Maskinporten |
+| `MaskinPortenCompanyCertificatePassword` | Password for the certificate |
+| `AsiceSigningPublicKey` | Path to the public certificate for ASiC-E signing |
+| `AsiceSigningPrivateKey` | Path to the private key for ASiC-E signing |
+| `ApiHost` | API host. Default `api.fiks.test.ks.no` |
+| `ApiPort` | API port. Default `443` |
+| `ApiScheme` | API scheme, used by the account management keys. Default `https` |
+| `SystemId` | The system that will own the account created with N. Find it under your organisation in FIKS-Konfigurasjon ([test](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)). The organisation is read from the account given by `FiksIoAccountId` |
+| `ProtokollPublicKey` | Optional. Path to a public certificate to register on the account created with N |
 
-## Configuration
+`appsettings.json` also has the settings `AmqpHost`, `AmqpPort`, `FiksIoIntegrationScope`, `MaskinPortenAudienceUrl`, `MaskinPortenTokenUrl` and `MaskinPortenCompanyCertificateThumbprint`. The application does not use them: the client builder sets these values for the test environment. `MaskinPortenKeyIdentifier` is read, but not used.
 
-The [appsettings.json](appsettings.json) file is for configuration of the Fiks-IO-client in this example application.
-This file is then used by the [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) class for setting up the client.
+## Where in the code
 
-The [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) in this example project uses the Fluent builder that is included in the Fiks-IO-Client. 
-This is even more helpful with setting up a test or production client for you.
+| What | Where |
+|---|---|
+| Build the configuration with the builder | [FiksIO/FiksIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs), `CreateTestConfiguration` |
+| Build the configuration without the builder | [FiksIO/FiksIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs), `CreateConfig` |
+| Create the client, set up logging and `RabbitMQEventLogger`, and run as a hosted service | [Program.cs](Program.cs), `Main` |
+| Subscribe, reply, acknowledge, and read the payload with `AsiceReader` | [FiksIO/FiksIOSubscriber.cs](FiksIO/FiksIOSubscriber.cs) |
+| Send with `klientMeldingId` and `klientKorrelasjonsId` | [FiksIO/MessageSender.cs](FiksIO/MessageSender.cs) |
+| Health checks (L key) | [Program.cs](Program.cs), `WriteHeartBeatConnectionStatusToLog` and `WriteStatusFromApiToLog` |
+| Fetch a Maskinporten token (T key) | [Program.cs](Program.cs), `WriteMaskinportenToken` |
+| Create and manage a Fiks Arkiv account (N, C, V, R keys) | [Program.cs](Program.cs), `CreateFiksArkivKontoAsync` and the methods after it |
+| The settings | [AppSettings/AppSettings.cs](AppSettings/AppSettings.cs) and [appsettings.json](appsettings.json) |
 
-The account management keys (N, C, V and R) go through `IProtokollKonfigurasjonClient` from the [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) package, created with `KontoKonfigurasjonClient.CreateClient` in [Program.cs](Program.cs). The package handles the integrasjon and Maskinporten headers, so this example needs no API client of its own.
+## Maskinporten token and API calls
 
-### appsettings.json
-Here is the example appsetting.json file with hopefully some helpful comments:
-
-```json
-{
-  "AppSettings": {
-    "FiksIOConfig": {
-        "ApiHost": "api.fiks.test.ks.no", // API host adress. Test: api.fiks.test.ks.no", Prod: "api.fiks.ks.no"
-        "ApiPort": "443", // Port for the API host. 433 is correct
-        "ApiScheme": "https", // Schema for the API. HTTPS is correct
-        "AmqpHost": "io.fiks.test.ks.no", // AMQP host adress for message subscribe. Test: "io.fiks.test.ks.no", Prod: "io.fiks.ks.no" 
-        "AmqpPort": "5671",  // AMQP host port for message subscribe. 5671 is correct
-        "FiksIoAccountId": "<your account>", // Your Fiks Protokoll (Fiks-IO) account id
-        "FiksIoIntegrationId": "<your integration id>", // Your Fiks Protokoll (Fiks-IO) integration id
-        "FiksIoIntegrationPassword": "<your integration password>", // Your Fiks Protokoll (Fiks-IO) integration password
-        "FiksIoIntegrationScope": "ks:fiks", // Leave this as it is
-        "FiksIoPrivateKey": "<path to private key>", // Path to the private key that is paired with the public key uploaded to your Fiks Protokoll (Fiks-IO) account
-        "MaskinPortenAudienceUrl": "https://test.maskinporten.no/", // Maskinporten Audience url. Test: "https://test.maskinporten.no", Prod: "https://maskinporten.no"
-        "MaskinPortenCompanyCertificateThumbprint": "<your thumbprint>", // The thumbprint for the certificate used with Maskinporten
-        "MaskinPortenCompanyCertificatePath": "", // The path to the certificate used with Maskinporten
-        "MaskinPortenCompanyCertificatePassword": "", // The password for the certificate used with Maskinporten
-        "MaskinPortenKeyIdentifier": "", // Maskinporten key identifier
-        "MaskinPortenIssuer": "", // Maskinporten issuer
-        "MaskinPortenTokenUrl": "https://test.maskinporten.no/token", // Token url for Maskinporten. Test: "https://test.maskinporten.no/token", Prod: "https://maskinporten.no/token" 
-        "AsiceSigningPrivateKey": "", // The path to the private key for AsiceSigning of the payloads.
-        "AsiceSigningPublicKey": "", // The path to the public key for verification of AsiceSigning of the payloads.
-        "SystemId": "<your system id>" // Your system id, used when creating a protokoll-konto (N-key)
-    }
-  }
-}
-```
-
-Here are some explanations:
-
-#### FiksIoPrivateKey
-This is the private key that is paired with the public key uploaded to your Fiks Protokoll (Fiks-IO) account.
-It is not related to the Maskinporten certificate, but the private key part from a generated key pair. It is used for decrypting messages that is encrypted by the sender of messages with the public key uploaded to Fiks-Protokoll.
-
-#### MaskinPortenXXX settings
-Please look at the documentation at [developers.ks.fiks.no](https://developers.fiks.ks.no/felles/difiidportenklient/) for further explanations.
-
-#### AsiceSigningPrivateKey
-This is a path to a private key that you want to use for Asice signing. In this example application it must be a private key of a generated public/private key pair.
-But you can also use a private key linked to the Maskinporten certificate if you like when setting up the Fiks-IO-Client. Then you must provide a single file containing the certificate and the privatekey and use a different method of the configuration builder in the Fiks-IO-Client.
-
-#### AsiceSigningPublicKey
-This is a path to a public key that you want to use for Asice signing verification. In this example application it must be a public key of a generated public/private key pair.
-
-#### SystemId
-The id of the system that will own the protokoll-konto created via the N-key. It is registered under your organization (`fiks-org`) in Fiks-plattformen, and found in [FIKS-Konfigurasjon](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) (or the [test environment](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)). The `fiks-org` id itself is not configured here: the application reads it from the Fiks-IO account given by `FiksIoAccountId`.
-
-## Building locally
-
-`ExampleApplication` references `KS.Fiks.IO.ProtokollKonfigurasjon.Client` via a project reference, so no packing or local NuGet feed is required. Just build and test the solution as normal:
-
-```bash
-dotnet test ../KS.Fiks.IO.Client.sln
-```
-
-> On distributions whose OpenSSL 3 crypto policy rejects SHA-1 signatures (Fedora 38+, RHEL 9+), strong-name signing fails with `OpenSslCryptographicException: ... invalid digest`, because the `.snk` key format is SHA-1 based. Prefix the command with `OPENSSL_ENABLE_SHA1_SIGNATURES=1` on those machines. Do not disable signing with `/p:SignAssembly=false`: the libraries grant `InternalsVisibleTo` to the test projects by full public key, so unsigned test assemblies fail to compile (CS0281). CI runs on Ubuntu, where no workaround is needed.
-
-## Maskinporten Token and API Calls
-
-Fiks IO uses Maskinporten for authentication. Press the **T-key** in this example application to fetch a Maskinporten access token and verify that your Maskinporten configuration is working correctly.
-
-The Maskinporten token is a JWT (JSON Web Token) that is generated based on your organization's company certificate and private key. This token is required for authenticating API calls to Fiks IO services.
-
-**Important:** Maskinporten tokens have a limited lifespan of **2 minutes**. If you make manual API calls using a token from the T-key command, you must fetch a new token if more than 2 minutes have passed.
-
-### Example API Call with curl
-
-Here is an example of how to fetch account information using a Maskinporten token:
+Press **T** to fetch a Maskinporten token. If it works, your Maskinporten configuration is correct. You can then use the token to call the Fiks IO API by hand, for example to fetch your account:
 
 ```bash
 curl -X 'GET' \
@@ -141,9 +98,14 @@ curl -X 'GET' \
   -H 'IntegrasjonPassord: <FiksIoIntegrationPassword>'
 ```
 
-**Parameters to replace:**
-- `<FiksIoAccountId>`: The account ID you want to fetch information for
-- `<maskinporten-token>`: The Maskinporten access token from the T-key command
-- `<FiksIoIntegrationId>`: Your integration ID
-- `<FiksIoIntegrationPassword>`: Your integration password
+Replace:
 
+- `<FiksIoAccountId>` with the account you want to fetch
+- `<maskinporten-token>` with the token from the T key
+- `<FiksIoIntegrationId>` and `<FiksIoIntegrationPassword>` with your integration ID and password
+
+The token is valid for 2 minutes. Press T again to get a new one.
+
+## Building
+
+`ExampleApplication` references both libraries as projects, so you do not need to pack anything first. For build problems, see [CONTRIBUTING.md](../CONTRIBUTING.md).

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using KS.Fiks.IO.Client.Models;
+using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Crypto.Models;
 using Moq;
 using Shouldly;
@@ -149,6 +151,47 @@ namespace KS.Fiks.IO.Client.Tests.Send
 
             await Assert.ThrowsAsync<TaskCanceledException>(
                 async () => await sut.Svar(string.Empty, null, cts.Token).ConfigureAwait(false));
+        }
+
+        [Theory]
+        [InlineData("string")]
+        [InlineData("stream")]
+        [InlineData("file")]
+        public async Task SvarWithSinglePayloadPassesCancellationTokenToSendHandler(string payloadType)
+        {
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
+            using var cts = new CancellationTokenSource();
+
+            await SvarWithSinglePayload(sut, payloadType, cts.Token).ConfigureAwait(false);
+
+            _fixture.SendHandlerMock.Verify(_ => _.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), cts.Token), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("string")]
+        [InlineData("stream")]
+        [InlineData("file")]
+        public async Task SvarWithSinglePayloadAllowsCancellation(string payloadType)
+        {
+            var melding = GetDefaultMottattMelding();
+            var sut = _fixture.WithMottattMelding(melding.MottattMelding).CreateSut();
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+
+            await Assert.ThrowsAsync<TaskCanceledException>(
+                async () => await SvarWithSinglePayload(sut, payloadType, cts.Token).ConfigureAwait(false));
+        }
+
+        private static Task<SendtMelding> SvarWithSinglePayload(SvarSender sut, string payloadType, CancellationToken cancellationToken)
+        {
+            return payloadType switch
+            {
+                "string" => sut.Svar("testType", "my message", "message.txt", null, cancellationToken),
+                "stream" => sut.Svar("testType", new MemoryStream(new byte[] { 1, 2, 3 }), "message.bin", null, cancellationToken),
+                "file" => sut.Svar("testType", "testfile.txt", null, cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(payloadType), payloadType, null),
+            };
         }
 
         [Fact]

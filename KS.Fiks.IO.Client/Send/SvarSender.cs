@@ -76,7 +76,7 @@ namespace KS.Fiks.IO.Client.Send
 
         private async Task<SendtMelding> Reply(string messageType, IPayload payload, Guid? klientMeldingId, CancellationToken cancellationToken)
         {
-            return await Svar(messageType, new List<IPayload> {payload}, klientMeldingId).ConfigureAwait(false);
+            return await Svar(messageType, new List<IPayload> {payload}, klientMeldingId, cancellationToken).ConfigureAwait(false);
         }
 
         private MeldingRequest CreateMessageRequest(string messageType, Guid? klientMeldingId)
