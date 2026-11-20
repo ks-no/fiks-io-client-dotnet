@@ -3,481 +3,136 @@
 [![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://www.nuget.org/packages/KS.Fiks.IO.Client)
 [![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/fiks-io-client-dotnet.svg)](https://github.com/ks-no/fiks-io-client-dotnet/issues)
 
+A .NET client for sending and receiving messages through [Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/), the messaging service for the Norwegian public sector, and [Fiks Protokoll](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/), which runs on top of it.
 
-## About this library
-This is a .NET library compatible with _[.NET 10](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview)_, _[.Net Standard 2.1](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1)_ and _[.Net Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0)_ for sending and receiving messages using [Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/).
+## What you can do
 
-Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
+The client handles Maskinporten authentication, encryption, signing and the Fiks IO headers for you. With it you can:
 
-It is also the underlying messaging system for the **Fiks Protokoll** messages. Read more about Fiks Protokoll [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/)
+- [send messages](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/sending-and-receiving.md#send-a-message) with files, strings or streams as payload
+- [receive, reply to and acknowledge messages](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/sending-and-receiving.md#receive-messages) on your account's queue
+- [authenticate with Maskinporten](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/maskinporten.md) using a business certificate or your own RSA key pair
+- [upload your account's public key automatically](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/automatic-public-key-sync.md), and rotate it without losing messages
+- [monitor the connection](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/operations.md#health-checks) and log what happens
 
-### Integrity
-The nuget package is signed with a KS certificate in our build process, stored securely in a safe build environment.
-The package assemblies are also [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
+## Getting started
 
-### Simplifying Fiks-IO
-This client and its corresponding clients for other languages released by KS simplify the authentication, encryption of messages, and communication through Fiks-IO. 
-For example Fiks-IO requires that certain [headers](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere) are set in the messages. 
-Using this client means that these details are hidden and simplifies sending and receiving messages through Fiks-IO. You can read more about the Fiks-IO headers [here](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/#headere).
+### Prerequisites
 
-#### RabbitMQ
-Fiks-IO is using RabbitMQ and this Fiks-IO-Client is using its client for connecting and receiving messages. Sending messages goes through the Fiks-IO Rest-API.
-For more information on RabbitMQ, we recommend the documentation pages on connections from RabbitMQ [here](https://www.rabbitmq.com/connections.html).
+- [ ] A Fiks IO account (*konto*) with an integration (*integrasjon*) that has access to it. Set them up in FIKS-Konfigurasjon ([prod](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/), [test](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)).
+- [ ] A Maskinporten client with access to the `ks:fiks` scope, and a business certificate or RSA key pair registered on it.
+- [ ] A key pair for the account. The public key is registered on the account, and the private key (PKCS#8) decrypts the messages you receive.
+- [ ] A key pair or certificate for signing the messages you send (ASiC-E).
 
-## Installation
-Install [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.Client) nuget package in your .net project.
+### Install
 
-## Related packages
-This repository also publishes [KS.Fiks.IO.ProtokollKonfigurasjon.Client](https://www.nuget.org/packages/KS.Fiks.IO.ProtokollKonfigurasjon.Client), a client for the Fiks Protokoll Konfigurasjon API used to create and manage Fiks Protokoll `konto` (accounts) and systems. See its [README](KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) for usage.
-
-## Prerequisites
-To be able to use Fiks IO you have to have an active Fiks IO account with an associated integration. This can be setup for you organization at [FIKS-Konfigurasjon (prod)](https://forvaltning.fiks.ks.no/fiks-konfigurasjon/) or [FIKS-Konfigurasjon (test)](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/).
-
-## Usage recommendations
-We recommend having a long-lived Fiks-IO-Client and connection to Fiks-IO. Creating a new Fiks-IO-Client on demand, meaning creating a new Fiks-IO-Client e.g. many times pr hour, is not recommended.
-Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the RabbitMQ server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). 
-
-We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle).
-
-### Health
-The client also exposes the status of the connection to RabbitMQ through the [IsOpenAsync()](#isopenasync) method. 
-We recommend using this for monitoring the health of the client. 
-
-### Logging
-The Fiks-IO client can provide logging if you pass it a LoggingFactory. 
-It is also highly recommended to either listen to RabbitMQ system EventLogs by your own means or use the RabbitMQEventLogger event listener util provided in the Fiks-IO client for converting them to log.
-
-Please note that warnings and errors related to the RabbitMQ connection will only be visible through the RabbitMQ system EventLogs.
-These are important events like:
-- Connection is lost and the client will try [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) 
-- Succesfull [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) is performed
-- [AutoRecovery](https://www.rabbitmq.com/dotnet-api-guide.html#recovery) failed and connection could not be recovered.
-
-Using the RabbitMQEventLogger util will show these events in your application log. 
-
-See further down in this README for example on how to use the RabbitMQEventLogger util.
-
-## Examples
-
-### Example project
-An example project is provided [here](ExampleApplication) in the `ExampleApplication` and the [Program.cs](ExampleApplication/Program.cs) program. 
-This example program shows how to create a Fiks-IO-Client, subscribe, send and reply to messages.
-
-The example project starts a console program that listens and subscribes to messages on your Fiks-IO account. 
-It listens to the Enter key in the console, that then triggers it to send a 'ping' message to your Fiks-IO account.
-When the program receives the 'ping' message it will reply to that message with a 'pong' message. 
-
-The program also shows the following features:
-- It uses the optional `klientMeldingId` when sending messages 
-- It uses the optional `klientKorrelasjonsId` when sending messages, and shows that it is returned in the response from the receiver of the first message 
-- It utilizes the `IsOpenAsync()` feature to show the connection-status.
-
-
-
-Read more in the [README.md](ExampleApplication/README.md) file for the example application.
-
-### Sending message
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
-var meldingRequest = new MeldingRequest(
-    avsenderKontoId: senderId, // Sender id as Guid
-    mottakerKontoId: receiverId, // Receiver id as Guid
-    meldingType: messageType); // Message type as string
-
-// Sending a file
-await client.Send(meldingRequest, @"c:\path\someFile.pdf");
-
-// Sending a string
-await client.Send(meldingRequest, "String to send", "string.txt");
-
-// Sending a stream
-await client.Send(meldingRequest, someStream, "stream.jpg");
-
-// Sending message without payload
-await client.Send(meldingRequest);
-
-// Optional: using CancellationToken
-await client.Send(meldingRequest, @"c:\path\someFile.pdf", cancellationToken);
+```bash
+dotnet add package KS.Fiks.IO.Client
 ```
 
-### Receiving message
-
-#### Write zip to file
+### Configure and create the client
 
 ```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
+var configuration = FiksIOConfigurationBuilder
+    .Init()
+    .WithAmqpConfiguration("my-application", 10)
+    .WithMaskinportenConfiguration(maskinportenCertificate, issuer)
+    .WithFiksIntegrasjonConfiguration(integrasjonId, integrasjonPassord)
+    .WithFiksKontoConfiguration(kontoId, File.ReadAllText("konto-private.pem"))
+    .WithAsiceSigningConfiguration("asice-public.pem", "asice-private.pem")
+    .BuildProdConfiguration(); // or BuildTestConfiguration()
 
-async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+var client = await FiksIOClient.CreateAsync(configuration);
+```
+
+For Maskinporten, use one of these:
+
+```csharp
+.WithMaskinportenConfiguration(maskinportenCertificate, issuer)                        // business certificate
+.WithMaskinportenConfiguration(maskinportenCertificate, issuer, keyIdentifier)         // business certificate with kid
+.WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, keyIdentifier)      // your own RSA key pair
+```
+
+For ASiC-E signing, use one of these:
+
+```csharp
+.WithAsiceSigningConfiguration("asice-public.pem", "asice-private.pem") // key pair, as file paths
+.WithAsiceSigningConfiguration(asiceCertificate)                        // X509Certificate2 with private key
+```
+
+For all builder methods and default values, see [Configuration](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/configuration.md).
+
+### Send a message
+
+```csharp
+var request = new MeldingRequest(
+    avsenderKontoId: kontoId,
+    mottakerKontoId: receiverKontoId,
+    meldingType: "no.ks.fiks.arkiv.v1.ping");
+
+await client.Send(request, "/path/to/file.pdf");
+```
+
+### Receive and acknowledge messages
+
+```csharp
+await client.NewSubscriptionAsync(async args =>
 {
-    if (fileArgs.Melding.HasPayload) // Verify that message has payload
+    if (args.Melding.HasPayload)
     {
-        await fileArgs.Melding.WriteDecryptedZip(@"c:\path\receivedFile.zip");
+        await args.Melding.WriteDecryptedZip("/path/to/received.zip");
     }
 
-    await fileArgs.SvarSender.AckAsync(); // Ack message if write succeeded to remove it from the queue
-}
-
-await client.NewSubscriptionAsync(OnReceivedMelding);
+    await args.SvarSender.AckAsync();
+});
 ```
 
-#### Process archive as stream
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
+For a step-by-step tutorial, see [Getting started](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/getting-started.md). For replies, payload variants and correlation IDs, see [Sending and receiving](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/sending-and-receiving.md).
 
-async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
-{
-    if (fileArgs.Melding.HasPayload) // Verify that message has payload
-    {
-        await using var archiveAsStream = await fileArgs.Melding.DecryptedStream.ConfigureAwait(false);
+## Important to know
 
-        // Process the stream
-    }
+**Use one long-lived client.** Create the client when your application starts and keep it until it stops. Each client opens a connection to RabbitMQ, and creating clients often harms the server through [high connection churn](https://www.rabbitmq.com/connections.html#high-connection-churn). See [Running in production](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/operations.md).
 
-    await fileArgs.SvarSender.AckAsync();
-}
+**There are three different keys.** They have different jobs and do not need to be related:
 
-await client.NewSubscriptionAsync(OnReceivedMelding);
-```
+| Key | Used for |
+|---|---|
+| Maskinporten certificate or key pair | Authenticating your system |
+| The account's private key (PKCS#8) | Decrypting messages sent to you. The public key is in the Fiks IO catalog |
+| ASiC-E signing key | Signing the messages you send |
 
-#### Reply to message
-You can reply directly to a message using the ReplySender.
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
+See [Concepts](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/concepts.md#the-three-keys) and [Keys and signing](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/keys-and-signing.md).
 
-async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
-{
-    // Process the message
+**Acknowledge every message.** Call `AckAsync`, `NackAsync` or `RejectWithRequeueAsync` for each message you receive. Unacknowledged messages stay on the queue and block new ones. See [Acknowledge messages](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/sending-and-receiving.md#acknowledge-messages).
 
-    await fileArgs.SvarSender.Svar(/* message type */, /* message as string, path or stream */);
-    await fileArgs.SvarSender.AckAsync(); // Ack message to remove it from the queue
-}
+## Documentation
 
-await client.NewSubscriptionAsync(OnReceivedMelding);
+- [Getting started](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/getting-started.md): a tutorial from zero to sending and receiving
+- [Concepts](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/concepts.md): accounts, integrations, Maskinporten, keys and the message lifecycle
+- [Sending and receiving](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/sending-and-receiving.md)
+- [Configuration](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/configuration.md)
+- [Maskinporten](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/maskinporten.md)
+- [Keys and signing](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/keys-and-signing.md)
+- [Automatic public key sync](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/automatic-public-key-sync.md)
+- [Running in production](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/operations.md)
+- [Troubleshooting](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/troubleshooting.md)
 
-```
+### Supported platforms
 
-#### Acknowledging messages: Ack, Nack and Reject
-When you have received a message you must tell Fiks-IO what to do with it. The `SvarSender` on the received message gives you three alternatives:
-
-```csharp
-// The message was handled successfully and is removed from the queue
-await fileArgs.SvarSender.AckAsync();
-
-// The message could not be consumed. It is sent to the dead letter queue,
-// and no error message is sent back to the sender.
-await fileArgs.SvarSender.NackAsync();
-
-// The message could not be consumed right now and is put back in the queue
-// to be consumed again. The delivery count is incremented.
-await fileArgs.SvarSender.RejectWithRequeueAsync();
-```
-
-`RejectWithRequeueAsync()` requeues the message and increments its delivery count. This means the message is redelivered until the max delivery count is reached, and is then sent to the dead letter queue. Reaching the max delivery count leads to an error message being sent back to the sender.
-
-`NackWithRequeueAsync()` is deprecated. It requeued the message *without* incrementing the delivery count, meaning the message would be redelivered until the TTL was reached, and would not be sent to the dead letter queue before the TTL was reached. Its behaviour has now been changed so it works like `RejectWithRequeueAsync()`. Use `RejectWithRequeueAsync()` instead.
-
-### GetKonto
-Using GetKonto, you can get information about a Fiks IO account, e.g. municipality number and organization name, given the account id.
-
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
-
-async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
-{
-    var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId);
-
-    // Use konto information here (e.g. logging, validation, etc.)
-}
-
-await client.NewSubscriptionAsync(OnReceivedMelding);
-```
-
-
-### IsOpenAsync
-This method can be used to check if the amqp connection is open.
-
-### Configuration
-
-The fluent configuration builder FiksIOConfigurationBuilder can be used for creating the FiksIOConfiguration, where you build either for *test* or *prod*.  
-Only the required configuration parameters must be provided when you use these two and the rest will be set to default values for the given environment.
-
-You can also create the configuration yourself where also two convenience functions are provided for generating default configurations for *prod* and *test*,
-`CreateMaskinportenProdConfig` and `CreateMaskinportenTestConfig`. Also here will only the required configuration parameters are needed.
-
-#### Logging from the Fiks-IO client
-Logging is available by providing the Fiks-IO-Client with a ILoggerFactory. Example of this is provided in the ExampleApplication project.
-
-#### Logging from the RabbitMQ client
-The Fiks-IO-Client uses the official [RabbitMQ-Client for .NET](https://github.com/rabbitmq/rabbitmq-dotnet-client). This client logs to system EventLog with the eventsource name "rabbitmq-dotnet-client". 
-We have created a RabbitMQEventLogger util-class for easy logging of these events to your logs.
-This util-class will have to be initiated in your program once. Take a look at the following example or in the Program.cs of the ExampleApplication project:
-
-```csharp
-_rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informational);
-```
-
-#### Create with builder examples:
-
-```csharp
-
-// Prod alternative 1
-// Prod config with public/private key for asice signing
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenConfiguration(certificate, issuer)
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
-                .BuildProdConfiguration();
-
-// Prod alternative 2
-// Prod config with a X509Certificate2 certificate for asice signing
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenConfiguration(certificate, issuer)
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
-                .BuildProdConfiguration();
-
-// Prod alternative 3
-// Prod config with maskinporten keyIdentifier
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenConfiguration(certificate, issuer, maskinPortenKeyIdentifier) // Use this overload if you have a keyIdentifier for your maskinporten certificate
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
-                .BuildProdConfiguration();
-
-// Prod alternative 4
-// Prod config with your own RSA key pair for maskinporten instead of a certificate
-// Keep maskinportenKeyPair alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
-var maskinportenKeyPair = RSA.Create();
-maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
-                .BuildProdConfiguration();
-
-// Test alternative 1
-// Test config with public/private key for asice signing
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenConfiguration(certificate, issuer)
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) //  A public/private key pair to sign the asice packages
-                .BuildTestConfiguration();
-            
-// Test alternative 2
-// Test config with a X509Certificate2 certificate for asice signing
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenConfiguration(certificate, issuer)
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(certificate2) // A X509Certificate2 certificate that also contains the private key
-                .BuildTestConfiguration();
-
-// Test alternative 3
-// Test config with your own RSA key pair for maskinporten instead of a certificate
-// Keep maskinportenKeyPair alive as long as the FiksIOClient is in use. Do not dispose it (for example with "using") while the client is running.
-var maskinportenKeyPair = RSA.Create();
-maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
-var config = FiksIOConfigurationBuilder
-                .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
-                .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
-                .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
-                .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
-                .WithAsiceSigningConfiguration(asicePublicKeyFilepath, asicePrivateKeyPath) // A public/private key pair to sign the asice packages
-                .BuildTestConfiguration();
-```
-
-Explanations:
-
-`.WithFiksKontoConfiguration(kontoId, privateKey)`: The **privateKey** parameter is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account. The public key uploaded to your account is the public key that other clients will use for encrypting messages when sending messages to your account. The **privateKey** is then used for decrypting messages.  
-
-`maskinportenKeyIdentifier`: This is an optional parameter the client supports if you have a keyIdentifier for your maskinporten certificate. If you do not have this, you can use the overload without this parameter.
-Read more about key identifier [here](https://docs.digdir.no/docs/idporten/oidc/oidc_protocol_access_token.html#:~:text=value-,kid,-%E2%80%9CKey%20identifier%E2%80%9D%20%2D%20unique).
-
-`.WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier)`: Use this instead of `WithMaskinportenConfiguration` if you authenticate with Maskinporten using your own RSA key pair instead of a certificate. See [Maskinporten with key pair](#maskinporten-with-key-pair) below.
-
-
-#### Create without builder example:
-Here are examples using the two convenience methods.
-
-```csharp
-// Prod config with a asice X509Certificate2 certificate
-var config = FiksIOConfiguration.CreateProdConfiguration(
-    integrasjonId: integrationId,
-    integrasjonPassord: integrationPassord,
-    kontoId: kontoId,
-    privatNokkel: privatNokkel,
-    issuer: issuer, // klientid for maskinporten
-    maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten
-    asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    applicationName: null, // Optional: use this if you want your client's activity to have a unique name in logs.
-    keyIdentifier: null // Optional: the keyIdentifier (kid) for your maskinporten certificate, if you have one
-);
-
-// Test config
-var config = FiksIOConfiguration.CreateTestConfiguration(
-    fiksIntegrasjonId: integrationId,
-    fiksIntegrasjonPassord: integrationPassord,
-    fiksKontoId: kontoId,
-    privatNokkel: privatNokkel,
-    issuer: issuer, // klientid for maskinporten
-    maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten as a X509Certificate2
-    asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    applicationName: null, // Optional: use this if you want your client's activity to have a unique name in logs.
-    keyIdentifier: null // Optional: the keyIdentifier (kid) for your maskinporten certificate, if you have one
-);
-```
-If necessary, all parameters of configuration can be set in detail.
-
-```csharp
-// Fiks IO account configuration
-var kontoConfig = new KontoConfiguration(
-                    kontoId: /* Fiks IO accountId as Guid */,
-                    privatNokkel: /* Private key, paired with the public key supplied to Fiks IO account */); 
-
-// Id and password for integration associated to the Fiks IO account.
-var integrasjonConfig = new IntegrasjonConfiguration(
-                        integrasjonId: /* Integration id as Guid */,
-                        integrasjonPassord: /* Integration password */);
-
-// ID-porten machine to machine configuration
-var maskinportenConfig = new MaskinportenClientConfiguration(
-    audience: @"https://test.maskinporten.no/", // Maskinporten audience path
-    tokenEndpoint: @"https://test.maskinporten.no/token", // Maskinporten token path
-    issuer: @"issuer",  // Issuer name
-    numberOfSecondsLeftBeforeExpire: 10, // The token will be refreshed 10 seconds before it expires
-    certificate: /* virksomhetssertifikat as a X509Certificate2  */);
-
-// Optional: Use custom api host (i.e. for connecting to test api)
-var apiConfig = new ApiConfiguration(
-                scheme: "https",
-                host: "api.fiks.test.ks.no",
-                port: 443);
-
-// Optional: Use custom amqp host (i.e. for connection to test queue).
-// Use the IsOpenAsync() method on the FiksIOClient if you want to monitor the connection yourself.
-var amqpConfig = new AmqpConfiguration(
-                host: "io.fiks.test.ks.no",
-                port: 5671,
-                applicationName: "my-application",
-                prefetchCount: 10); 
-
-// Configuration for Asice signing. Not optional. Either use a public/private key-pair or a X509Certificate2 that contains the corresponding private key.
-var asiceSigning = new AsiceSigningConfiguration(
-                publicKeyPath: "/path/to/file",
-                privateKeyPath: "/path/to/file"); 
-
-// Combine all configurations
-var configuration = new FiksIOConfiguration(
-                        kontoConfiguration: kontoConfig, 
-                        integrasjonConfiguration: integrasjonConfig, 
-                        maskinportenConfiguration: maskinportenConfig, 
-                        apiConfiguration: apiConfig,  // Optional
-                        amqpConfiguration: amqpConfig, // Optional
-                        asiceSigningConfiguration: asiceSigning); 
-```
-
-#### Configuration setting details:
-
-##### Amqp:
-- **prefetchCount**: Optional setting. How many messages the client buffers when it subscribes to new messages. Corresponds to the AMQP QoS/prefetch size. Default is 10.
-- **applicationName**: Optional but recommended. Gives the Fiks-IO queue a name that you provide. Makes it easier to identify which queue is yours from a logging and management perspective.
-
-#### Fiks-IO Konto: 
-- **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. This is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account.
-It is not required to be derived from the Maskinporten certificate. See example on how to convert a PKCS#1 or generate private/public keys further down.
-
-#### Maskinporten with key pair:
-Instead of a business certificate (virksomhetssertifikat), the client can authenticate with Maskinporten using your own RSA key pair registered on your Maskinporten client.
-Use `WithMaskinportenKeyPairConfiguration(keyPair, issuer, keyIdentifier)` in the builder.
-
-- **keyIdentifier**: Required. This is the `kid` of the public key registered on your Maskinporten client. Maskinporten requires `kid` in the JWT grant when you do not use a certificate. Read more [here](https://docs.digdir.no/docs/Maskinporten/maskinporten_protocol_jwtgrant.html).
-- **Certificate or key pair**: `WithMaskinportenKeyPairConfiguration` cannot be combined with `WithMaskinportenConfiguration`. Building the configuration fails with an `ArgumentException` if both are used.
-- **keyPair**: The `RSA` object must contain the private key, and the key must be at least 2048 bits.
-- **Ownership**: You own the `RSA` object. Neither the builder nor the client disposes it. Keep it alive as long as the `FiksIOClient` is in use, otherwise token renewal fails with an `ObjectDisposedException`.
-- **Key rotation**: A key is valid for at most one year, see [Maskinporten authentication](https://docs.digdir.no/docs/Maskinporten/maskinporten_autentisering.html). When you rotate, register a new key with a new `kid`, then build a new configuration and a new `FiksIOClient`.
-- **Asice signing**: Still required, and set up separately. See [Asice signing](#asice-signing).
-
-Example for generating a key pair:
-```powershell
-openssl genrsa -out maskinporten-private.pem 2048
-
-openssl rsa -in maskinporten-private.pem -pubout -out maskinporten-public.pem
-```
-
-Example for loading the private key. `RSA.ImportFromPem` requires .NET 5 or later:
-```csharp
-var maskinportenKeyPair = RSA.Create();
-maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
-```
-
-`RSA.ImportFromPem` is not available on .NET Framework. There you must load the key another way, for example by reading the PEM file into `RSAParameters` and calling `ImportParameters` on the RSA object.
-
-Register the public key on your Maskinporten client:
-- In the self-service web: [Registrere nøkkel på klient](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_web.html#registrere-nøkkel-på-klient). The web requires the key as a JWK, so you must convert the PEM file to JWK first.
-- Through the self-service API: [Registrere klient som bruker egen nøkkel](https://docs.digdir.no/docs/Maskinporten/maskinporten_sjolvbetjening_api.html#registrere-klient-som-bruker-egen-nøkkel).
-
-#### Automatic public key upload
-
-The client can automatically upload the public key to the Fiks-IO catalog on startup, eliminating the need for manual coordination when setting up a new account. Pass the public certificate (PEM-encoded X.509) alongside the private key in `WithFiksKontoConfiguration`:
-
-```csharp
-// Single key
-.WithFiksKontoConfiguration(kontoId, privateKeyPem, publicCertPem)
-
-// Multiple keys (key rotation)
-.WithFiksKontoConfiguration(kontoId, new[] { oldPrivateKeyPem, newPrivateKeyPem }, newPublicCertPem)
-```
-
-Omitting `publicCertPem` disables automatic upload (no catalog write). Startup still performs best-effort key validation. A definite mismatch between the catalog key and the configured private keys stops startup when automatic upload is enabled, and is logged as an error when it is disabled. See [docs/AutomaticPublicKeySync.md](docs/AutomaticPublicKeySync.md) for full documentation including key rotation and startup scenarios.
-
-#### Asice signing:
-Asice signing is required since version 3.0.0 of this client. More information on Asice signing can be found [here](https://docs.digdir.no/dpi_dokumentpakke_sikkerhet.html).
-
-There are two ways of setting this up, either with a public/private key pair or a x509Certificate2 that also holds the private key.
-If you are reusing the x509Certificate2 from the `maskinporten` configuration you might have to inject the corresponding private key.
-
-A PKCS#1 key can be converted using this command:
-```powershell
-openssl pkcs8 -topk8 -nocrypt -in <pkcs#1 key file> -out <pkcs#8 key file>
-```
-
-Example for generating private/public key pair for signing
-```powershell
-openssl genrsa -out key.pem 4096
-
-openssl req -new -x509 -key key.pem -out public.pem -days 99999
-```
-
-**Examples:**
-
-x509Certificate2 with a private key `AsiceSigningConfiguration(X509Certificate2 x509Certificate2);`
-
-Path to public/private key: `AsiceSigningConfiguration(string publicCertPath, string privateKeyPath);`
-
-### Public Key provider
-
-By default when sending a message, the public key of the receiver will be fetched using the Catalog Api. If you instead 
-need to provide the public key by some other means, you can implement the IPublicKeyProvider interface, and inject it 
-when creating your client like this:
-```csharp
-var client = await FiksIOClient.CreateAsync(configuration, publicKeyProvider: myPublicKeyProvider);
-```
+The package targets `net10.0`, `netstandard2.1` and `netstandard2.0`. The NuGet package is signed with a KS certificate, and the assemblies are [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
 
+### Related packages
+
+[KS.Fiks.IO.ProtokollKonfigurasjon.Client](https://www.nuget.org/packages/KS.Fiks.IO.ProtokollKonfigurasjon.Client) is a client for the Fiks Protokoll Konfigurasjon API, used to create and manage Fiks Protokoll accounts. It is published from this repository. See its [README](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md).
+
+### Example application
+
+[ExampleApplication](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/ExampleApplication/README.md) is a console application that subscribes to your account, sends `ping` messages to itself and replies with `pong`. It also shows logging, health checks and account management.
+
+## Contributing
+
+See [CONTRIBUTING.md](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/CONTRIBUTING.md) for how to build and test the library. Report bugs and suggestions as [GitHub issues](https://github.com/ks-no/fiks-io-client-dotnet/issues).
+
+## License
+
+[MIT](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/LICENSE)

@@ -1,5 +1,27 @@
 # Automatic Public Key Synchronization
 
+## Summary
+
+Pass the account's public certificate as the third argument to `WithFiksKontoConfiguration`, and the client uploads it to the Fiks IO catalog when it starts. Leave it out, and the client never writes to the catalog.
+
+Either way, `FiksIOClient.CreateAsync` checks at startup that a configured private key can decrypt messages encrypted with the key in the catalog. This table shows what happens:
+
+| Public key configured? | Key in the catalog | What happens at startup | Client starts? |
+|---|---|---|---|
+| No | None (404) | Nothing to check | Yes |
+| No | Matches a configured private key | Validated | Yes |
+| No | Does not match any configured private key | Logged as `ERROR`. Incoming messages will fail to decrypt | Yes |
+| No | Catalog unavailable | Logged as `WARN`, validation skipped | Yes |
+| Yes | None (404) | Your key is uploaded | Yes |
+| Yes | Same key as configured | Nothing to do | Yes |
+| Yes | Your old key (matches a configured private key) | Your new key is uploaded (key rotation) | Yes |
+| Yes | Someone else's key | Upload skipped, `InvalidOperationException` | **No** |
+| Yes | Catalog unavailable | Error logged and rethrown | **No** |
+| Yes, but it does not match any configured private key | Any, if the catalog is reachable | `InvalidOperationException` | **No** |
+| Yes, but it is not a valid PEM certificate | Any | Exception | **No** |
+
+The rest of this page explains each case in detail, and how to rotate keys.
+
 ## Background
 
 Setting up a Fiks-IO account traditionally required the account's public key to be registered in the catalog manually by Fiks Forvaltning. This manual step can lead to coordination issues, especially when vendors need to rotate keys or set up accounts independently. To streamline this, we have introduced an **automatic public key synchronization** feature in the Fiks-IO .NET client.
@@ -186,7 +208,7 @@ DEBUG Public key for account {KontoId} is already up to date, skipping upload.
 ```csharp
 .WithFiksKontoConfiguration(
     kontoId,
-    privateKeys: new[] { oldPrivateKeyPem, newPrivateKeyPem },
+    fiksPrivateKeys: new[] { oldPrivateKeyPem, newPrivateKeyPem },
     offentligNokkel: newPublicCertPem)
 ```
 
