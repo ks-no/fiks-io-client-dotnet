@@ -49,4 +49,4 @@ API errors are surfaced as `ProtokollKonfigurasjonApiException`.
 
 ## Example
 
-See [ExampleApplication](https://github.com/ks-no/fiks-io-client-dotnet/tree/main/ExampleApplication) in this repository for a full working example (press the **K-key** to create a `konto`).
+See [ExampleApplication](https://github.com/ks-no/fiks-io-client-dotnet/tree/main/ExampleApplication) in this repository for a full working example (press the **N-key** to create a `konto`).

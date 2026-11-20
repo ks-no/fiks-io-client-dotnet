@@ -4,7 +4,7 @@
 
 This application starts a simple console application that starts a subscription to Fiks-IO/Fiks-Protokoll messages as a BackgroundService in the [FiksIOSubscriber.cs](FiksIO/FiksIOSubscriber.cs) class.
 
-It also listens to key-press to send a message to it self, through it's own Fiks-IO or Fiks-Protokoll account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubcriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
+It also listens to key-press to send a message to itself, through its own Fiks-IO or Fiks-Protokoll account, with the [MessageSender.cs](FiksIO/MessageSender.cs) class. The message sent is a simple 'ping'-message that the [FiksIOSubscriber.cs](FiksIO/FiksIOSubscriber.cs) class replies with a 'pong'-message.
 
 The application listens to different keys for sending messages, managing accounts, and accessing information:
 
@@ -15,7 +15,7 @@ The application listens to different keys for sending messages, managing account
 - M-key - Fiks-Matrikkelfoering protocol 'ping'-message
 
 #### Account and Status
-- L-key - Write log with: IsOpen(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
+- L-key - Write log with: IsOpenAsync(), Maskinporten reachable and result from the status of the account from Fiks-IO rest-services
 - T-key - Fetch and print Maskinporten access token
 
 #### Fiks Arkiv Account Management
@@ -27,7 +27,7 @@ The application listens to different keys for sending messages, managing account
 #### System
 - Q-key - Quit the application 
 
-The L-key will write status of the _IsOpen()_ method can be used for health checking. The _IsOpen()_ shows the connection status based on the RabbitMQ heartbeat.
+The L-key writes the status of the _IsOpenAsync()_ method, which can be used for health checking. _IsOpenAsync()_ shows the connection status based on the RabbitMQ heartbeat.
 It writes also the status of "antallKonsumenter" (number of subscribers) from the Fiks IO API, that also can be used for health checking. The status property "antallKonsumenter" is the registered number of subscribers in RabbitMQ.
 
 This is a very simple example of sending, receiving and replying to messages with this Fiks-IO-Client that logs information on the messages. It sends the `testfile.txt` file as payload, and prints the text inside the file when it receives the message.
@@ -52,24 +52,24 @@ You will need a Fiks-Protokoll or a Fiks-IO account. See documentation on how at
 ## Configuration
 
 The [appsettings.json](appsettings.json) file is for configuration of the Fiks-IO-client in this example application.
-This file is then used by the [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) class for setting up the client.
+This file is then used by the [FiksIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) class for setting up the client.
 
-The [FikIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) in this example project uses the Fluent builder that is included in the Fiks-IO-Client. 
+The [FiksIOConfigurationBuilder.cs](FiksIO/FiksIOConfigurationBuilder.cs) in this example project uses the Fluent builder that is included in the Fiks-IO-Client. 
 This is even more helpful with setting up a test or production client for you.
 
 The account management keys (N, C, V and R) go through `IProtokollKonfigurasjonClient` from the [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md) package, created with `KontoKonfigurasjonClient.CreateClient` in [Program.cs](Program.cs). The package handles the integrasjon and Maskinporten headers, so this example needs no API client of its own.
 
 ### appsettings.json
-Here is the example appsetting.json file with hopefully some helpful comments:
+Here is the example appsettings.json file with hopefully some helpful comments:
 
 ```json
 {
   "AppSettings": {
     "FiksIOConfig": {
-        "ApiHost": "api.fiks.test.ks.no", // API host adress. Test: api.fiks.test.ks.no", Prod: "api.fiks.ks.no"
-        "ApiPort": "443", // Port for the API host. 433 is correct
+        "ApiHost": "api.fiks.test.ks.no", // API host address. Test: "api.fiks.test.ks.no", Prod: "api.fiks.ks.no"
+        "ApiPort": "443", // Port for the API host. 443 is correct
         "ApiScheme": "https", // Schema for the API. HTTPS is correct
-        "AmqpHost": "io.fiks.test.ks.no", // AMQP host adress for message subscribe. Test: "io.fiks.test.ks.no", Prod: "io.fiks.ks.no" 
+        "AmqpHost": "io.fiks.test.ks.no", // AMQP host address for message subscribe. Test: "io.fiks.test.ks.no", Prod: "io.fiks.ks.no" 
         "AmqpPort": "5671",  // AMQP host port for message subscribe. 5671 is correct
         "FiksIoAccountId": "<your account>", // Your Fiks Protokoll (Fiks-IO) account id
         "FiksIoIntegrationId": "<your integration id>", // Your Fiks Protokoll (Fiks-IO) integration id

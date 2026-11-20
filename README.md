@@ -1,11 +1,11 @@
 # fiks-io-client-dotnet
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ks-no/fiks-io-client-dotnet/blob/master/LICENSE)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/LICENSE)
 [![Nuget](https://img.shields.io/nuget/vpre/KS.fiks.io.client.svg)](https://www.nuget.org/packages/KS.Fiks.IO.Client)
-[![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/kryptering-dotnet.svg)](//github.com/ks-no/fiks-io-client-dotnet/issues)
+[![GitHub issues](https://img.shields.io/github/issues-raw/ks-no/fiks-io-client-dotnet.svg)](https://github.com/ks-no/fiks-io-client-dotnet/issues)
 
 
 ## About this library
-This is a .NET library compatible with _[.NET 10](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview)_, _[.Net Standard 2.1](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1)_ and _[.Net Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0)_ for sending and receiving messages using [Fiks IO](//ks-no.github.io/fiks-platform/tjenester/fiksio/).
+This is a .NET library compatible with _[.NET 10](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview)_, _[.Net Standard 2.1](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1)_ and _[.Net Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0)_ for sending and receiving messages using [Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/).
 
 Fiks IO is a messaging system for the public sector in Norway. [About Fiks IO (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)
 
@@ -40,7 +40,7 @@ Connecting to Fiks-IO and RabbitMQ for subscription is costly and can hurt the R
 We recommend reading through the RabbitMQ documentation on [connections](https://www.rabbitmq.com/connections.html) and [connections lifecycle](https://www.rabbitmq.com/connections.html#lifecycle).
 
 ### Health
-The client also exposes the status of the connection to RabbitMQ through the [IsOpen()](#isopen) function. 
+The client also exposes the status of the connection to RabbitMQ through the [IsOpenAsync()](#isopenasync) method. 
 We recommend using this for monitoring the health of the client. 
 
 ### Logging
@@ -79,13 +79,13 @@ Read more in the [README.md](ExampleApplication/README.md) file for the example 
 ### Sending message
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
-meldingRequest = new MeldingRequest(
+var meldingRequest = new MeldingRequest(
     avsenderKontoId: senderId, // Sender id as Guid
     mottakerKontoId: receiverId, // Receiver id as Guid
     meldingType: messageType); // Message type as string
 
 // Sending a file
-await client.Send(meldingRequest, "c:\path\someFile.pdf");
+await client.Send(meldingRequest, @"c:\path\someFile.pdf");
 
 // Sending a string
 await client.Send(meldingRequest, "String to send", "string.txt");
@@ -97,7 +97,7 @@ await client.Send(meldingRequest, someStream, "stream.jpg");
 await client.Send(meldingRequest);
 
 // Optional: using CancellationToken
-await client.Send(meldingRequest, "c:\path\someFile.pdf", cancellationToken);
+await client.Send(meldingRequest, @"c:\path\someFile.pdf", cancellationToken);
 ```
 
 ### Receiving message
@@ -107,11 +107,11 @@ await client.Send(meldingRequest, "c:\path\someFile.pdf", cancellationToken);
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
 {
     if (fileArgs.Melding.HasPayload) // Verify that message has payload
     {
-        await fileArgs.Melding.WriteDecryptedZip("c:\path\receivedFile.zip");
+        await fileArgs.Melding.WriteDecryptedZip(@"c:\path\receivedFile.zip");
     }
 
     await fileArgs.SvarSender.AckAsync(); // Ack message if write succeeded to remove it from the queue
@@ -124,7 +124,7 @@ await client.NewSubscriptionAsync(OnReceivedMelding);
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
 {
     if (fileArgs.Melding.HasPayload) // Verify that message has payload
     {
@@ -144,13 +144,13 @@ You can reply directly to a message using the ReplySender.
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
 {
     // Process the message
 
     await fileArgs.SvarSender.Svar(/* message type */, /* message as string, path or stream */);
-    await fileArgs.SvarSender.AckAsync() // Ack message to remove it from the queue
-};
+    await fileArgs.SvarSender.AckAsync(); // Ack message to remove it from the queue
+}
 
 await client.NewSubscriptionAsync(OnReceivedMelding);
 
@@ -182,7 +182,7 @@ Using GetKonto, you can get information about a Fiks IO account, e.g. municipali
 ```csharp
 var client = await FiksIOClient.CreateAsync(configuration); // See setup of configuration below
 
-private async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
+async Task OnReceivedMelding(MottattMeldingArgs fileArgs)
 {
     var konto = await client.GetKonto(fileArgs.Melding.AvsenderKontoId);
 
@@ -224,7 +224,7 @@ _rabbitMqEventLogger = new RabbitMQEventLogger(loggerFactory, EventLevel.Informa
 // Prod config with public/private key for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -235,7 +235,7 @@ var config = FiksIOConfigurationBuilder
 // Prod config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -246,7 +246,7 @@ var config = FiksIOConfigurationBuilder
 // Prod config with maskinporten keyIdentifier
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenConfiguration(certificate, issuer, maskinPortenKeyIdentifier) // Use this overload if you have a keyIdentifier for your maskinporten certificate
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -260,7 +260,7 @@ var maskinportenKeyPair = RSA.Create();
 maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated application name, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -271,7 +271,7 @@ var config = FiksIOConfigurationBuilder
 // Test config with public/private key for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -282,7 +282,7 @@ var config = FiksIOConfigurationBuilder
 // Test config with a X509Certificate2 certificate for asice signing
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenConfiguration(certificate, issuer)
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -296,7 +296,7 @@ var maskinportenKeyPair = RSA.Create();
 maskinportenKeyPair.ImportFromPem(File.ReadAllText("maskinporten-private.pem"));
 var config = FiksIOConfigurationBuilder
                 .Init()
-                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recomended: default values will be a generated applicationname, 10 prefetch count, and keepAlive = false
+                .WithAmqpConfiguration("My unique name for this application", 1) // Optional but recommended: default values are no application name and a prefetch count of 10
                 .WithMaskinportenKeyPairConfiguration(maskinportenKeyPair, issuer, maskinportenKeyIdentifier) // maskinportenKeyIdentifier (kid) is required
                 .WithFiksIntegrasjonConfiguration(integrationId, integrationPassword)
                 .WithFiksKontoConfiguration(kontoId, privateKey) // privateKey is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account
@@ -327,21 +327,21 @@ var config = FiksIOConfiguration.CreateProdConfiguration(
     issuer: issuer, // klientid for maskinporten
     maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten
     asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
-    applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
+    applicationName: null, // Optional: use this if you want your client's activity to have a unique name in logs.
+    keyIdentifier: null // Optional: the keyIdentifier (kid) for your maskinporten certificate, if you have one
 );
 
 // Test config
 var config = FiksIOConfiguration.CreateTestConfiguration(
-    integrasjonId: integrationId,
-    integrasjonPassord: integrationPassord,
-    kontoId: kontoId,
-    privatNokkel: privatNokkel, 
+    fiksIntegrasjonId: integrationId,
+    fiksIntegrasjonPassord: integrationPassord,
+    fiksKontoId: kontoId,
+    privatNokkel: privatNokkel,
     issuer: issuer, // klientid for maskinporten
     maskinportenSertifikat: maskinportenSertifikat, // The certificate used with maskinporten as a X509Certificate2
     asiceSertifikat: asiceSertifikat, // A X509Certificate2 certificate that also contains the corresponding private-key
-    keepAlive: false, // Optional: use this if you want to use the keepAlive functionality. Default = false
-    applicationName: null // Optional: use this if you want your client's activity to have a unique name in logs.
+    applicationName: null, // Optional: use this if you want your client's activity to have a unique name in logs.
+    keyIdentifier: null // Optional: the keyIdentifier (kid) for your maskinporten certificate, if you have one
 );
 ```
 If necessary, all parameters of configuration can be set in detail.
@@ -371,14 +371,13 @@ var apiConfig = new ApiConfiguration(
                 host: "api.fiks.test.ks.no",
                 port: 443);
 
-// Optional: Use custom amqp host (i.e. for connection to test queue). 
-// Optional: Set keepAlive: true if you want the FiksIOClient to check if amqp connection is open every 5 minutes and automatically reconnect. 
-// another option to using keepAlive is to use the isOpen() method on the FiksIOClient and implement a keepalive strategy yourself 
-var amqp = new AmqpConfiguration(
+// Optional: Use custom amqp host (i.e. for connection to test queue).
+// Use the IsOpenAsync() method on the FiksIOClient if you want to monitor the connection yourself.
+var amqpConfig = new AmqpConfiguration(
                 host: "io.fiks.test.ks.no",
                 port: 5671,
                 applicationName: "my-application",
-                keepAlive: false); 
+                prefetchCount: 10); 
 
 // Configuration for Asice signing. Not optional. Either use a public/private key-pair or a X509Certificate2 that contains the corresponding private key.
 var asiceSigning = new AsiceSigningConfiguration(
@@ -388,7 +387,7 @@ var asiceSigning = new AsiceSigningConfiguration(
 // Combine all configurations
 var configuration = new FiksIOConfiguration(
                         kontoConfiguration: kontoConfig, 
-                        integrasjonConfiguration: integrationConfig, 
+                        integrasjonConfiguration: integrasjonConfig, 
                         maskinportenConfiguration: maskinportenConfig, 
                         apiConfiguration: apiConfig,  // Optional
                         amqpConfiguration: amqpConfig, // Optional
@@ -397,9 +396,9 @@ var configuration = new FiksIOConfiguration(
 
 #### Configuration setting details:
 
-##### Ampq:
-- **keepAlive**: Optional setting. Set the `keepAlive` to true if you want the client to check every 5 minutes if the amqp connection is open and automatically reconnect
-- **applicationName**: Optional but recomended. Gives the Fiks-IO queue a name that you provide. Makes it easier to identify which queue is yours from a logging and management perspective.
+##### Amqp:
+- **prefetchCount**: Optional setting. How many messages the client buffers when it subscribes to new messages. Corresponds to the AMQP QoS/prefetch size. Default is 10.
+- **applicationName**: Optional but recommended. Gives the Fiks-IO queue a name that you provide. Makes it easier to identify which queue is yours from a logging and management perspective.
 
 #### Fiks-IO Konto: 
 - **privatNokkel**: The `privatNokkel` property expects a private key in PKCS#8 format. Private key which has a PKCS#1 will cause an exception. This is the private key associated with the public key uploaded to your fiks-io/fiks-protokoll account.
@@ -479,6 +478,6 @@ By default when sending a message, the public key of the receiver will be fetche
 need to provide the public key by some other means, you can implement the IPublicKeyProvider interface, and inject it 
 when creating your client like this:
 ```csharp
-var client = new FiksIOClient(configuration, myPublicKeyProvider);
+var client = await FiksIOClient.CreateAsync(configuration, publicKeyProvider: myPublicKeyProvider);
 ```
 

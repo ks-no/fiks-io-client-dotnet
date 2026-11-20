@@ -35,7 +35,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
             return new FiksIOConfiguration(
                 amqpConfiguration: new AmqpConfiguration(AmqpConfiguration.TestHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount),
-                apiConfiguration: ApiConfiguration.CreateTestConfiguration(),
+                apiConfiguration: _apiConfiguration ?? ApiConfiguration.CreateTestConfiguration(),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
@@ -48,7 +48,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
             return new FiksIOConfiguration(
                 amqpConfiguration: new AmqpConfiguration(amqpHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount),
-                apiConfiguration: ApiConfiguration.CreateDevConfiguration(apiHost),
+                apiConfiguration: _apiConfiguration ?? ApiConfiguration.CreateDevConfiguration(apiHost),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
@@ -61,7 +61,7 @@ namespace KS.Fiks.IO.Client.Configuration
 
             return new FiksIOConfiguration(
                 amqpConfiguration: new AmqpConfiguration(AmqpConfiguration.ProdHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount),
-                apiConfiguration: ApiConfiguration.CreateProdConfiguration(),
+                apiConfiguration: _apiConfiguration ?? ApiConfiguration.CreateProdConfiguration(),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
@@ -152,8 +152,12 @@ namespace KS.Fiks.IO.Client.Configuration
             return this;
         }
 
+        /*
+         * Optional. Overrides the default API host and port for the environment you build for. The scheme is always https.
+         */
         public FiksIOConfigurationBuilder WithApiConfiguration(string hostName, int hostPort)
         {
+            _apiConfiguration = new ApiConfiguration("https", hostName, hostPort);
             return this;
         }
 
