@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>KS.Fiks.IO.ProtokollKonfigurasjon.Client</RootNamespace>
@@ -16,7 +16,7 @@
     <RepositoryUrl>https://github.com/ks-no/fiks-io-client-dotnet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>FIKS</PackageTags>
-    <VersionPrefix>7.1.1</VersionPrefix>
+    <VersionPrefix>8.0.0</VersionPrefix>
     <AssemblyVersion>7.0.0.0</AssemblyVersion>
     <FileVersion>7.0.0.0</FileVersion>
     <IncludeSymbols>true</IncludeSymbols>
@@ -48,8 +48,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Defaults to Net80 (matches TargetFramework). Override locally with /p:NSwagRuntime=Net100 on .NET 10-only machines. -->
-    <NSwagRuntime Condition="'$(NSwagRuntime)' == ''">Net80</NSwagRuntime>
+    <!-- Defaults to Net100 (matches TargetFramework). Override with /p:NSwagRuntime=Net80 or Net90 if needed. -->
+    <NSwagRuntime Condition="'$(NSwagRuntime)' == ''">Net100</NSwagRuntime>
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net80'">$(NSwagExe_Net80)</_NSwagCommand>
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net90'">$(NSwagExe_Net90)</_NSwagCommand>
     <_NSwagCommand Condition="'$(NSwagRuntime)' == 'Net100'">$(NSwagExe_Net100)</_NSwagCommand>
@@ -59,8 +59,7 @@
       concurrent writers replace a file without erroring, which is why that went unnoticed
       on Linux; Windows takes an exclusive lock and fails with "The process cannot access
       the file ... because it is being used by another process." Serializing this project's
-      own inner builds is not enough: a referencing multi-targeted project (the test project
-      targets net8.0 and net10.0) resolves the ProjectReference by invoking this project's
+      own inner builds is not enough: a referencing multi-targeted project (e.g. the test project) resolves the ProjectReference by invoking this project's
       inner build directly with TargetFramework as a global property, which bypasses the
       cross-targeting outer build entirely. Give each TargetFramework its own output path
       instead - $(IntermediateOutputPath) is already per-configuration and per-framework -
