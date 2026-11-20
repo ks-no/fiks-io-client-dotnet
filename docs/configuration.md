@@ -138,7 +138,7 @@ var configuration = new FiksIOConfiguration(
     amqpConfiguration: amqpConfiguration);
 ```
 
-Always pass both `apiConfiguration` and `amqpConfiguration` to the constructor. If you leave out `apiConfiguration`, the API defaults to production. If you leave out `amqpConfiguration`, the AMQP host is set to the API host, which is not an AMQP server.
+If you leave out `apiConfiguration`, the API defaults to production. If you leave out `amqpConfiguration`, the AMQP host follows the API host: the production API gives `io.fiks.ks.no`, and the test API gives `io.fiks.test.ks.no`. For any other API host, the client cannot know the AMQP host, so pass `amqpConfiguration` yourself.
 
 The namespaces are:
 
