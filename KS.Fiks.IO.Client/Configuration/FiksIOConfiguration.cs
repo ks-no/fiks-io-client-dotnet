@@ -40,7 +40,7 @@ namespace KS.Fiks.IO.Client.Configuration
             MaskinportenConfiguration = maskinportenConfiguration;
             AsiceSigningConfiguration = asiceSigningConfiguration;
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
-            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
+            AmqpConfiguration = amqpConfiguration ?? CreateDefaultAmqpConfiguration(ApiConfiguration);
             KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
             DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
@@ -65,7 +65,7 @@ namespace KS.Fiks.IO.Client.Configuration
             IntegrasjonConfiguration = integrasjonConfiguration;
             AsiceSigningConfiguration = asiceSigningConfiguration;
             ApiConfiguration = apiConfiguration ?? new ApiConfiguration();
-            AmqpConfiguration = amqpConfiguration ?? new AmqpConfiguration(ApiConfiguration.Host);
+            AmqpConfiguration = amqpConfiguration ?? CreateDefaultAmqpConfiguration(ApiConfiguration);
             KatalogConfiguration = katalogConfiguration ?? new KatalogConfiguration(ApiConfiguration);
             DokumentlagerConfiguration = dokumentlagerConfiguration ?? new DokumentlagerConfiguration(ApiConfiguration);
             FiksIOSenderConfiguration = fiksIOSenderConfiguration ?? new FiksIOSenderConfiguration(
@@ -143,6 +143,27 @@ namespace KS.Fiks.IO.Client.Configuration
                 numberOfSecondsLeftBeforeExpire: 10,
                 certificate: certificate,
                 keyIdentifier: keyIdentifier);
+        }
+
+        /*
+         * Used when no AmqpConfiguration is given. The AMQP host is derived from the API host for the known
+         * Fiks environments. For any other API host there is no known AMQP host, so the API host is kept as before.
+         */
+        private static AmqpConfiguration CreateDefaultAmqpConfiguration(ApiConfiguration apiConfiguration)
+        {
+            var apiHost = apiConfiguration.Host;
+
+            if (string.Equals(apiHost, ApiConfiguration.ProdHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return new AmqpConfiguration(AmqpConfiguration.ProdHost);
+            }
+
+            if (string.Equals(apiHost, ApiConfiguration.TestHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return new AmqpConfiguration(AmqpConfiguration.TestHost);
+            }
+
+            return new AmqpConfiguration(apiHost);
         }
     }
 }

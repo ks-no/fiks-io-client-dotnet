@@ -391,5 +391,100 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
             Assert.Throws<ArgumentException>(() =>
                 new KontoConfiguration(Guid.NewGuid(), Enumerable.Empty<string>()));
         }
+
+        [Fact]
+        public void TestConfigurationWithApiConfigurationUsesGivenHostAndPort()
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .WithApiConfiguration("api.example.local", 8443)
+                .BuildTestConfiguration();
+
+            configuration.ApiConfiguration.Scheme.ShouldBe("https");
+            configuration.ApiConfiguration.Host.ShouldBe("api.example.local");
+            configuration.ApiConfiguration.Port.ShouldBe(8443);
+            configuration.AmqpConfiguration.Host.ShouldBe(AmqpConfiguration.TestHost);
+        }
+
+        [Fact]
+        public void ProdConfigurationWithApiConfigurationUsesGivenHostAndPort()
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .WithApiConfiguration("api.example.local", 8443)
+                .BuildProdConfiguration();
+
+            configuration.ApiConfiguration.Host.ShouldBe("api.example.local");
+            configuration.ApiConfiguration.Port.ShouldBe(8443);
+            configuration.AmqpConfiguration.Host.ShouldBe(AmqpConfiguration.ProdHost);
+        }
+
+        [Fact]
+        public void DevConfigurationWithApiConfigurationUsesApiHostArgumentAndGivenPort()
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .WithApiConfiguration("api.other.local", 8443)
+                .BuildDevConfiguration("amqp.example.local", "api.dev.local");
+
+            configuration.ApiConfiguration.Scheme.ShouldBe("https");
+            configuration.ApiConfiguration.Host.ShouldBe("api.dev.local");
+            configuration.ApiConfiguration.Port.ShouldBe(8443);
+            configuration.AmqpConfiguration.Host.ShouldBe("amqp.example.local");
+        }
+
+        [Fact]
+        public void DevConfigurationWithoutApiConfigurationUsesApiHostArgumentAndDefaultPort()
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .BuildDevConfiguration("amqp.example.local", "api.dev.local");
+
+            configuration.ApiConfiguration.Scheme.ShouldBe("https");
+            configuration.ApiConfiguration.Host.ShouldBe("api.dev.local");
+            configuration.ApiConfiguration.Port.ShouldBe(443);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void WithApiConfigurationThrowsWhenHostIsMissing(string? hostName)
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                FiksIOConfigurationBuilder.Init().WithApiConfiguration(hostName!, 443));
+
+            exception.ParamName.ShouldBe("hostName");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(65536)]
+        public void WithApiConfigurationThrowsWhenPortIsOutOfRange(int hostPort)
+        {
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+                FiksIOConfigurationBuilder.Init().WithApiConfiguration("api.example.local", hostPort));
+
+            exception.ParamName.ShouldBe("hostPort");
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(65535)]
+        public void WithApiConfigurationAcceptsPortsAtTheLimits(int hostPort)
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .WithApiConfiguration("api.example.local", hostPort)
+                .BuildTestConfiguration();
+
+            configuration.ApiConfiguration.Port.ShouldBe(hostPort);
+        }
+
+        private static FiksIOConfigurationBuilder CreateBuilderWithRequiredConfigurations()
+        {
+            return FiksIOConfigurationBuilder
+                .Init()
+                .WithMaskinportenConfiguration(new X509Certificate2(), "test-issuer")
+                .WithAsiceSigningConfiguration(new X509Certificate2())
+                .WithFiksIntegrasjonConfiguration(Guid.NewGuid(), "passord")
+                .WithFiksKontoConfiguration(Guid.NewGuid(), "liksom-en-private-key");
+        }
     }
 }
