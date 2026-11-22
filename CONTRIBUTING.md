@@ -46,6 +46,7 @@ GitHub Actions builds and tests every push. Releases are built and published to 
 
 ## Documentation
 
+- Add user-visible changes to [CHANGELOG.md](CHANGELOG.md), under the version that is not yet released. Mark breaking changes, and update the migration guide in `docs/` when users must change their code.
 - The README is also shown on nuget.org. Keep it short, and put details in `docs/`.
 - Each page in `docs/` has one purpose: a tutorial, a how-to, a reference or an explanation. See [docs/README.md](docs/README.md).
 - Code examples must compile against the current version. Check them in a small console project that references `KS.Fiks.IO.Client/KS.Fiks.IO.Client.csproj`.

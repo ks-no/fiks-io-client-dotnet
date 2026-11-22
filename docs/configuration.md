@@ -33,10 +33,10 @@ var client = await FiksIOClient.CreateAsync(configuration);
 | `WithAsiceSigningConfiguration(publicCertPath, privateKeyPath)` | One of the ASiC-E methods | Sign with a key pair. Takes **file paths** |
 | `WithAsiceSigningConfiguration(certificate)` | | Sign with an `X509Certificate2` that contains the private key |
 | `WithAmqpConfiguration(applicationName, prefetchCount)` | No, but recommended | See [AMQP](#amqp) |
-| `WithApiConfiguration(host, port)` | No | Overrides the API host and port. The scheme is always `https` |
+| `WithApiConfiguration(host, port)` | No | Overrides the API host and port. The scheme is always `https`. Throws `ArgumentException` if the host is empty, and `ArgumentOutOfRangeException` if the port is not between 1 and 65535 |
 | `BuildProdConfiguration()` | | Builds for production |
 | `BuildTestConfiguration()` | | Builds for the test environment |
-| `BuildDevConfiguration(amqpHost, apiHost)` | | Builds with your own AMQP and API hosts, and Maskinporten test. If you also call `WithApiConfiguration`, it overrides `apiHost` |
+| `BuildDevConfiguration(amqpHost, apiHost)` | | Builds with your own AMQP and API hosts, and Maskinporten test. The `apiHost` argument always decides the API host. If you also call `WithApiConfiguration`, only its port is used |
 
 The build methods throw `ArgumentException` if a required part is missing, if you set both a Maskinporten certificate and a key pair, or if you use a key pair without `keyIdentifier`.
 

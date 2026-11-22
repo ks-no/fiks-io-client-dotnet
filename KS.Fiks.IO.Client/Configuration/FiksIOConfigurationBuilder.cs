@@ -42,13 +42,20 @@ namespace KS.Fiks.IO.Client.Configuration
                 maskinportenConfiguration: CreateMaskinportenTestConfiguration());
         }
 
+        /*
+         * The apiHost argument always decides the API host. If WithApiConfiguration( ... ) was called, only its port is used.
+         */
         public FiksIOConfiguration BuildDevConfiguration(string amqpHost, string apiHost)
         {
             ValidateConfigurations();
 
+            var devApiConfiguration = ApiConfiguration.CreateDevConfiguration(apiHost);
+
             return new FiksIOConfiguration(
                 amqpConfiguration: new AmqpConfiguration(amqpHost, applicationName: amqpApplicationName, prefetchCount: amqpPrefetchCount),
-                apiConfiguration: _apiConfiguration ?? ApiConfiguration.CreateDevConfiguration(apiHost),
+                apiConfiguration: _apiConfiguration == null
+                    ? devApiConfiguration
+                    : new ApiConfiguration(devApiConfiguration.Scheme, devApiConfiguration.Host, _apiConfiguration.Port),
                 asiceSigningConfiguration: _asiceSigningConfiguration,
                 integrasjonConfiguration: _integrasjonConfiguration,
                 kontoConfiguration: _kontoConfiguration,
@@ -154,9 +161,20 @@ namespace KS.Fiks.IO.Client.Configuration
 
         /*
          * Optional. Overrides the default API host and port for the environment you build for. The scheme is always https.
+         * With BuildDevConfiguration( ... ), the apiHost argument decides the host and only the port from here is used.
          */
         public FiksIOConfigurationBuilder WithApiConfiguration(string hostName, int hostPort)
         {
+            if (string.IsNullOrWhiteSpace(hostName))
+            {
+                throw new ArgumentException("API host name must not be null or whitespace.", nameof(hostName));
+            }
+
+            if (hostPort < 1 || hostPort > 65535)
+            {
+                throw new ArgumentOutOfRangeException(nameof(hostPort), hostPort, "API port must be between 1 and 65535.");
+            }
+
             _apiConfiguration = new ApiConfiguration("https", hostName, hostPort);
             return this;
         }

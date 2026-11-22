@@ -5,6 +5,8 @@
 
 A .NET client for sending and receiving messages through [Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/), the messaging service for the Norwegian public sector, and [Fiks Protokoll](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/), which runs on top of it.
 
+Upgrading from 7.x? See the [migration guide](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/migrating-to-v8.md) and the [changelog](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/CHANGELOG.md).
+
 ## What you can do
 
 The client handles Maskinporten authentication, encryption, signing and the Fiks IO headers for you. With it you can:
@@ -116,10 +118,12 @@ See [Concepts](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/con
 - [Automatic public key sync](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/automatic-public-key-sync.md)
 - [Running in production](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/operations.md)
 - [Troubleshooting](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/troubleshooting.md)
+- [Migrating from 7.x to 8.0](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/docs/migrating-to-v8.md)
+- [Changelog](https://github.com/ks-no/fiks-io-client-dotnet/blob/main/CHANGELOG.md)
 
 ### Supported platforms
 
-The package targets `net10.0`, `netstandard2.1` and `netstandard2.0`. The NuGet package is signed with a KS certificate, and the assemblies are [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
+The package targets `net10.0`, `netstandard2.1` and `netstandard2.0`. The NuGet package is signed with a KS Digital certificate, and the assemblies are [strong-named](https://learn.microsoft.com/en-us/dotnet/standard/assembly/strong-named).
 
 ### Related packages
 

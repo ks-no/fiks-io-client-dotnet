@@ -153,12 +153,12 @@ namespace KS.Fiks.IO.Client.Configuration
         {
             var apiHost = apiConfiguration.Host;
 
-            if (string.Equals(apiHost, ApiConfiguration.CreateProdConfiguration().Host, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(apiHost, ApiConfiguration.ProdHost, StringComparison.OrdinalIgnoreCase))
             {
                 return new AmqpConfiguration(AmqpConfiguration.ProdHost);
             }
 
-            if (string.Equals(apiHost, ApiConfiguration.CreateTestConfiguration().Host, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(apiHost, ApiConfiguration.TestHost, StringComparison.OrdinalIgnoreCase))
             {
                 return new AmqpConfiguration(AmqpConfiguration.TestHost);
             }

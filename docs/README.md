@@ -14,6 +14,7 @@ Documentation for [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.
 - [Keys and signing](keys-and-signing.md): create the account key, set up ASiC-E signing, and provide public keys yourself
 - [Running in production](operations.md): client lifetime, health checks, logging and shutdown
 - [Troubleshooting](troubleshooting.md): common errors and how to fix them
+- [Migrating from 7.x to 8.0](migrating-to-v8.md): what changed in 8.0, and what to do when you upgrade
 
 ## Reference
 
@@ -24,5 +25,6 @@ Documentation for [KS.Fiks.IO.Client](https://www.nuget.org/packages/KS.Fiks.IO.
 
 - [Example application](../ExampleApplication/README.md): a console application that sends, receives and replies
 - [KS.Fiks.IO.ProtokollKonfigurasjon.Client](../KS.Fiks.IO.ProtokollKonfigurasjon.Client/README.md): create and manage Fiks Protokoll accounts
+- [Changelog](../CHANGELOG.md): changes in each version
 - [Contributing](../CONTRIBUTING.md): build and test the library
 - [Fiks IO on the Fiks platform (Norwegian)](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/)

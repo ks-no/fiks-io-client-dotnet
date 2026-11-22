@@ -63,13 +63,13 @@ The application reads `appsettings.json` and then `appsettings.Test.json` from t
 | `MaskinPortenCompanyCertificatePassword` | Password for the certificate |
 | `AsiceSigningPublicKey` | Path to the public certificate for ASiC-E signing |
 | `AsiceSigningPrivateKey` | Path to the private key for ASiC-E signing |
-| `ApiHost` | API host. Default `api.fiks.test.ks.no` |
-| `ApiPort` | API port. Default `443` |
-| `ApiScheme` | API scheme, used by the account management keys. Default `https` |
+| `ApiHost` | Host for the Fiks Protokoll Konfigurasjon API, used by the account management keys (N, C, V, R). Default `api.fiks.test.ks.no` |
+| `ApiPort` | Port for the same API. Default `443` |
+| `ApiScheme` | Scheme for the same API. Default `https` |
 | `SystemId` | The system that will own the account created with N. Find it under your organisation in FIKS-Konfigurasjon ([test](https://forvaltning.fiks.test.ks.no/fiks-konfigurasjon/)). The organisation is read from the account given by `FiksIoAccountId` |
 | `ProtokollPublicKey` | Optional. Path to a public certificate to register on the account created with N |
 
-`appsettings.json` also has the settings `AmqpHost`, `AmqpPort`, `FiksIoIntegrationScope`, `MaskinPortenAudienceUrl`, `MaskinPortenTokenUrl` and `MaskinPortenCompanyCertificateThumbprint`. The application does not use them: the client builder sets these values for the test environment. `MaskinPortenKeyIdentifier` is read, but not used.
+`ApiHost`, `ApiPort` and `ApiScheme` do not affect `FiksIOClient`. You do not configure its API host, AMQP host, Maskinporten endpoints or integration scope: `BuildTestConfiguration()` sets them for the test environment, see [Default values per environment](../docs/configuration.md#default-values-per-environment).
 
 ## Where in the code
 

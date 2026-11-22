@@ -418,15 +418,63 @@ namespace KS.Fiks.IO.Client.Tests.Configuration
         }
 
         [Fact]
-        public void DevConfigurationWithApiConfigurationUsesGivenHostAndPort()
+        public void DevConfigurationWithApiConfigurationUsesApiHostArgumentAndGivenPort()
         {
             var configuration = CreateBuilderWithRequiredConfigurations()
-                .WithApiConfiguration("api.example.local", 8443)
-                .BuildDevConfiguration("amqp.example.local", "ignored.example.local");
+                .WithApiConfiguration("api.other.local", 8443)
+                .BuildDevConfiguration("amqp.example.local", "api.dev.local");
 
-            configuration.ApiConfiguration.Host.ShouldBe("api.example.local");
+            configuration.ApiConfiguration.Scheme.ShouldBe("https");
+            configuration.ApiConfiguration.Host.ShouldBe("api.dev.local");
             configuration.ApiConfiguration.Port.ShouldBe(8443);
             configuration.AmqpConfiguration.Host.ShouldBe("amqp.example.local");
+        }
+
+        [Fact]
+        public void DevConfigurationWithoutApiConfigurationUsesApiHostArgumentAndDefaultPort()
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .BuildDevConfiguration("amqp.example.local", "api.dev.local");
+
+            configuration.ApiConfiguration.Scheme.ShouldBe("https");
+            configuration.ApiConfiguration.Host.ShouldBe("api.dev.local");
+            configuration.ApiConfiguration.Port.ShouldBe(443);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void WithApiConfigurationThrowsWhenHostIsMissing(string? hostName)
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                FiksIOConfigurationBuilder.Init().WithApiConfiguration(hostName!, 443));
+
+            exception.ParamName.ShouldBe("hostName");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(65536)]
+        public void WithApiConfigurationThrowsWhenPortIsOutOfRange(int hostPort)
+        {
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+                FiksIOConfigurationBuilder.Init().WithApiConfiguration("api.example.local", hostPort));
+
+            exception.ParamName.ShouldBe("hostPort");
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(65535)]
+        public void WithApiConfigurationAcceptsPortsAtTheLimits(int hostPort)
+        {
+            var configuration = CreateBuilderWithRequiredConfigurations()
+                .WithApiConfiguration("api.example.local", hostPort)
+                .BuildTestConfiguration();
+
+            configuration.ApiConfiguration.Port.ShouldBe(hostPort);
         }
 
         private static FiksIOConfigurationBuilder CreateBuilderWithRequiredConfigurations()

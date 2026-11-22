@@ -4,7 +4,7 @@ This page explains the parts of Fiks IO you meet when you use this client, and h
 
 ## Fiks IO and Fiks Protokoll
 
-[Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/) is a messaging service for the public sector in Norway, run by KS. A system sends a message to an account, and the system that owns the account receives it. Fiks IO is also the transport for [Fiks Protokoll](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/), where the message types and payloads follow a published protocol such as Fiks Arkiv or Fiks Plan.
+[Fiks IO](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/fiksio/) is a messaging service for the public sector in Norway, run by KS Digital. A system sends a message to an account, and the system that owns the account receives it. Fiks IO is also the transport for [Fiks Protokoll](https://ks-no.github.io/fiks-plattform/tjenester/fiksprotokoll/), where the message types and payloads follow a published protocol such as Fiks Arkiv or Fiks Plan.
 
 The client hides the transport details:
 
