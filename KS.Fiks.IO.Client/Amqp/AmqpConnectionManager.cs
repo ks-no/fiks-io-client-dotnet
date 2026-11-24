@@ -95,7 +95,7 @@ namespace KS.Fiks.IO.Client.Amqp
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to create connection to {Host}:{Port} for integration {_integrationId} with application {ApplicationName}", configuration.Host, configuration.Port, _integrasjonId, configuration.ApplicationName);
+                _logger?.LogError(ex, "Failed to create connection to {Host}:{Port} for integration {IntegrationId} with application {ApplicationName}", configuration.Host, configuration.Port, _integrasjonId, configuration.ApplicationName);
                 throw new FiksIOAmqpConnectionFailedException($"Failed to create connection to {configuration.Host}:{configuration.Port} for integration {_integrasjonId} with application {configuration.ApplicationName}", ex);
             }
         }
